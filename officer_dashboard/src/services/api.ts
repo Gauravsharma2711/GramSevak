@@ -12,6 +12,10 @@
 import {
   PanchayatItem,
   PanchayatPagination,
+  DistrictItem,
+  BlockItem,
+  BlockPanchayatItem,
+  BlockPanchayatPagination,
   AdvisoryItem,
   OfficerApprovePayload,
   OfficerRejectPayload,
@@ -165,6 +169,80 @@ export class ApiService {
           throw new Error(`Panchayat with ID ${panchayatId} not found.`);
         }
         return found;
+      }
+    );
+  }
+
+  /**
+   * List all administrative Districts (GET /api/v1/districts)
+   */
+  static async getDistricts(): Promise<DistrictItem[]> {
+    return this.request<DistrictItem[]>(
+      '/districts',
+      { method: 'GET' },
+      () => [
+        { id: 1, name: 'Nashik', state: 'Maharashtra' },
+        { id: 4, name: 'Pune', state: 'Maharashtra' },
+      ]
+    );
+  }
+
+  /**
+   * List blocks for a specific District (GET /api/v1/districts/{district_id}/blocks)
+   */
+  static async getDistrictBlocks(districtId: number): Promise<BlockItem[]> {
+    return this.request<BlockItem[]>(
+      `/districts/${districtId}/blocks`,
+      { method: 'GET' },
+      () => [
+        { id: 1, district_id: districtId, name: 'Baglan' },
+        { id: 2, district_id: districtId, name: 'Dindori' },
+        { id: 3, district_id: districtId, name: 'Surgana' },
+        { id: 4, district_id: districtId, name: 'Igatpuri' },
+        { id: 5, district_id: districtId, name: 'Kalwan' },
+        { id: 6, district_id: districtId, name: 'Niphad' },
+        { id: 7, district_id: districtId, name: 'Sinnar' },
+      ]
+    );
+  }
+
+  /**
+   * List Panchayats for a specific block with pagination & search (GET /api/v1/blocks/{block_id}/panchayats)
+   */
+  static async getBlockPanchayats(
+    blockId: number,
+    search?: string,
+    page: number = 1,
+    pageSize: number = 50
+  ): Promise<BlockPanchayatPagination> {
+    const params = new URLSearchParams();
+    if (search) params.append('search', search);
+    params.append('page', String(page));
+    params.append('page_size', String(pageSize));
+
+    return this.request<BlockPanchayatPagination>(
+      `/blocks/${blockId}/panchayats?${params.toString()}`,
+      { method: 'GET' },
+      () => {
+        const filtered = MOCK_PANCHAYATS.map((p) => ({
+          id: p.panchayat_id,
+          lgd_code: p.lgd_code,
+          name: p.panchayat_name,
+          block_id: blockId,
+          district_id: 1,
+          latitude: p.latitude,
+          longitude: p.longitude,
+          elevation_m: p.elevation_m,
+          panchayat_id: p.panchayat_id,
+          panchayat_name: p.panchayat_name,
+        }));
+        return {
+          total: filtered.length,
+          page,
+          page_size: pageSize,
+          total_pages: 1,
+          items: filtered,
+        };
       }
     );
   }

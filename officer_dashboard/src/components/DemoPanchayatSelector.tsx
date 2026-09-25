@@ -90,7 +90,44 @@ export const DemoPanchayatSelector: React.FC<DemoPanchayatSelectorProps> = ({
 
   const activePanchayat = panchayats.find((p) => p.panchayat_id === selectedPanchayatId);
 
-  const availableBlocks = ['ALL', 'Baglan', 'Dindori', 'Surgana', 'Igatpuri', 'Kalwan', 'Niphad', 'Sinnar'];
+  const [blocks, setBlocks] = useState<string[]>([
+    'ALL',
+    'Baglan',
+    'Chandwad',
+    'Deola',
+    'Dindori',
+    'Igatpuri',
+    'Kalwan',
+    'Malegaon',
+    'Nandgaon',
+    'Nashik',
+    'Niphad',
+    'Peint',
+    'Sinnar',
+    'Surgana',
+    'Trimbakeshwar',
+    'Yevla',
+  ]);
+
+  // Dynamically load blocks from the backend hierarchical API
+  useEffect(() => {
+    let isCancelled = false;
+    ApiService.getDistrictBlocks(1)
+      .then((blockList) => {
+        if (!isCancelled && blockList && blockList.length > 0) {
+          const names = blockList.map((b) => b.name).sort();
+          setBlocks(['ALL', ...names]);
+        }
+      })
+      .catch((err) => {
+        console.warn('[Demo Selector] Dynamic block loading failed, using complete registry fallback:', err);
+      });
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
+
+  const availableBlocks = blocks;
 
   return (
     <div ref={containerRef} style={{ position: 'relative' }} className={className}>

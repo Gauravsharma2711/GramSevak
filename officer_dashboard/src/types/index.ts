@@ -17,6 +17,39 @@ export interface PanchayatPagination {
   items: PanchayatItem[];
 }
 
+export interface DistrictItem {
+  id: number;
+  name: string;
+  state?: string;
+}
+
+export interface BlockItem {
+  id: number;
+  district_id: number;
+  name: string;
+}
+
+export interface BlockPanchayatItem {
+  id: number;
+  lgd_code: number;
+  name: string;
+  block_id: number;
+  district_id: number;
+  latitude?: number;
+  longitude?: number;
+  elevation_m?: number;
+  panchayat_id?: number;
+  panchayat_name?: string;
+}
+
+export interface BlockPanchayatPagination {
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+  items: BlockPanchayatItem[];
+}
+
 export interface AdvisoryItem {
   id: number;
   panchayat_id: number;

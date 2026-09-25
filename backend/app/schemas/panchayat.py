@@ -60,9 +60,13 @@ class PanchayatItem(BaseModel):
 class PanchayatDetailResponse(PanchayatItem):
     """
     Response schema for a single Gram Panchayat detail lookup.
-    Inherits all core metadata fields from PanchayatItem.
+    Inherits all core metadata fields from PanchayatItem and provides
+    hierarchical IDs for backward and forward compatibility.
     """
-    pass
+    id: Optional[int] = Field(None, description="Hierarchical Panchayat ID (matches panchayat_id)")
+    name: Optional[str] = Field(None, description="Hierarchical Panchayat Name (matches panchayat_name)")
+    block_id: Optional[int] = Field(None, description="Parent Block ID")
+    district_id: Optional[int] = Field(None, description="Parent District ID")
 
 
 class PanchayatPagination(BaseModel):
@@ -109,4 +113,36 @@ class BlockItem(BaseModel):
     id: int = Field(..., description="Unique Block identifier", examples=[1])
     district_id: int = Field(..., description="Parent District identifier", examples=[1])
     name: str = Field(..., description="Block Name", examples=["Baglan", "Haveli"])
+
+
+class BlockPanchayatItem(BaseModel):
+    """
+    Canonical hierarchical Panchayat item representing a single Gram Panchayat
+    belonging to an administrative Block and District.
+    """
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int = Field(..., description="Unique Panchayat identifier", examples=[1001])
+    lgd_code: int = Field(..., description="Official Local Government Directory (LGD) Panchayat Code", examples=[182597])
+    name: str = Field(..., description="Name of the Gram Panchayat", examples=["Ajmer Saundane"])
+    block_id: int = Field(..., description="Administrative Block identifier", examples=[1])
+    district_id: int = Field(..., description="Administrative District identifier", examples=[1])
+    latitude: Optional[float] = Field(None, description="Geographical latitude in decimal degrees (WGS84)", examples=[20.6385])
+    longitude: Optional[float] = Field(None, description="Geographical longitude in decimal degrees (WGS84)", examples=[74.1201])
+    elevation_m: Optional[float] = Field(None, description="Elevation above mean sea level in meters", examples=[585.0])
+
+    # Backward compatibility aliases for existing frontend / Flutter consumers
+    panchayat_id: Optional[int] = Field(None, description="Legacy alias for id")
+    panchayat_name: Optional[str] = Field(None, description="Legacy alias for name")
+
+
+class BlockPanchayatPagination(BaseModel):
+    """
+    Paginated envelope for hierarchical Block Panchayats retrieval.
+    """
+    total: int = Field(..., description="Total number of Panchayats matching the criteria", examples=[1388])
+    page: int = Field(..., description="Current page number (1-indexed)", examples=[1])
+    page_size: int = Field(..., description="Number of items per page", examples=[50])
+    total_pages: int = Field(..., description="Total number of available pages", examples=[28])
+    items: List[BlockPanchayatItem] = Field(..., description="List of Panchayats for the current page")
 

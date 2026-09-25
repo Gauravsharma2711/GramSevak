@@ -21,6 +21,7 @@ from backend.app.core.logging import (
 )
 from backend.app.models.downscaled_forecast import DownscaledForecast
 from backend.app.models.panchayat_weather import PanchayatWeatherData
+from backend.app.models.panchayat import Panchayat
 from backend.app.schemas.forecast import (
     ForecastGenerateRequest,
     ForecastGenerateResponse,
@@ -301,36 +302,43 @@ def get_panchayat_forecast(
         forecast_date=forecast_date or "LATEST",
     )
 
-    # 1. Resolve Panchayat metadata
+    # 1. Resolve Panchayat metadata dynamically from normalized hierarchy
     panchayat_name = f"Panchayat-{panchayat_id}"
     block_name = "Unknown"
-    district_name = "Nashik"
+    district_name = "Unknown"
 
-    p_row = (
-        db.query(
-            PanchayatWeatherData.panchayat_name,
-            PanchayatWeatherData.block_name,
-            PanchayatWeatherData.district_name,
+    p_norm = db.query(Panchayat).filter(Panchayat.id == panchayat_id).first()
+    if p_norm is not None:
+        panchayat_name = str(p_norm.name or panchayat_name)
+        if p_norm.block is not None:
+            block_name = str(p_norm.block.name or block_name)
+        if p_norm.district is not None:
+            district_name = str(p_norm.district.name or district_name)
+    else:
+        p_row = (
+            db.query(
+                PanchayatWeatherData.panchayat_name,
+                PanchayatWeatherData.block_name,
+                PanchayatWeatherData.district_name,
+            )
+            .filter(PanchayatWeatherData.panchayat_id == panchayat_id)
+            .first()
         )
-        .filter(PanchayatWeatherData.panchayat_id == panchayat_id)
-        .first()
-    )
-
-    if p_row is not None:
-        panchayat_name = str(p_row.panchayat_name or panchayat_name)
-        block_name = str(p_row.block_name or block_name)
-        district_name = str(p_row.district_name or district_name)
-    elif PROCESSED_DATA_PATH.exists():
-        try:
-            df = pd.read_csv(PROCESSED_DATA_PATH)
-            match = df[df["panchayat_id"] == panchayat_id]
-            if not match.empty:
-                r = match.iloc[0]
-                panchayat_name = str(r.get("panchayat_name", panchayat_name))
-                block_name = str(r.get("block_name", block_name))
-                district_name = str(r.get("district_name", district_name))
-        except Exception:
-            pass
+        if p_row is not None:
+            panchayat_name = str(p_row.panchayat_name or panchayat_name)
+            block_name = str(p_row.block_name or block_name)
+            district_name = str(p_row.district_name or district_name)
+        elif PROCESSED_DATA_PATH.exists():
+            try:
+                df = pd.read_csv(PROCESSED_DATA_PATH)
+                match = df[df["panchayat_id"] == panchayat_id]
+                if not match.empty:
+                    r = match.iloc[0]
+                    panchayat_name = str(r.get("panchayat_name", panchayat_name))
+                    block_name = str(r.get("block_name", block_name))
+                    district_name = str(r.get("district_name", district_name))
+            except Exception:
+                pass
 
     # 2. Query downscaled_forecasts table
     query = db.query(DownscaledForecast).filter(DownscaledForecast.panchayat_id == panchayat_id)
