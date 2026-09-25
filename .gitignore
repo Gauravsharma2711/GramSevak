@@ -94,6 +94,10 @@ Thumbs.db
 !ml/models/random_forest_preprocessor.joblib
 !ml/models/xgboost_model.joblib
 !ml/models/*.json
+!ml/models/random_forest/*.joblib
+!ml/models/random_forest/*.json
+!ml/models/xgboost/*.joblib
+!ml/models/xgboost/*.json
 
 # Android APK / AAB Mobile Build Artifacts
 *.apk

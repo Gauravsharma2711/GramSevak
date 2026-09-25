@@ -1,0 +1,4 @@
+series,column_name,total_observations,zero_observations_count,zero_percentage,nonzero_observations_count,nonzero_percentage,minimum_mm,maximum_mm,median_mm,mean_mm,std_mm,p25_mm,p75_mm,iqr_mm
+Actual Ground Rainfall,actual_rainfall_mm,29586,2676,9.04,26910,90.96,0.0,45.2,1.9,3.0929,4.402,1.3,2.2,0.9
+IMD Block Forecast,block_forecast_rainfall_mm,29586,0,0.0,29586,100.0,2.0,40.0,5.6,5.8388,1.4777,5.0,6.3,1.3
+Selected Model Prediction,predicted_rainfall_mm,29586,0,0.0,29586,100.0,3.7,4.186,4.186,4.1854,0.0169,4.186,4.186,0.0

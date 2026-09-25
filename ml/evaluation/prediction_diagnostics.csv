@@ -1,0 +1,61 @@
+diagnostic_type,panchayat_name,block_name,date,block_forecast_rainfall_mm,predicted_rainfall_mm,actual_rainfall_mm,absolute_error
+random_sample,Bhoini,Mulshi,2026-09-06,5.4,4.186,1.9,2.286
+random_sample,Tekpole Group,Velhe,2026-09-18,4.4,4.186,0.4,3.786
+random_sample,Rangoan,Indapur,2026-09-02,5.6,4.186,1.9,2.286
+random_sample,Loni,Ambegaon,2026-09-08,5.5,4.186,1.5,2.686
+random_sample,Rawadewadi,Shirur,2026-09-20,6.7,4.186,1.9,2.286
+random_sample,Sakurdi,Khed,2026-09-06,5.4,4.186,1.9,2.286
+random_sample,Walunjwadi,Ambegaon,2026-09-05,5.2,4.186,1.9,2.286
+random_sample,Bhadas Bk.,Mulshi,2026-09-22,6.1,4.186,18.4,14.214
+random_sample,Andeshe,Mulshi,2026-09-09,6.2,4.186,1.9,2.286
+random_sample,Manchar,Ambegaon,2026-09-09,6.2,4.186,1.9,2.286
+random_sample,Nanekarwadi,Khed,2026-09-16,5.4,4.186,0.6,3.586
+random_sample,Pimpalgaon T. Khed,Khed,2026-09-06,5.4,4.186,1.9,2.286
+random_sample,Ambe,Junnar,2026-09-05,5.2,4.186,1.9,2.286
+random_sample,Salav,Bhor,2026-09-07,4.3,4.186,2.1,2.086
+random_sample,Gauddara,Haveli,2026-09-12,6.0,4.186,0.0,4.186
+random_sample,Bharatgaon,Daund,2026-09-10,4.3,4.186,0.1,4.086
+random_sample,Pimparipendhar,Junnar,2026-09-09,6.2,4.186,1.9,2.286
+random_sample,Walad,Khed,2026-09-09,6.2,4.186,1.9,2.286
+random_sample,Hivare Kh.,Junnar,2026-09-09,6.2,4.186,1.9,2.286
+random_sample,Takawe Kh.,Maval,2026-09-13,5.0,4.186,2.3,1.886
+best_predictions,Chinchbaiwadi,Khed,2026-09-03,7.4,4.186,4.0,0.186
+best_predictions,Urulikanchan,Haveli,2026-09-03,7.4,4.186,4.0,0.186
+best_predictions,Vadachiwadi,Haveli,2026-09-03,7.4,4.186,4.0,0.186
+best_predictions,Vadhu Kh.,Haveli,2026-09-03,7.4,4.186,4.0,0.186
+best_predictions,Naroli,Baramati,2026-09-03,7.4,4.186,4.0,0.186
+best_predictions,Kude Bk.,Khed,2026-09-03,7.4,4.186,4.0,0.186
+best_predictions,Vadaki,Haveli,2026-09-03,7.4,4.186,4.0,0.186
+best_predictions,Mulshi Kh.,Mulshi,2026-09-03,7.4,4.186,4.0,0.186
+best_predictions,Lakhangaon,Ambegaon,2026-09-03,7.4,4.186,4.0,0.186
+best_predictions,Kadave,Velhe,2026-09-03,7.4,4.186,4.0,0.186
+worst_predictions,Wad,Chandwad,2026-09-04,40.0,3.7,45.2,41.5
+worst_predictions,Shirur,Chandwad,2026-09-04,40.0,3.7,45.2,41.5
+worst_predictions,Waki Kd.,Chandwad,2026-09-04,40.0,3.7,45.2,41.5
+worst_predictions,Waki Bk.,Chandwad,2026-09-04,40.0,3.7,45.2,41.5
+worst_predictions,Wahegaon,Chandwad,2026-09-04,40.0,3.7,45.2,41.5
+worst_predictions,Waghdard,Chandwad,2026-09-04,40.0,3.7,45.2,41.5
+worst_predictions,Vitave,Chandwad,2026-09-04,40.0,3.7,45.2,41.5
+worst_predictions,Sogras,Chandwad,2026-09-04,40.0,3.7,45.2,41.5
+worst_predictions,Shivare,Chandwad,2026-09-04,40.0,3.7,45.2,41.5
+worst_predictions,Shingave,Chandwad,2026-09-04,40.0,3.7,45.2,41.5
+largest_over_predictions,Sonakaswadi,Baramati,2026-09-11,5.5,4.186,0.0,4.186
+largest_over_predictions,Khandaj,Baramati,2026-09-12,6.0,4.186,0.0,4.186
+largest_over_predictions,Somatane,Maval,2026-09-12,6.0,4.186,0.0,4.186
+largest_over_predictions,Ghorpadwadi,Indapur,2026-09-12,6.0,4.186,0.0,4.186
+largest_over_predictions,Givshi,Velhe,2026-09-12,6.0,4.186,0.0,4.186
+largest_over_predictions,Dingore,Junnar,2026-09-12,6.0,4.186,0.0,4.186
+largest_over_predictions,Khechare,Mulshi,2026-09-12,6.0,4.186,0.0,4.186
+largest_over_predictions,Zapwadi,Junnar,2026-09-12,6.0,4.186,0.0,4.186
+largest_over_predictions,Kambleshvar,Baramati,2026-09-12,6.0,4.186,0.0,4.186
+largest_over_predictions,Tawshi,Indapur,2026-09-12,6.0,4.186,0.0,4.186
+largest_under_predictions,Waki Kd.,Chandwad,2026-09-04,40.0,3.7,45.2,41.5
+largest_under_predictions,Sonisangvi,Chandwad,2026-09-04,40.0,3.7,45.2,41.5
+largest_under_predictions,Sogras,Chandwad,2026-09-04,40.0,3.7,45.2,41.5
+largest_under_predictions,Shivare,Chandwad,2026-09-04,40.0,3.7,45.2,41.5
+largest_under_predictions,Shirsane,Chandwad,2026-09-04,40.0,3.7,45.2,41.5
+largest_under_predictions,Shirur,Chandwad,2026-09-04,40.0,3.7,45.2,41.5
+largest_under_predictions,Urdhul,Chandwad,2026-09-04,40.0,3.7,45.2,41.5
+largest_under_predictions,Uswad,Chandwad,2026-09-04,40.0,3.7,45.2,41.5
+largest_under_predictions,Vadalibhoi,Chandwad,2026-09-04,40.0,3.7,45.2,41.5
+largest_under_predictions,Vadbare,Chandwad,2026-09-04,40.0,3.7,45.2,41.5

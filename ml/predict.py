@@ -287,6 +287,96 @@ def generate_xgboost_predictions(
     )
 
 
+DEFAULT_PHASE2_RF_MODEL_PATH = os.path.join(DEFAULT_MODEL_DIR, "random_forest", "best_model.joblib")
+DEFAULT_PHASE2_RF_PREPROCESSOR_PATH = os.path.join(DEFAULT_MODEL_DIR, "random_forest", "preprocessor.joblib")
+DEFAULT_PHASE2_MODEL_CONFIG_PATH = os.path.join(DEFAULT_MODEL_DIR, "model_config.json")
+
+
+def downscale_panchayat_forecast(
+    panchayat_features: Dict[str, Any],
+    block_forecast_rainfall_mm: float,
+    model_path: str = DEFAULT_PHASE2_RF_MODEL_PATH,
+    preprocessor_path: Optional[str] = DEFAULT_PHASE2_RF_PREPROCESSOR_PATH,
+    config_path: str = DEFAULT_PHASE2_MODEL_CONFIG_PATH
+) -> Dict[str, Any]:
+    """
+    Phase 2 Clean Production Prediction Interface.
+    
+    Accepts:
+        panchayat_features: Dictionary containing spatial/terrain features:
+            - panchayat_latitude (float)
+            - panchayat_longitude (float)
+            - elevation_m (float)
+            - station_distance_km (float)
+            - lead_days (int)
+            - month (int)
+            - day_of_year (int)
+        block_forecast_rainfall_mm: float (IMD regional forecast in mm)
+        
+    Guarantees:
+        - Strict feature schema alignment.
+        - Median imputation for missing values (training-derived).
+        - Enforced physical non-negativity: downscaled_rainfall_mm = max(raw_pred, 0.0).
+        - NaN / Inf safe.
+        - Returns downscaled rainfall, raw prediction, model name, model version, and baseline.
+    """
+    required = [
+        "panchayat_latitude",
+        "panchayat_longitude",
+        "elevation_m",
+        "station_distance_km",
+        "lead_days",
+        "month",
+        "day_of_year"
+    ]
+    for k in required:
+        if k not in panchayat_features:
+            raise KeyError(f"Missing required panchayat feature: '{k}'")
+            
+    # Fallback if phase 2 subfolder model not found
+    if not os.path.exists(model_path):
+        if os.path.exists(DEFAULT_BEST_MODEL_PATH):
+            model_path = DEFAULT_BEST_MODEL_PATH
+            preprocessor_path = DEFAULT_BEST_PREPROCESSOR_PATH
+            config_path = DEFAULT_BEST_CONFIG_PATH
+
+    model, preprocessor = load_trained_model(model_path=model_path, preprocessor_path=preprocessor_path)
+    config = load_model_config(config_path=config_path)
+
+    input_dict = {
+        "block_forecast_rainfall_mm": [float(block_forecast_rainfall_mm)],
+        "panchayat_latitude": [float(panchayat_features["panchayat_latitude"])],
+        "panchayat_longitude": [float(panchayat_features["panchayat_longitude"])],
+        "elevation_m": [float(panchayat_features["elevation_m"])],
+        "station_distance_km": [float(panchayat_features["station_distance_km"])],
+        "lead_days": [int(panchayat_features["lead_days"])],
+        "month": [int(panchayat_features["month"])],
+        "day_of_year": [int(panchayat_features["day_of_year"])],
+    }
+    input_df = pd.DataFrame(input_dict)[FEATURE_COLUMNS]
+
+    if preprocessor is not None:
+        X = preprocessor.transform(input_df)
+    else:
+        X = input_df.values.astype(float)
+
+    raw_pred = float(model.predict(X)[0])
+    
+    # NaN and Infinity safety guard
+    if np.isnan(raw_pred) or np.isinf(raw_pred):
+        raw_pred = float(block_forecast_rainfall_mm)
+        
+    downscaled_mm = float(max(raw_pred, 0.0))
+
+    return {
+        "downscaled_rainfall_mm": round(downscaled_mm, 4),
+        "raw_predicted_rainfall_mm": round(raw_pred, 4),
+        "baseline_forecast_mm": round(float(block_forecast_rainfall_mm), 4),
+        "model_name": config.get("model_name", "Random Forest Regressor"),
+        "model_version": config.get("model_version", "v2.0.0"),
+    }
+
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     print("=" * 70)

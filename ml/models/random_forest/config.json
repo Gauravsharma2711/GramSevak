@@ -1,0 +1,60 @@
+{
+  "model_name": "Random Forest Regressor",
+  "model_version": "v2.0.0",
+  "model_type": "RandomForestRegressor",
+  "features": [
+    "block_forecast_rainfall_mm",
+    "panchayat_latitude",
+    "panchayat_longitude",
+    "elevation_m",
+    "station_distance_km",
+    "lead_days",
+    "month",
+    "day_of_year"
+  ],
+  "target": "actual_rainfall_mm",
+  "hyperparameters": {
+    "n_estimators": 300,
+    "max_depth": 16,
+    "min_samples_leaf": 4,
+    "max_features": 1.0,
+    "random_state": 42,
+    "n_jobs": -1
+  },
+  "training_date_range": {
+    "start_date": "2026-01-09",
+    "end_date": "2026-08-08"
+  },
+  "training_rows": 129636,
+  "validation_date_range": {
+    "start_date": "2026-08-09",
+    "end_date": "2026-09-01"
+  },
+  "validation_rows": 29486,
+  "test_date_range": {
+    "start_date": "2026-09-02",
+    "end_date": "2026-09-23"
+  },
+  "test_rows": 29586,
+  "baseline_mae": 4.5271,
+  "baseline_rmse": 5.0206,
+  "baseline_bias": 2.7458,
+  "validation_mae": 1.6242,
+  "validation_rmse": 1.9517,
+  "validation_bias": 1.0655,
+  "test_mae": 3.4443,
+  "test_rmse": 4.5393,
+  "test_bias": 1.0925,
+  "mae_improvement_percent": 23.92,
+  "rmse_improvement_percent": 9.59,
+  "feature_importances": {
+    "day_of_year": 0.911994,
+    "block_forecast_rainfall_mm": 0.083254,
+    "month": 0.004211,
+    "panchayat_latitude": 0.000266,
+    "elevation_m": 0.00015,
+    "lead_days": 6.6e-05,
+    "panchayat_longitude": 5.7e-05,
+    "station_distance_km": 3e-06
+  }
+}

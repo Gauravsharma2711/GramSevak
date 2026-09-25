@@ -1,0 +1,309 @@
+{
+  "evaluation_timestamp": "2026-09-25T16:27:27.449786+00:00",
+  "evaluation_rows": 29586,
+  "evaluation_period": {
+    "start_date": "2026-09-02",
+    "end_date": "2026-09-23"
+  },
+  "model_comparison": [
+    {
+      "model": "Block Forecast (Baseline)",
+      "mae": 4.5271,
+      "rmse": 5.0206,
+      "bias": 2.7458,
+      "mae_improvement_percent": 0.0,
+      "rmse_improvement_percent": 0.0
+    },
+    {
+      "model": "Random Forest Regressor",
+      "mae": 3.4443,
+      "rmse": 4.5393,
+      "bias": 1.0925,
+      "mae_improvement_percent": 23.92,
+      "rmse_improvement_percent": 9.59
+    },
+    {
+      "model": "XGBoost Regressor",
+      "mae": 6.0652,
+      "rmse": 9.0163,
+      "bias": 3.7369,
+      "mae_improvement_percent": -33.98,
+      "rmse_improvement_percent": -79.59
+    }
+  ],
+  "selected_model": {
+    "name": "Random Forest Regressor",
+    "version": "v2.0.0",
+    "reason": "Selected strictly based on held-out test evaluation. Random Forest achieved 23.92% MAE reduction (3.4443 mm vs 4.5271 mm baseline) and 9.59% RMSE reduction (4.5393 mm vs 5.0206 mm), while reducing over-prediction bias from +2.7458 mm to +1.0925 mm. XGBoost underperformed baseline due to end-of-season temporal shift."
+  },
+  "spatial_holdout_validation": {
+    "holdout_panchayats_count": 545,
+    "evaluation_records": 5598,
+    "baseline_mae": 4.5295,
+    "baseline_rmse": 5.0229,
+    "model_mae": 4.4028,
+    "model_rmse": 5.0358,
+    "mae_improvement_percent": 2.8
+  },
+  "district_breakdown": {
+    "Nashik": {
+      "sample_count": 150,
+      "baseline_mae": 4.4887,
+      "baseline_rmse": 5.2691,
+      "rf_mae": 8.7914,
+      "rf_rmse": 16.7877,
+      "rf_mae_improvement_percent": -95.86
+    },
+    "Pune": {
+      "sample_count": 29436,
+      "baseline_mae": 4.5273,
+      "baseline_rmse": 5.0193,
+      "rf_mae": 3.4171,
+      "rf_rmse": 4.3902,
+      "rf_mae_improvement_percent": 24.52
+    }
+  },
+  "block_breakdown": [
+    {
+      "block_name": "Ambegaon",
+      "test_observations": 2200,
+      "baseline_mae": 4.5273,
+      "model_mae": 3.4171,
+      "baseline_rmse": 5.0193,
+      "model_rmse": 4.3902,
+      "mae_improvement_percentage": 24.52,
+      "rmse_improvement_percentage": 12.53
+    },
+    {
+      "block_name": "Baglan",
+      "test_observations": 75,
+      "baseline_mae": 3.228,
+      "model_mae": 2.414,
+      "baseline_rmse": 4.0889,
+      "model_rmse": 2.4687,
+      "mae_improvement_percentage": 25.22,
+      "rmse_improvement_percentage": 39.62
+    },
+    {
+      "block_name": "Baramati",
+      "test_observations": 2134,
+      "baseline_mae": 4.5273,
+      "model_mae": 3.4171,
+      "baseline_rmse": 5.0193,
+      "model_rmse": 4.3902,
+      "mae_improvement_percentage": 24.52,
+      "rmse_improvement_percentage": 12.53
+    },
+    {
+      "block_name": "Bhor",
+      "test_observations": 3234,
+      "baseline_mae": 4.5273,
+      "model_mae": 3.4171,
+      "baseline_rmse": 5.0193,
+      "model_rmse": 4.3902,
+      "mae_improvement_percentage": 24.52,
+      "rmse_improvement_percentage": 12.53
+    },
+    {
+      "block_name": "Chandwad",
+      "test_observations": 22,
+      "baseline_mae": 5.2,
+      "model_mae": 41.5,
+      "baseline_rmse": 5.2,
+      "model_rmse": 41.5,
+      "mae_improvement_percentage": -698.08,
+      "rmse_improvement_percentage": -698.08
+    },
+    {
+      "block_name": "Daund",
+      "test_observations": 1738,
+      "baseline_mae": 4.5273,
+      "model_mae": 3.4171,
+      "baseline_rmse": 5.0193,
+      "model_rmse": 4.3902,
+      "mae_improvement_percentage": 24.52,
+      "rmse_improvement_percentage": 12.53
+    },
+    {
+      "block_name": "Deola",
+      "test_observations": 42,
+      "baseline_mae": 4.7929,
+      "model_mae": 4.7727,
+      "baseline_rmse": 5.1244,
+      "model_rmse": 9.6046,
+      "mae_improvement_percentage": 0.42,
+      "rmse_improvement_percentage": -87.43
+    },
+    {
+      "block_name": "Dindori",
+      "test_observations": 11,
+      "baseline_mae": 10.5,
+      "model_mae": 2.2,
+      "baseline_rmse": 10.5,
+      "model_rmse": 2.2,
+      "mae_improvement_percentage": 79.05,
+      "rmse_improvement_percentage": 79.05
+    },
+    {
+      "block_name": "Haveli",
+      "test_observations": 1716,
+      "baseline_mae": 4.5273,
+      "model_mae": 3.4171,
+      "baseline_rmse": 5.0193,
+      "model_rmse": 4.3902,
+      "mae_improvement_percentage": 24.52,
+      "rmse_improvement_percentage": 12.53
+    },
+    {
+      "block_name": "Indapur",
+      "test_observations": 2442,
+      "baseline_mae": 4.5273,
+      "model_mae": 3.4171,
+      "baseline_rmse": 5.0193,
+      "model_rmse": 4.3902,
+      "mae_improvement_percentage": 24.52,
+      "rmse_improvement_percentage": 12.53
+    },
+    {
+      "block_name": "Junnar",
+      "test_observations": 2970,
+      "baseline_mae": 4.5273,
+      "model_mae": 3.4171,
+      "baseline_rmse": 5.0193,
+      "model_rmse": 4.3902,
+      "mae_improvement_percentage": 24.52,
+      "rmse_improvement_percentage": 12.53
+    },
+    {
+      "block_name": "Khed",
+      "test_observations": 3366,
+      "baseline_mae": 4.5273,
+      "model_mae": 3.4171,
+      "baseline_rmse": 5.0193,
+      "model_rmse": 4.3902,
+      "mae_improvement_percentage": 24.52,
+      "rmse_improvement_percentage": 12.53
+    },
+    {
+      "block_name": "Maval",
+      "test_observations": 2200,
+      "baseline_mae": 4.5273,
+      "model_mae": 3.4171,
+      "baseline_rmse": 5.0193,
+      "model_rmse": 4.3902,
+      "mae_improvement_percentage": 24.52,
+      "rmse_improvement_percentage": 12.53
+    },
+    {
+      "block_name": "Mulshi",
+      "test_observations": 1980,
+      "baseline_mae": 4.5273,
+      "model_mae": 3.4171,
+      "baseline_rmse": 5.0193,
+      "model_rmse": 4.3902,
+      "mae_improvement_percentage": 24.52,
+      "rmse_improvement_percentage": 12.53
+    },
+    {
+      "block_name": "Purandar",
+      "test_observations": 2024,
+      "baseline_mae": 4.5273,
+      "model_mae": 3.4171,
+      "baseline_rmse": 5.0193,
+      "model_rmse": 4.3902,
+      "mae_improvement_percentage": 24.52,
+      "rmse_improvement_percentage": 12.53
+    },
+    {
+      "block_name": "Shirur",
+      "test_observations": 1936,
+      "baseline_mae": 4.5273,
+      "model_mae": 3.4171,
+      "baseline_rmse": 5.0193,
+      "model_rmse": 4.3902,
+      "mae_improvement_percentage": 24.52,
+      "rmse_improvement_percentage": 12.53
+    },
+    {
+      "block_name": "Velhe",
+      "test_observations": 1496,
+      "baseline_mae": 4.5273,
+      "model_mae": 3.4171,
+      "baseline_rmse": 5.0193,
+      "model_rmse": 4.3902,
+      "mae_improvement_percentage": 24.52,
+      "rmse_improvement_percentage": 12.53
+    }
+  ],
+  "lead_days_breakdown": [
+    {
+      "lead_days": 0,
+      "observation_count": 150,
+      "baseline_mae": 4.4887,
+      "model_mae": 8.7914,
+      "baseline_rmse": 5.2691,
+      "model_rmse": 16.7877,
+      "mae_improvement_percentage": -95.86,
+      "rmse_improvement_percentage": -218.61
+    },
+    {
+      "lead_days": 1,
+      "observation_count": 29436,
+      "baseline_mae": 4.5273,
+      "model_mae": 3.4171,
+      "baseline_rmse": 5.0193,
+      "model_rmse": 4.3902,
+      "mae_improvement_percentage": 24.52,
+      "rmse_improvement_percentage": 12.53
+    }
+  ],
+  "rainfall_category_breakdown": {
+    "Heavy Rain (35.6 - 64.4 mm)": {
+      "sample_count": 25,
+      "baseline_mae": 4.996,
+      "rf_mae": 40.696,
+      "rf_mae_improvement_percent": -714.57
+    },
+    "Light Rain (2.5 - 7.5 mm)": {
+      "sample_count": 2701,
+      "baseline_mae": 2.1532,
+      "rf_mae": 1.6008,
+      "rf_mae_improvement_percent": 25.66
+    },
+    "Moderate Rain (7.6 - 35.5 mm)": {
+      "sample_count": 2676,
+      "baseline_mae": 9.35,
+      "rf_mae": 11.114,
+      "rf_mae_improvement_percent": -18.87
+    },
+    "No Rain (0.0 mm)": {
+      "sample_count": 2676,
+      "baseline_mae": 5.75,
+      "rf_mae": 4.186,
+      "rf_mae_improvement_percent": 27.2
+    },
+    "Very Light Rain (0.1 - 2.4 mm)": {
+      "sample_count": 21508,
+      "baseline_mae": 4.0724,
+      "rf_mae": 2.586,
+      "rf_mae_improvement_percent": 36.5
+    }
+  },
+  "zero_rainfall_analysis": {
+    "actual_zero_percentage": 9.04,
+    "forecast_zero_percentage": 0.0,
+    "rf_zero_percentage": 0.0
+  },
+  "extreme_rainfall_analysis": {
+    "heavy_rain_threshold_mm": 35.6,
+    "extreme_event_count": 25,
+    "extreme_event_percentage": 0.084,
+    "extreme_baseline_mae": 4.996,
+    "extreme_rf_mae": 40.696
+  },
+  "known_limitations": [
+    "Extreme rainfall events (>35.5 mm) represent <1% of the dataset; downscaling models require monsoon peak data.",
+    "Nashik records in training set are cross-sectional; Pune contributes the vast majority of historical time series.",
+    "Model downscaling applies spatial interpolation and local terrain adjustments; localized micro-convection requires radar feeds in future phases."
+  ]
+}

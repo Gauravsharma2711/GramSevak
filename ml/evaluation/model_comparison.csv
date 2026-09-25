@@ -1,0 +1,4 @@
+model,mae,rmse,bias,mae_improvement_percent,rmse_improvement_percent
+Block Forecast (Baseline),4.5271,5.0206,2.7458,0.0,0.0
+Random Forest Regressor,3.4443,4.5393,1.0925,23.92,9.59
+XGBoost Regressor,6.0652,9.0163,3.7369,-33.98,-79.59

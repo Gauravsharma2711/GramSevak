@@ -98,15 +98,84 @@ class WeatherDataPreprocessor:
         """
         return self.fit(X_train).transform(X_train)
 
+    def get_imputation_statistics(self) -> Dict[str, float]:
+        """
+        Return dictionary of feature medians learned from training data.
+        """
+        if not self.is_fitted:
+            raise RuntimeError("Preprocessor must be fitted before retrieving statistics.")
+        return dict(self.medians_)
 
-def load_dataset(csv_path: str) -> pd.DataFrame:
+
+def load_dataset(dataset_path: str) -> pd.DataFrame:
     """
-    Load dataset from CSV file and ensure it exists.
+    Load dataset from CSV or Parquet file and ensure it exists.
     """
-    if not os.path.exists(csv_path):
-        raise FileNotFoundError(f"Dataset file not found: {csv_path}")
-    df = pd.read_csv(csv_path, encoding="utf-8")
-    return df
+    if not os.path.exists(dataset_path):
+        raise FileNotFoundError(f"Dataset file not found: {dataset_path}")
+    if dataset_path.endswith(".parquet"):
+        return pd.read_parquet(dataset_path)
+    return pd.read_csv(dataset_path, encoding="utf-8")
+
+
+def split_dataset_by_time(
+    df: pd.DataFrame,
+    train_ratio: float = 0.70,
+    val_ratio: float = 0.15,
+    date_col: str = "date"
+) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, Dict[str, Any]]:
+    """
+    Split dataset strictly chronologically into Train, Validation, and Test partitions.
+    
+    Guarantees:
+    - Zero temporal leakage: train dates < val dates < test dates.
+    - Zero future observation leakage: test set contains strictly held-out later dates.
+    - Preserves all panchayats across historical periods.
+    """
+    if date_col not in df.columns:
+        raise ValueError(f"Date column '{date_col}' not found in dataset.")
+
+    df_sorted = df.sort_values(date_col).reset_index(drop=True)
+    unique_dates = df_sorted[date_col].unique()
+    n_dates = len(unique_dates)
+
+    if n_dates < 3:
+        raise ValueError(f"Insufficient unique dates ({n_dates}) for time-aware 3-way split.")
+
+    train_idx = int(n_dates * train_ratio)
+    val_idx = int(n_dates * (train_ratio + val_ratio))
+
+    train_cutoff_date = unique_dates[train_idx]
+    val_cutoff_date = unique_dates[val_idx]
+
+    df_train = df_sorted[df_sorted[date_col] < train_cutoff_date].copy()
+    df_val = df_sorted[(df_sorted[date_col] >= train_cutoff_date) & (df_sorted[date_col] < val_cutoff_date)].copy()
+    df_test = df_sorted[df_sorted[date_col] >= val_cutoff_date].copy()
+
+    split_info = {
+        "total_rows": len(df_sorted),
+        "total_unique_dates": int(n_dates),
+        "train_rows": len(df_train),
+        "train_start_date": str(df_train[date_col].min()),
+        "train_end_date": str(df_train[date_col].max()),
+        "train_unique_dates": int(df_train[date_col].nunique()),
+        "val_rows": len(df_val),
+        "val_start_date": str(df_val[date_col].min()),
+        "val_end_date": str(df_val[date_col].max()),
+        "val_unique_dates": int(df_val[date_col].nunique()),
+        "test_rows": len(df_test),
+        "test_start_date": str(df_test[date_col].min()),
+        "test_end_date": str(df_test[date_col].max()),
+        "test_unique_dates": int(df_test[date_col].nunique()),
+    }
+
+    logger.info(
+        f"Chronological split complete: Train={split_info['train_rows']} rows ({split_info['train_start_date']} to {split_info['train_end_date']}), "
+        f"Val={split_info['val_rows']} rows ({split_info['val_start_date']} to {split_info['val_end_date']}), "
+        f"Test={split_info['test_rows']} rows ({split_info['test_start_date']} to {split_info['test_end_date']})"
+    )
+
+    return df_train, df_val, df_test, split_info
 
 
 def prepare_training_features(

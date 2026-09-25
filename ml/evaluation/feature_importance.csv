@@ -1,0 +1,9 @@
+feature,importance,rank
+day_of_year,0.911994,1
+block_forecast_rainfall_mm,0.083254,2
+month,0.004211,3
+panchayat_latitude,0.000266,4
+elevation_m,0.00015,5
+lead_days,6.6e-05,6
+panchayat_longitude,5.7e-05,7
+station_distance_km,3e-06,8
