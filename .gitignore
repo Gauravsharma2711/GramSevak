@@ -103,3 +103,9 @@ farmer_app/build/
 
 # Scratch scripts
 scratch/
+
+# Large raw datasets & binary data formats (per Phase 1 Git safety)
+data/raw/pune/
+data/raw/nashik/
+data/processed/*.parquet
+

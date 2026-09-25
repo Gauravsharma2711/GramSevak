@@ -67,7 +67,7 @@ class PanchayatDetailResponse(PanchayatItem):
 
 class PanchayatPagination(BaseModel):
     """
-    Paginated response envelope for Nashik Panchayats list.
+    Paginated response envelope for Panchayats list.
     """
     total: int = Field(
         ...,
@@ -93,3 +93,20 @@ class PanchayatPagination(BaseModel):
         ...,
         description="List of Panchayats for the current page",
     )
+
+
+class DistrictItem(BaseModel):
+    """Schema representing an administrative District."""
+    model_config = ConfigDict(from_attributes=True)
+    id: int = Field(..., description="Unique District identifier", examples=[1])
+    name: str = Field(..., description="District Name", examples=["Nashik", "Pune"])
+    state: str = Field("Maharashtra", description="State", examples=["Maharashtra"])
+
+
+class BlockItem(BaseModel):
+    """Schema representing an administrative Block / Tehsil."""
+    model_config = ConfigDict(from_attributes=True)
+    id: int = Field(..., description="Unique Block identifier", examples=[1])
+    district_id: int = Field(..., description="Parent District identifier", examples=[1])
+    name: str = Field(..., description="Block Name", examples=["Baglan", "Haveli"])
+

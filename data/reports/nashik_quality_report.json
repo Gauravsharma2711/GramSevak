@@ -1,0 +1,120 @@
+{
+  "district": "Nashik",
+  "raw_rows": 1388,
+  "valid_rows": 1388,
+  "rejected_rows": 0,
+  "rejection_reasons": [],
+  "raw_columns": [
+    "panchayat_id",
+    "lgd_code",
+    "panchayat_name",
+    "block_name",
+    "district_name",
+    "latitude",
+    "longitude",
+    "elevation_m",
+    "date",
+    "forecast_issue_date",
+    "block_forecast_rainfall_mm",
+    "station_id",
+    "station_latitude",
+    "station_longitude",
+    "station_distance_km",
+    "actual_rainfall_mm",
+    "Unnamed: 16"
+  ],
+  "canonical_columns": [
+    "panchayat_id",
+    "lgd_code",
+    "panchayat_name",
+    "block_name",
+    "district_name",
+    "panchayat_latitude",
+    "panchayat_longitude",
+    "elevation_m",
+    "date",
+    "forecast_issue_date",
+    "lead_days",
+    "block_forecast_rainfall_mm",
+    "station_id",
+    "station_latitude",
+    "station_longitude",
+    "station_distance_km",
+    "actual_rainfall_mm"
+  ],
+  "unique_panchayats": 1388,
+  "unique_lgd_codes": 1283,
+  "unique_blocks": 15,
+  "block_names": [
+    "Baglan",
+    "Chandwad",
+    "Deola",
+    "Dindori",
+    "Igatpuri",
+    "Kalwan",
+    "Malegaon",
+    "Nandgaon",
+    "Nashik",
+    "Niphad",
+    "Peth",
+    "Sinnar",
+    "Surgana",
+    "Trimbak",
+    "Yeola"
+  ],
+  "unique_stations": 22,
+  "date_range": {
+    "min_date": "2026-01-09",
+    "max_date": "2026-09-04",
+    "unique_dates_count": 9
+  },
+  "forecast_issue_date_range": {
+    "min_issue_date": "2026-01-09",
+    "max_issue_date": "2026-09-04"
+  },
+  "lead_days_distribution": {
+    "0": 1388
+  },
+  "duplicates": {
+    "exact_duplicates": 0,
+    "panchayat_date_duplicates": 0
+  },
+  "coordinates": {
+    "lat_min": 19.1911,
+    "lat_max": 20.8851,
+    "lon_min": 73.3945,
+    "lon_max": 74.92,
+    "invalid_coordinates_count": 0
+  },
+  "elevation_stats": {
+    "min": 425.0,
+    "max": 745.0,
+    "mean": 594.62,
+    "median": 612.0,
+    "nulls": 0
+  },
+  "station_distance_stats": {
+    "min": 0.1,
+    "max": 99.1,
+    "mean": 12.55,
+    "median": 11.05,
+    "discrepancies_gt_1km": 0,
+    "discrepancies_0_1_to_1km": 198,
+    "max_discrepancy_km": 0.9763
+  },
+  "actual_rainfall_stats": {
+    "min": 0.4,
+    "max": 52.2,
+    "mean": 9.57,
+    "median": 5.6,
+    "nulls": 0,
+    "sentinel_count": 0
+  },
+  "block_forecast_stats": {
+    "min": 2.0,
+    "max": 45.0,
+    "mean": 11.87,
+    "median": 10.0,
+    "nulls": 0
+  }
+}

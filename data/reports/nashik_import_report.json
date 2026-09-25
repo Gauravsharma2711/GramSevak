@@ -1,0 +1,26 @@
+{
+  "district": "Nashik",
+  "dry_run": false,
+  "total_source_records": 1388,
+  "entities": {
+    "districts_to_upsert": 1,
+    "blocks_to_upsert": 15,
+    "panchayats_to_upsert": 1388,
+    "stations_to_upsert": 22,
+    "block_forecasts_to_upsert": 53,
+    "weather_observations_to_upsert": 1388,
+    "legacy_panchayat_snapshot_to_upsert": 1388
+  },
+  "inserted_or_updated": {
+    "districts": 1,
+    "blocks": 15,
+    "panchayats": 1388,
+    "station_metadata": 22,
+    "block_forecasts": 53,
+    "panchayat_weather_data": 1388,
+    "weather_observations": 1388
+  },
+  "status": "SUCCESS",
+  "duration_seconds": 17.89,
+  "message": "Successfully ingested Nashik dataset into Supabase."
+}

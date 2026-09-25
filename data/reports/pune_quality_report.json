@@ -1,0 +1,117 @@
+{
+  "district": "Pune",
+  "raw_rows": 187320,
+  "valid_rows": 187320,
+  "rejected_rows": 0,
+  "rejection_reasons": [],
+  "raw_columns": [
+    "panchayat_id",
+    "lgd_code",
+    "panchayat_name",
+    "block_name",
+    "district_name",
+    "panchayat_latitude",
+    "panchayat_longitude",
+    "elevation_m",
+    "date",
+    "forecast_issue_date",
+    "block_forecast_rainfall_mm",
+    "station_id",
+    "station_latitude",
+    "station_longitude",
+    "station_distance_km",
+    "actual_rainfall_mm"
+  ],
+  "canonical_columns": [
+    "panchayat_id",
+    "lgd_code",
+    "panchayat_name",
+    "block_name",
+    "district_name",
+    "panchayat_latitude",
+    "panchayat_longitude",
+    "elevation_m",
+    "date",
+    "forecast_issue_date",
+    "lead_days",
+    "block_forecast_rainfall_mm",
+    "station_id",
+    "station_latitude",
+    "station_longitude",
+    "station_distance_km",
+    "actual_rainfall_mm"
+  ],
+  "unique_panchayats": 1338,
+  "unique_lgd_codes": 1338,
+  "unique_blocks": 13,
+  "block_names": [
+    "Ambegaon",
+    "Baramati",
+    "Bhor",
+    "Daund",
+    "Haveli",
+    "Indapur",
+    "Junnar",
+    "Khed",
+    "Maval",
+    "Mulshi",
+    "Purandar",
+    "Shirur",
+    "Velhe"
+  ],
+  "unique_stations": 23,
+  "date_range": {
+    "min_date": "2026-04-13",
+    "max_date": "2026-09-23",
+    "unique_dates_count": 140
+  },
+  "forecast_issue_date_range": {
+    "min_issue_date": "2026-04-12",
+    "max_issue_date": "2026-09-22"
+  },
+  "lead_days_distribution": {
+    "1": 187320
+  },
+  "duplicates": {
+    "exact_duplicates": 0,
+    "panchayat_date_duplicates": 0
+  },
+  "coordinates": {
+    "lat_min": 17.912814,
+    "lat_max": 19.354576,
+    "lon_min": 73.375077,
+    "lon_max": 75.134307,
+    "invalid_coordinates_count": 0
+  },
+  "elevation_stats": {
+    "min": 100.0,
+    "max": 763.0,
+    "mean": 620.21,
+    "median": 619.0,
+    "nulls": 0
+  },
+  "station_distance_stats": {
+    "min": 0.59,
+    "max": 40.54,
+    "mean": 13.11,
+    "median": 12.35,
+    "discrepancies_gt_1km": 0,
+    "discrepancies_0_1_to_1km": 0,
+    "max_discrepancy_km": 0.0251
+  },
+  "actual_rainfall_stats": {
+    "min": 0.0,
+    "max": 120.3,
+    "mean": 6.18,
+    "median": 1.5,
+    "nulls": 0,
+    "sentinel_count": 0
+  },
+  "block_forecast_stats": {
+    "min": 0.0,
+    "max": 12.4,
+    "mean": 5.68,
+    "median": 6.05,
+    "nulls": 0
+  }
+}

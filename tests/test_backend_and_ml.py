@@ -303,6 +303,7 @@ def test_13_database_persistence(client):
                 DownscaledForecast.panchayat_id == 1001,
                 DownscaledForecast.forecast_date == target_date,
             )
+            .order_by(DownscaledForecast.id.desc())
             .first()
         )
         assert record is not None

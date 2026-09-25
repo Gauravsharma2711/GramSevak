@@ -197,11 +197,12 @@ def run_day2_final_readiness_audit(
     # 9. SUPABASE DATABASE AUDIT
     # ==========================================
     try:
+        target_district = df_clean["district_name"].iloc[0] if (not df_clean.empty and "district_name" in df_clean.columns) else "Nashik"
         with engine.connect() as conn:
-            db_row_count = conn.execute(text("SELECT count(*) FROM panchayat_weather_data;")).scalar()
-            db_unique_p = conn.execute(text("SELECT count(DISTINCT panchayat_id) FROM panchayat_weather_data;")).scalar()
-            db_unique_b = conn.execute(text("SELECT count(DISTINCT block_name) FROM panchayat_weather_data;")).scalar()
-            db_unique_s = conn.execute(text("SELECT count(DISTINCT station_id) FROM panchayat_weather_data;")).scalar()
+            db_row_count = conn.execute(text("SELECT count(*) FROM panchayat_weather_data WHERE district_name = :dist;"), {"dist": target_district}).scalar()
+            db_unique_p = conn.execute(text("SELECT count(DISTINCT panchayat_id) FROM panchayat_weather_data WHERE district_name = :dist;"), {"dist": target_district}).scalar()
+            db_unique_b = conn.execute(text("SELECT count(DISTINCT block_name) FROM panchayat_weather_data WHERE district_name = :dist;"), {"dist": target_district}).scalar()
+            db_unique_s = conn.execute(text("SELECT count(DISTINCT station_id) FROM panchayat_weather_data WHERE district_name = :dist;"), {"dist": target_district}).scalar()
     except Exception as e:
         logger.error(f"Failed to query Supabase: {e}")
         db_row_count = -1
