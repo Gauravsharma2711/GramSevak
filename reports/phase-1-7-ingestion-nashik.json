@@ -1,0 +1,61 @@
+{
+  "status": "PASS",
+  "dry_run": false,
+  "district": "nashik",
+  "total_input_rows": 1388,
+  "rows_upserted": 1388,
+  "batches_completed": 1,
+  "elapsed_seconds": 14.4156,
+  "throughput_rows_per_sec": 96.28,
+  "reconciliation": {
+    "matched": true,
+    "source_parquet": {
+      "row_count": 1388,
+      "unique_panchayats": 1388,
+      "min_date": "2026-01-09",
+      "max_date": "2026-09-04",
+      "actual_rainfall_sum": 13285.9,
+      "forecast_rainfall_sum": 16475.5
+    },
+    "database": {
+      "row_count": 1388,
+      "unique_panchayats": 1388,
+      "min_date": "2026-01-09",
+      "max_date": "2026-09-04",
+      "actual_rainfall_sum": 13285.9,
+      "forecast_rainfall_sum": 16475.5
+    },
+    "sample_record_checks": [
+      {
+        "sample_idx": 0,
+        "panchayat_id": 1001,
+        "date": "2026-09-04",
+        "parquet_actual": 2.5,
+        "db_actual": 2.5,
+        "parquet_forecast": 5.0,
+        "db_forecast": 5.0,
+        "verified": true
+      },
+      {
+        "sample_idx": 694,
+        "panchayat_id": 1695,
+        "date": "2026-01-09",
+        "parquet_actual": 3.5,
+        "db_actual": 3.5,
+        "parquet_forecast": 5.0,
+        "db_forecast": 5.0,
+        "verified": true
+      },
+      {
+        "sample_idx": 1387,
+        "panchayat_id": 2388,
+        "date": "2026-02-09",
+        "parquet_actual": 1.5,
+        "db_actual": 1.5,
+        "parquet_forecast": 2.0,
+        "db_forecast": 2.0,
+        "verified": true
+      }
+    ]
+  }
+}
