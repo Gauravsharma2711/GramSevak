@@ -112,4 +112,6 @@ scratch/
 data/raw/pune/
 data/raw/nashik/
 data/processed/*.parquet
+data/processed/normalized_*.csv
+
 
