@@ -224,7 +224,7 @@ export class ApiService {
       `/blocks/${blockId}/panchayats?${params.toString()}`,
       { method: 'GET' },
       () => {
-        const filtered = MOCK_PANCHAYATS.map((p) => ({
+        const filtered: BlockPanchayatItem[] = MOCK_PANCHAYATS.map((p) => ({
           id: p.panchayat_id,
           lgd_code: p.lgd_code,
           name: p.panchayat_name,

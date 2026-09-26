@@ -24,6 +24,10 @@ interface AppShellProps {
   onRefresh: () => void;
   isRefreshing: boolean;
   forecastDate: string;
+  selectedDistrictName?: string;
+  selectedBlockName?: string | null;
+  selectedPanchayatName?: string | null;
+  headerSelectorSlot?: React.ReactNode;
   onSelectDemoPanchayat?: (panchayat: PanchayatItem) => void;
   selectedDemoPanchayatId?: number | null;
   children: React.ReactNode;
@@ -37,6 +41,10 @@ export const AppShell: React.FC<AppShellProps> = ({
   onRefresh,
   isRefreshing,
   forecastDate,
+  selectedDistrictName = 'Nashik',
+  selectedBlockName,
+  selectedPanchayatName,
+  headerSelectorSlot,
   onSelectDemoPanchayat,
   selectedDemoPanchayatId,
   children,
@@ -123,13 +131,18 @@ export const AppShell: React.FC<AppShellProps> = ({
           }}
         >
           <MapPin size={16} color="var(--primary-600)" style={{ flexShrink: 0 }} />
-          <div>
+          <div style={{ minWidth: 0 }}>
             <div style={{ fontSize: '10px', color: 'var(--ink-500)', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.04em' }}>
-              Pilot Jurisdiction
+              Jurisdiction Scope
             </div>
-            <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--ink-900)' }}>
-              Nashik • Baglan Block
+            <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--ink-900)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {selectedDistrictName} • {selectedBlockName ? `${selectedBlockName} Block` : 'All Blocks'}
             </div>
+            {selectedPanchayatName && (
+              <div style={{ fontSize: '11px', color: 'var(--primary-700)', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                › {selectedPanchayatName} GP
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -485,12 +498,16 @@ export const AppShell: React.FC<AppShellProps> = ({
                 <span>Date: <strong>{forecastDate}</strong></span>
               </div>
 
-              {/* Demo Real Panchayat Selector */}
-              {onSelectDemoPanchayat && (
-                <DemoPanchayatSelector
-                  onSelectPanchayat={onSelectDemoPanchayat}
-                  selectedPanchayatId={selectedDemoPanchayatId}
-                />
+              {/* Hierarchical or Demo Panchayat Selector */}
+              {headerSelectorSlot ? (
+                headerSelectorSlot
+              ) : (
+                onSelectDemoPanchayat && (
+                  <DemoPanchayatSelector
+                    onSelectPanchayat={onSelectDemoPanchayat}
+                    selectedPanchayatId={selectedDemoPanchayatId}
+                  />
+                )
               )}
 
               {/* Refresh Button */}

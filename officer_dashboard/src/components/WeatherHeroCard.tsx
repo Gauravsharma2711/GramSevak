@@ -5,17 +5,26 @@ import { AdvisoryItem } from '../types';
 interface WeatherHeroCardProps {
   advisories: AdvisoryItem[];
   onReviewClick: (advisory: AdvisoryItem) => void;
+  blockName?: string;
+  blockForecastMm?: number;
 }
 
 export const WeatherHeroCard: React.FC<WeatherHeroCardProps> = ({
   advisories,
   onReviewClick,
+  blockName = 'Baglan',
+  blockForecastMm: explicitBlockMm,
 }) => {
   // Find highest rainfall and lowest rainfall to show spatial downscaling variation
   const validAdvisories = advisories.filter((a) => a.rainfall_mm !== undefined);
   const maxRain = validAdvisories.reduce((prev, curr) => (curr.rainfall_mm > prev.rainfall_mm ? curr : prev), validAdvisories[0] || {});
   const minRain = validAdvisories.reduce((prev, curr) => (curr.rainfall_mm < prev.rainfall_mm ? curr : prev), validAdvisories[0] || {});
-  const blockForecastMm = 18.5; // Official IMD Block Forecast
+  
+  // Calculate dynamic block forecast baseline from advisory records if not explicitly passed
+  const avgMm = validAdvisories.length > 0
+    ? validAdvisories.reduce((sum, a) => sum + a.rainfall_mm, 0) / validAdvisories.length
+    : 18.5;
+  const blockForecastMm = explicitBlockMm ?? (validAdvisories[0]?.block_forecast_mm ?? Number(avgMm.toFixed(1)));
 
   return (
     <div
@@ -84,7 +93,7 @@ export const WeatherHeroCard: React.FC<WeatherHeroCardProps> = ({
               Official IMD Block Forecast
             </div>
             <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--ink-900)' }}>
-              Baglan Block Average
+              {blockName} Block Baseline
             </div>
           </div>
 
@@ -227,7 +236,7 @@ export const WeatherHeroCard: React.FC<WeatherHeroCardProps> = ({
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <TrendingUp size={16} color="var(--primary-600)" />
           <span>
-            <strong>Spatial Variance Detected:</strong> Downscaled models capture <strong>{(maxRain.rainfall_mm - minRain.rainfall_mm).toFixed(1)} mm</strong> rainfall spread across Baglan block.
+            <strong>Spatial Variance Detected:</strong> Downscaled models capture <strong>{(maxRain.rainfall_mm - minRain.rainfall_mm).toFixed(1)} mm</strong> rainfall spread across {blockName} block.
           </span>
         </div>
         <div style={{ color: 'var(--primary-700)', fontWeight: 600 }}>

@@ -292,7 +292,7 @@ export const AdvisoryReviewQueue: React.FC<AdvisoryReviewQueueProps> = ({
                     {advisory.panchayat_name} Gram Panchayat
                   </span>
                   <span style={{ fontSize: '11px', color: 'var(--ink-500)' }}>
-                    ({advisory.block_name || 'Baglan'} Block • #{advisory.panchayat_id})
+                    ({advisory.block_name || 'Jurisdiction'} Block • #{advisory.panchayat_id})
                   </span>
                 </div>
 

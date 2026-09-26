@@ -30,13 +30,17 @@ export const PanchayatForecastSection: React.FC<PanchayatForecastSectionProps> =
   const [sortBy, setSortBy] = useState<'name' | 'rainfall' | 'difference'>('rainfall');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
-  const blockForecastMm = 18.5; // Official IMD Block Forecast for Baglan
+  // Dynamic block filter list
+  const availableBlocks = Array.from(
+    new Set(panchayats.map((p) => p.block_name).filter(Boolean))
+  ).sort();
 
   // Merge Panchayat spatial data with latest advisory/forecast record
   const rows = panchayats.map((p) => {
     const adv = advisories.find((a) => a.panchayat_id === p.panchayat_id);
-    const downscaledMm = adv?.rainfall_mm ?? 18.5;
-    const diff = downscaledMm - blockForecastMm;
+    const blockForecastMm = adv?.block_forecast_mm ?? 18.5;
+    const downscaledMm = adv?.rainfall_mm ?? null;
+    const diff = downscaledMm !== null ? downscaledMm - blockForecastMm : null;
     const advisoryStatus = adv?.status ?? 'DRAFT';
     const forecastDate = adv?.forecast_date ?? '2026-09-09';
 
@@ -63,8 +67,8 @@ export const PanchayatForecastSection: React.FC<PanchayatForecastSectionProps> =
   filteredRows.sort((a, b) => {
     let comp = 0;
     if (sortBy === 'name') comp = a.panchayat.panchayat_name.localeCompare(b.panchayat.panchayat_name);
-    if (sortBy === 'rainfall') comp = a.downscaledMm - b.downscaledMm;
-    if (sortBy === 'difference') comp = Math.abs(a.diff) - Math.abs(b.diff);
+    if (sortBy === 'rainfall') comp = (a.downscaledMm ?? -1) - (b.downscaledMm ?? -1);
+    if (sortBy === 'difference') comp = Math.abs(a.diff ?? 0) - Math.abs(b.diff ?? 0);
     return sortOrder === 'desc' ? -comp : comp;
   });
 
@@ -110,13 +114,15 @@ export const PanchayatForecastSection: React.FC<PanchayatForecastSectionProps> =
             value={selectedBlock}
             onChange={(e) => setSelectedBlock(e.target.value)}
             className="input-field"
-            style={{ width: '130px', fontSize: '13px', flexShrink: 0 }}
+            style={{ width: '140px', fontSize: '13px', flexShrink: 0 }}
             aria-label="Filter by block"
           >
             <option value="ALL">All Blocks</option>
-            <option value="Baglan">Baglan</option>
-            <option value="Dindori">Dindori</option>
-            <option value="Surgana">Surgana</option>
+            {availableBlocks.map((b) => (
+              <option key={b} value={b}>
+                {b}
+              </option>
+            ))}
           </select>
         </div>
       </div>
@@ -275,31 +281,35 @@ export const PanchayatForecastSection: React.FC<PanchayatForecastSectionProps> =
 
                       {/* Difference (Delta) */}
                       <td style={{ padding: '14px 18px' }}>
-                        <span
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '2px',
-                            fontWeight: 700,
-                            fontSize: '12px',
-                            padding: '2px 8px',
-                            borderRadius: 'var(--radius-pill)',
-                            backgroundColor:
-                              Math.abs(row.diff) > 10
-                                ? 'var(--danger-100)'
-                                : Math.abs(row.diff) > 4
-                                ? 'var(--warning-100)'
-                                : 'var(--primary-100)',
-                            color:
-                              Math.abs(row.diff) > 10
-                                ? 'var(--danger-600)'
-                                : Math.abs(row.diff) > 4
-                                ? 'var(--warning-600)'
-                                : 'var(--primary-700)',
-                          }}
-                        >
-                          {row.diff >= 0 ? `+${row.diff.toFixed(1)}` : row.diff.toFixed(1)} mm
-                        </span>
+                        {row.diff !== null ? (
+                          <span
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '2px',
+                              fontWeight: 700,
+                              fontSize: '12px',
+                              padding: '2px 8px',
+                              borderRadius: 'var(--radius-pill)',
+                              backgroundColor:
+                                Math.abs(row.diff) > 10
+                                  ? 'var(--danger-100)'
+                                  : Math.abs(row.diff) > 4
+                                  ? 'var(--warning-100)'
+                                  : 'var(--primary-100)',
+                              color:
+                                Math.abs(row.diff) > 10
+                                  ? 'var(--danger-600)'
+                                  : Math.abs(row.diff) > 4
+                                  ? 'var(--warning-600)'
+                                  : 'var(--primary-700)',
+                            }}
+                          >
+                            {row.diff >= 0 ? `+${row.diff.toFixed(1)}` : row.diff.toFixed(1)} mm
+                          </span>
+                        ) : (
+                          <span style={{ fontSize: '11px', color: 'var(--ink-400)' }}>—</span>
+                        )}
                       </td>
 
                       {/* Forecast Date */}
@@ -411,17 +421,19 @@ export const PanchayatForecastSection: React.FC<PanchayatForecastSectionProps> =
                     <div className="text-label" style={{ fontSize: '10px', color: 'var(--primary-700)' }}>Downscaled</div>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', marginTop: '2px' }}>
                       <span style={{ fontSize: '16px', fontWeight: 700, color: 'var(--primary-700)' }}>
-                        {row.downscaledMm.toFixed(1)} mm
+                        {row.downscaledMm !== null ? `${row.downscaledMm.toFixed(1)} mm` : 'Pending'}
                       </span>
-                      <span
-                        style={{
-                          fontSize: '11px',
-                          fontWeight: 700,
-                          color: Math.abs(row.diff) > 4 ? 'var(--warning-600)' : 'var(--primary-700)',
-                        }}
-                      >
-                        ({row.diff >= 0 ? `+${row.diff.toFixed(1)}` : row.diff.toFixed(1)})
-                      </span>
+                      {row.diff !== null && (
+                        <span
+                          style={{
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            color: Math.abs(row.diff) > 4 ? 'var(--warning-600)' : 'var(--primary-700)',
+                          }}
+                        >
+                          ({row.diff >= 0 ? `+${row.diff.toFixed(1)}` : row.diff.toFixed(1)})
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>

@@ -25,6 +25,7 @@ import { SkeletonLoader } from './components/common/SkeletonLoader';
 import { ErrorState } from './components/common/ErrorState';
 import { ApiService } from './services/api';
 import { PanchayatItem, AdvisoryItem, DownscaledForecastDetail } from './types';
+import { HierarchicalPanchayatSelector } from './components/HierarchicalPanchayatSelector';
 
 export const App: React.FC = () => {
   const [currentTab, setCurrentTab] = useState<'dashboard' | 'forecasts' | 'review' | 'audit' | 'panchayats'>('dashboard');
@@ -45,22 +46,27 @@ export const App: React.FC = () => {
   const [isGenerateModalOpen, setIsGenerateModalOpen] = useState(false);
   const [preselectedPanchayatForGen, setPreselectedPanchayatForGen] = useState<PanchayatItem | null>(null);
 
+  // Selected Jurisdiction State
+  const [selectedDistrictId, setSelectedDistrictId] = useState<number>(1);
+  const [selectedDistrictName, setSelectedDistrictName] = useState<string>('Nashik');
+  const [selectedBlockId, setSelectedBlockId] = useState<number | null>(null);
+  const [selectedBlockName, setSelectedBlockName] = useState<string | null>(null);
+
   // Notification Toast
   const [toastMessage, setToastMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
   const forecastDate = '2026-09-09';
-  const districtName = 'Nashik';
 
   const showToast = (text: string, type: 'success' | 'error' = 'success') => {
     setToastMessage({ text, type });
     setTimeout(() => setToastMessage(null), 4000);
   };
 
-  const loadData = async () => {
+  const loadData = async (filterBlock?: string) => {
     setError(null);
     try {
       const [panchayatRes, advisoriesRes] = await Promise.all([
-        ApiService.getPanchayats(),
+        ApiService.getPanchayats(filterBlock),
         ApiService.getOfficerAdvisories(),
       ]);
       setPanchayats(panchayatRes.items);
@@ -80,7 +86,7 @@ export const App: React.FC = () => {
 
   const handleRefresh = () => {
     setIsRefreshing(true);
-    loadData();
+    loadData(selectedBlockName || undefined);
   };
 
   // Submit Approval to backend
@@ -152,11 +158,42 @@ export const App: React.FC = () => {
       onRefresh={handleRefresh}
       isRefreshing={isRefreshing}
       forecastDate={forecastDate}
-      onSelectDemoPanchayat={(p) => {
-        setSelectedPanchayatDetail(p);
-        showToast(`Loaded live Panchayat: ${p.panchayat_name} (${p.block_name} Block)`);
-      }}
-      selectedDemoPanchayatId={selectedPanchayatDetail?.panchayat_id}
+      selectedDistrictName={selectedDistrictName}
+      selectedBlockName={selectedBlockName}
+      selectedPanchayatName={selectedPanchayatDetail?.panchayat_name}
+      headerSelectorSlot={
+        <HierarchicalPanchayatSelector
+          selectedDistrictId={selectedDistrictId}
+          selectedBlockId={selectedBlockId}
+          selectedPanchayatId={selectedPanchayatDetail?.panchayat_id}
+          onDistrictChange={(id, name) => {
+            setSelectedDistrictId(id);
+            setSelectedDistrictName(name);
+            setSelectedBlockId(null);
+            setSelectedBlockName(null);
+            setSelectedPanchayatDetail(null);
+            loadData();
+          }}
+          onBlockChange={(id, name) => {
+            setSelectedBlockId(id);
+            setSelectedBlockName(name);
+            setSelectedPanchayatDetail(null);
+            loadData(name || undefined);
+          }}
+          onSelectPanchayat={(p) => {
+            setSelectedPanchayatDetail(p);
+            setSelectedDistrictName(p.district_name);
+            setSelectedBlockName(p.block_name);
+            showToast(`Loaded live Panchayat: ${p.panchayat_name} (${p.block_name} Block)`);
+          }}
+          onClearSelection={() => {
+            setSelectedPanchayatDetail(null);
+            setSelectedBlockId(null);
+            setSelectedBlockName(null);
+            loadData();
+          }}
+        />
+      }
     >
       {/* Toast Notification */}
       {toastMessage && (
@@ -235,9 +272,9 @@ export const App: React.FC = () => {
               >
                 {/* 1. District & Jurisdiction */}
                 <MetricCard
-                  label="Pilot District"
-                  value={districtName}
-                  subtext="Baglan Block Jurisdiction"
+                  label="Active District"
+                  value={selectedDistrictName}
+                  subtext={selectedBlockName ? `${selectedBlockName} Block Jurisdiction` : 'All District Blocks'}
                   icon={<MapPin size={20} />}
                   accentColor="var(--primary-700)"
                 />
@@ -246,7 +283,7 @@ export const App: React.FC = () => {
                 <MetricCard
                   label="Forecast Date"
                   value={forecastDate}
-                  subtext={`${totalForecastsAvailable} of ${totalForecastsAvailable} Forecasts`}
+                  subtext={`${totalForecastsAvailable} Monitored Units`}
                   icon={<Calendar size={20} />}
                   trend={{
                     text: '100% Synced',
@@ -257,9 +294,9 @@ export const App: React.FC = () => {
 
                 {/* 3. Panchayat Count */}
                 <MetricCard
-                  label="Panchayat Count"
+                  label="Panchayats in Scope"
                   value={panchayats.length}
-                  subtext="Monitored in Baglan Block"
+                  subtext={selectedBlockName ? `Active in ${selectedBlockName} Block` : `Monitored in ${selectedDistrictName}`}
                   icon={<Building2 size={20} />}
                   accentColor="var(--primary-700)"
                 />
@@ -295,6 +332,7 @@ export const App: React.FC = () => {
               {/* Weather Downscaling Hero Card */}
               <WeatherHeroCard
                 advisories={advisories}
+                blockName={selectedBlockName || 'Baglan'}
                 onReviewClick={(advisory) => {
                   setSelectedAdvisoryForDetail(advisory);
                 }}

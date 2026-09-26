@@ -1,8 +1,8 @@
 import React from 'react';
 
 interface ForecastValueProps {
-  rainfallMm: number;
-  blockForecastMm?: number;
+  rainfallMm?: number | null;
+  blockForecastMm?: number | null;
   size?: 'sm' | 'md' | 'lg';
   showDifference?: boolean;
 }
@@ -13,6 +13,17 @@ export const ForecastValue: React.FC<ForecastValueProps> = ({
   size = 'md',
   showDifference = false,
 }) => {
+  if (rainfallMm === null || rainfallMm === undefined) {
+    const fontSize = size === 'lg' ? '22px' : size === 'md' ? '16px' : '13px';
+    return (
+      <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+        <span style={{ fontSize, fontWeight: 600, color: 'var(--ink-500)', lineHeight: 1.1 }}>
+          — <span style={{ fontSize: '12px', fontWeight: 400 }}>mm (Pending)</span>
+        </span>
+      </div>
+    );
+  }
+
   const isHeavy = rainfallMm >= 64.5;
   const isModerate = rainfallMm >= 7.6 && rainfallMm < 64.5;
 
@@ -25,8 +36,8 @@ export const ForecastValue: React.FC<ForecastValueProps> = ({
   const fontSize = size === 'lg' ? '28px' : size === 'md' ? '18px' : '14px';
   const unitSize = size === 'lg' ? '14px' : size === 'md' ? '12px' : '11px';
 
-  const diff = blockForecastMm !== undefined ? rainfallMm - blockForecastMm : 0;
-  const diffFormatted = diff > 0 ? `+${diff.toFixed(1)}` : diff.toFixed(1);
+  const diff = (blockForecastMm !== undefined && blockForecastMm !== null) ? rainfallMm - blockForecastMm : null;
+  const diffFormatted = diff !== null ? (diff > 0 ? `+${diff.toFixed(1)}` : diff.toFixed(1)) : null;
 
   return (
     <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'flex-start' }}>
@@ -39,7 +50,7 @@ export const ForecastValue: React.FC<ForecastValueProps> = ({
         </span>
       </div>
 
-      {showDifference && blockForecastMm !== undefined && (
+      {showDifference && diff !== null && blockForecastMm !== null && (
         <span
           style={{
             fontSize: '11px',

@@ -39,10 +39,10 @@ export const PanchayatDetailView: React.FC<PanchayatDetailViewProps> = ({
   onRejectAdvisory,
   onOpenGenerateModal,
 }) => {
-  const blockForecastMm = advisory?.block_forecast_mm ?? 18.5;
-  const downscaledMm = advisory?.rainfall_mm ?? 26.4;
-  const diff = downscaledMm - blockForecastMm;
-  const diffFormatted = diff >= 0 ? `+${diff.toFixed(1)}` : diff.toFixed(1);
+  const blockForecastMm = advisory?.block_forecast_mm ?? null;
+  const downscaledMm = advisory?.rainfall_mm ?? null;
+  const diff = (downscaledMm !== null && blockForecastMm !== null) ? downscaledMm - blockForecastMm : null;
+  const diffFormatted = diff !== null ? (diff >= 0 ? `+${diff.toFixed(1)}` : diff.toFixed(1)) : 'N/A';
 
   const forecastDate = advisory?.forecast_date ?? '2026-09-09';
   const forecastIssueDate = advisory?.forecast_issue_date ?? '2026-09-08';
@@ -210,10 +210,10 @@ export const PanchayatDetailView: React.FC<PanchayatDetailViewProps> = ({
               <span className="text-label" style={{ fontSize: '11px' }}>1. Official Block Forecast</span>
             </div>
             <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--ink-900)' }}>
-              {blockForecastMm.toFixed(1)} <span style={{ fontSize: '12px', fontWeight: 500 }}>mm</span>
+              {blockForecastMm !== null ? `${blockForecastMm.toFixed(1)} mm` : 'Pending IMD Sync'}
             </div>
             <div style={{ fontSize: '11px', color: 'var(--ink-500)', marginTop: '4px' }}>
-              IMD Baglan Block (25–50 km grid)
+              IMD {panchayat.block_name} Block (25–50 km grid)
             </div>
           </div>
 
@@ -285,10 +285,10 @@ export const PanchayatDetailView: React.FC<PanchayatDetailViewProps> = ({
               <span className="text-label" style={{ fontSize: '11px', color: 'var(--primary-700)' }}>3. Panchayat Forecast</span>
             </div>
             <div style={{ fontSize: '20px', fontWeight: 700, color: 'var(--primary-700)' }}>
-              {downscaledMm.toFixed(1)} <span style={{ fontSize: '12px', fontWeight: 500 }}>mm</span>
+              {downscaledMm !== null ? `${downscaledMm.toFixed(1)} mm` : 'Pending Inference'}
             </div>
             <div style={{ fontSize: '11px', color: 'var(--primary-700)', fontWeight: 600, marginTop: '4px' }}>
-              Δ {diffFormatted} mm variance from block
+              {diff !== null ? `Δ ${diffFormatted} mm variance from block` : 'Run ML Downscaling below'}
             </div>
           </div>
 
@@ -351,7 +351,7 @@ export const PanchayatDetailView: React.FC<PanchayatDetailViewProps> = ({
                 <ForecastValue rainfallMm={blockForecastMm} size="lg" />
               </div>
               <div style={{ fontSize: '11px', color: 'var(--ink-500)', marginTop: '4px' }}>
-                Baglan Block uniform prediction
+                {panchayat.block_name} Block baseline prediction
               </div>
             </div>
 
@@ -362,7 +362,7 @@ export const PanchayatDetailView: React.FC<PanchayatDetailViewProps> = ({
                 <ForecastValue rainfallMm={downscaledMm} size="lg" />
               </div>
               <div style={{ fontSize: '11px', color: 'var(--primary-700)', fontWeight: 600, marginTop: '4px' }}>
-                Δ {diffFormatted} mm difference
+                {diff !== null ? `Δ ${diffFormatted} mm difference` : 'Pending ML Downscaling'}
               </div>
             </div>
           </div>

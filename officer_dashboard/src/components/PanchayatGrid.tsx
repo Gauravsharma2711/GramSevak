@@ -26,6 +26,8 @@ export const PanchayatGrid: React.FC<PanchayatGridProps> = ({
     return matchesSearch && matchesBlock;
   });
 
+  const availableBlocks = Array.from(new Set(panchayats.map((p) => p.block_name).filter(Boolean))).sort();
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* Header and Search Controls */}
@@ -41,7 +43,7 @@ export const PanchayatGrid: React.FC<PanchayatGridProps> = ({
         <div>
           <h2 className="text-section-title">Panchayat Geospatial Registry</h2>
           <p className="text-body" style={{ fontSize: '13px', color: 'var(--ink-500)' }}>
-            10 pilot Gram Panchayats in Nashik District with Bhuvan DEM elevation and LGD codes.
+            {panchayats.length} Gram Panchayats registered with Bhuvan DEM elevation and LGD codes.
           </p>
         </div>
 
@@ -76,9 +78,11 @@ export const PanchayatGrid: React.FC<PanchayatGridProps> = ({
             style={{ width: '150px' }}
           >
             <option value="ALL">All Blocks</option>
-            <option value="Baglan">Baglan</option>
-            <option value="Dindori">Dindori</option>
-            <option value="Surgana">Surgana</option>
+            {availableBlocks.map((b) => (
+              <option key={b} value={b}>
+                {b}
+              </option>
+            ))}
           </select>
         </div>
       </div>
