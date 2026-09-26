@@ -1,0 +1,89 @@
+{
+  "phase": "1.6",
+  "title": "Scalable Supabase Weather & Administrative Hierarchy Schema Validation Report",
+  "timestamp": "2026-09-27T00:05:00+05:30",
+  "migration_file": "supabase/migrations/20260927000001_scalable_weather_schema.sql",
+  "elapsed_seconds": 39.7176,
+  "migration_status": "PASS",
+  "pre_migration_row_counts": {
+    "districts": 2,
+    "blocks": 28,
+    "panchayats": 2726,
+    "weather_observations": 188708,
+    "downscaled_forecasts": 459,
+    "panchayat_weather_data": 2726,
+    "block_forecasts": 1873,
+    "station_metadata": 45,
+    "advisories": 1
+  },
+  "post_migration_row_counts": {
+    "districts": 2,
+    "blocks": 28,
+    "panchayats": 2726,
+    "weather_observations": 188708,
+    "downscaled_forecasts": 459,
+    "panchayat_weather_data": 2726,
+    "block_forecasts": 1873,
+    "station_metadata": 45,
+    "advisories": 1
+  },
+  "data_preservation": {
+    "preserved": true,
+    "discrepancies": []
+  },
+  "referential_integrity": {
+    "weather_observations_to_panchayats_orphans": 0,
+    "downscaled_forecasts_to_panchayats_orphans": 0,
+    "panchayats_to_blocks_orphans": 0,
+    "blocks_to_districts_orphans": 0
+  },
+  "verified_indexes": [
+    "idx_weather_obs_panchayat_issue_date",
+    "idx_weather_obs_source_dataset",
+    "idx_downscaled_forecasts_panchayat_date",
+    "idx_downscaled_forecasts_panchayat_issue"
+  ],
+  "verified_constraints": [
+    "chk_downscaled_forecasts_rainfall",
+    "chk_panchayats_elevation",
+    "chk_panchayats_latitude",
+    "chk_panchayats_longitude",
+    "chk_weather_obs_actual_rainfall",
+    "chk_weather_obs_forecast_rainfall",
+    "chk_weather_obs_lead_days",
+    "fk_downscaled_forecasts_panchayat",
+    "fk_weather_obs_panchayat"
+  ],
+  "provenance_backfill": {
+    "nashik": 1388,
+    "pune": 187320
+  },
+  "query_benchmarks": {
+    "list_districts": {
+      "result_count": 2,
+      "elapsed_ms": 389.75,
+      "sample": [
+        "1: Nashik (Maharashtra)",
+        "4: Pune (Maharashtra)"
+      ]
+    },
+    "blocks_for_nashik": {
+      "result_count": 15,
+      "elapsed_ms": 402.21
+    },
+    "panchayats_for_baglan_block": {
+      "result_count": 10,
+      "elapsed_ms": 403.9
+    },
+    "weather_for_panchayat_1001": {
+      "result_count": 1,
+      "elapsed_ms": 398.37
+    },
+    "downscaled_forecasts_for_panchayat_1001": {
+      "result_count": 5,
+      "elapsed_ms": 397.8
+    }
+  },
+  "rls_status": "Enabled on all 7 operational tables with Public Read policies",
+  "overall_status": "PASS"
+}
