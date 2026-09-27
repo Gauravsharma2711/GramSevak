@@ -1,0 +1,112 @@
+{
+  "model_name": "GramSevak XGBoost Downscaler",
+  "model_version": "2.5.0",
+  "phase": "2.5",
+  "model_type": "XGBRegressor",
+  "framework": "xgboost",
+  "xgboost_version": "3.4.1",
+  "created_at_utc": "2026-09-27T17:43:25.471833+00:00",
+  "random_seed": 42,
+  "target": "actual_rainfall_mm",
+  "feature_registry_version": "1.0.0",
+  "feature_count": 20,
+  "features": [
+    "block_forecast_rainfall_mm",
+    "log1p_block_forecast_rainfall_mm",
+    "panchayat_latitude",
+    "panchayat_longitude",
+    "elevation_m",
+    "station_distance_km",
+    "station_latitude",
+    "station_longitude",
+    "lead_days",
+    "target_month",
+    "target_day_of_year",
+    "target_day_of_year_sin",
+    "target_day_of_year_cos",
+    "historical_rainfall_prior_1d_mm",
+    "historical_rainfall_prior_2d_mm",
+    "historical_rainfall_prior_3d_mean_mm",
+    "historical_rainfall_prior_3d_sum_mm",
+    "historical_rainfall_prior_7d_mean_mm",
+    "historical_rainfall_prior_7d_sum_mm",
+    "has_historical_rainfall_context"
+  ],
+  "selected_hyperparameters": {
+    "n_estimators": 200,
+    "max_depth": 6,
+    "learning_rate": 0.03,
+    "subsample": 0.8,
+    "colsample_bytree": 0.7,
+    "reg_alpha": 1.0,
+    "reg_lambda": 5.0,
+    "min_child_weight": 20.0,
+    "early_stopping_rounds": 15,
+    "random_state": 42
+  },
+  "early_stopping_configuration": {
+    "early_stopping_rounds": 15,
+    "eval_metric": "mae",
+    "best_iteration": 1,
+    "best_validation_score": 5.404686502047947
+  },
+  "training_dataset": {
+    "source_parquet": "data/ml/features/pune/rainfall_features.parquet",
+    "split_name": "train",
+    "period": "2026-04-13 to 2026-07-31",
+    "row_count": 119082,
+    "training_duration_seconds": 0.7
+  },
+  "validation_dataset": {
+    "split_name": "validation",
+    "period": "2026-08-01 to 2026-08-31",
+    "row_count": 37464
+  },
+  "test_dataset": {
+    "split_name": "test",
+    "period": "2026-09-01 to 2026-09-23",
+    "row_count": 30774,
+    "locked": true
+  },
+  "validation_metrics": {
+    "count": 37464,
+    "mae": 5.4047,
+    "rmse": 7.3652,
+    "bias": 1.6128,
+    "median_abs_error": 4.1752,
+    "pearson_r": 0.4857,
+    "r2": -0.0219,
+    "error_quantiles": {
+      "min": -27.6395,
+      "p25": 1.8211,
+      "p50_median_error": 4.0671,
+      "p75": 4.738,
+      "p90": 6.0089,
+      "max": 6.9089
+    }
+  },
+  "locked_test_metrics": {
+    "count": 30774,
+    "mae": 5.907,
+    "rmse": 6.1865,
+    "bias": 4.552,
+    "median_abs_error": 5.6089,
+    "pearson_r": 0.0002,
+    "r2": -1.1809,
+    "error_quantiles": {
+      "min": -10.8911,
+      "p25": 5.2506,
+      "p50_median_error": 5.6089,
+      "p75": 6.9089,
+      "p90": 7.4089,
+      "max": 7.5089
+    }
+  },
+  "artifacts": {
+    "model_path": "ml/models/xgboost/model.joblib",
+    "best_model_path": "ml/models/xgboost/best_model.joblib",
+    "preprocessor_path": "ml/models/xgboost/preprocessor.joblib",
+    "config_path": "ml/models/xgboost/config.json",
+    "metadata_path": "ml/models/xgboost/metadata.json"
+  }
+}

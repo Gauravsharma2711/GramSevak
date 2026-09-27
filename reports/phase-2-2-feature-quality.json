@@ -1,0 +1,1036 @@
+{
+  "metadata": {
+    "phase": "2.2",
+    "title": "ML Feature Engineering & Quality Report",
+    "timestamp": "2026-09-27T16:07:21.010136+00:00",
+    "problem_statement": "SIH 26074 - GramSevak Hyper-local Rainfall Downscaling",
+    "registry_version": "1.0.0"
+  },
+  "summary": {
+    "status": "APPROVED",
+    "approved_features_count": 20,
+    "excluded_features_count": 7,
+    "districts_processed": [
+      "Nashik",
+      "Pune"
+    ],
+    "total_records_processed": 188708,
+    "warnings_count": 3,
+    "warnings": [
+      "Nashik has 100% missing historical rainfall features (historical_rainfall_prior_1d_mm, 3d, 7d). This is expected behavior because Nashik is a single-observation spatial snapshot per Panchayat.",
+      "Pune has 17.143% missing historical rainfall features due to initial warm-up days and calendar gap days. Downstream modeling must use the provided has_historical_rainfall_context indicator.",
+      "Detected 11 highly correlated feature pairs (|r| >= 0.85) in Pune, such as block_forecast_rainfall_mm vs log1p_block_forecast_rainfall_mm. Tree models handle collinearity naturally, but linear baselines should consider regularization."
+    ]
+  },
+  "approved_feature_columns": [
+    "block_forecast_rainfall_mm",
+    "log1p_block_forecast_rainfall_mm",
+    "panchayat_latitude",
+    "panchayat_longitude",
+    "elevation_m",
+    "station_distance_km",
+    "station_latitude",
+    "station_longitude",
+    "lead_days",
+    "target_month",
+    "target_day_of_year",
+    "target_day_of_year_sin",
+    "target_day_of_year_cos",
+    "historical_rainfall_prior_1d_mm",
+    "historical_rainfall_prior_2d_mm",
+    "historical_rainfall_prior_3d_mean_mm",
+    "historical_rainfall_prior_3d_sum_mm",
+    "historical_rainfall_prior_7d_mean_mm",
+    "historical_rainfall_prior_7d_sum_mm",
+    "has_historical_rainfall_context"
+  ],
+  "metadata_columns": [
+    "panchayat_id",
+    "lgd_code",
+    "panchayat_name",
+    "block_name",
+    "district_name",
+    "date",
+    "forecast_issue_date"
+  ],
+  "target_column": "actual_rainfall_mm",
+  "feature_registry_definitions": [
+    {
+      "name": "block_forecast_rainfall_mm",
+      "source_fields": [
+        "block_forecast_rainfall_mm"
+      ],
+      "category": "A. Block Forecast",
+      "type": "float64",
+      "unit": "mm",
+      "available_at_prediction": true,
+      "lookback_days": 0,
+      "leakage_risk": "none",
+      "missing_policy": "Forbidden to be null; records with null block forecast are ineligible for ML.",
+      "description": "Primary regional numerical weather prediction (NWP) 24-hour precipitation forecast issued by IMD/NCMRWF at block scale."
+    },
+    {
+      "name": "log1p_block_forecast_rainfall_mm",
+      "source_fields": [
+        "block_forecast_rainfall_mm"
+      ],
+      "category": "A. Block Forecast Transformation",
+      "type": "float64",
+      "unit": "log(1 + mm)",
+      "available_at_prediction": true,
+      "lookback_days": 0,
+      "leakage_risk": "none",
+      "missing_policy": "Derived from block_forecast_rainfall_mm via log1p. Handles zeros smoothly and normalizes skewed precipitation distribution.",
+      "description": "Natural logarithm of (1 + block_forecast_rainfall_mm) to compress severe right-skewness while preserving 0 mm dry-day identity."
+    },
+    {
+      "name": "panchayat_latitude",
+      "source_fields": [
+        "panchayat_latitude"
+      ],
+      "category": "B. Geographic Coordinates",
+      "type": "float64",
+      "unit": "decimal degrees",
+      "available_at_prediction": true,
+      "lookback_days": 0,
+      "leakage_risk": "none",
+      "missing_policy": "Forbidden to be null; static administrative centroid coordinate.",
+      "description": "Centroid latitude (WGS84) of the Gram Panchayat, capturing the North-South climatic precipitation gradient."
+    },
+    {
+      "name": "panchayat_longitude",
+      "source_fields": [
+        "panchayat_longitude"
+      ],
+      "category": "B. Geographic Coordinates",
+      "type": "float64",
+      "unit": "decimal degrees",
+      "available_at_prediction": true,
+      "lookback_days": 0,
+      "leakage_risk": "none",
+      "missing_policy": "Forbidden to be null; static administrative centroid coordinate.",
+      "description": "Centroid longitude (WGS84) of the Gram Panchayat, capturing the orographic distance from the Western Ghats ridgeline."
+    },
+    {
+      "name": "elevation_m",
+      "source_fields": [
+        "elevation_m"
+      ],
+      "category": "C. Topography",
+      "type": "float64",
+      "unit": "meters",
+      "available_at_prediction": true,
+      "lookback_days": 0,
+      "leakage_risk": "none",
+      "missing_policy": "Static terrain altitude above mean sea level. Non-null float.",
+      "description": "Terrain elevation in meters, acting as the primary physical driver of localized orographic precipitation enhancement."
+    },
+    {
+      "name": "station_distance_km",
+      "source_fields": [
+        "station_distance_km"
+      ],
+      "category": "D. Station Spatial Context",
+      "type": "float64",
+      "unit": "km",
+      "available_at_prediction": true,
+      "lookback_days": 0,
+      "leakage_risk": "none",
+      "missing_policy": "Great-circle Haversine distance between Panchayat centroid and reference weather station. Non-null float.",
+      "description": "Geometric proximity in kilometers to the nearest reference Automatic Weather Station (AWS) / Rain Gauge."
+    },
+    {
+      "name": "station_latitude",
+      "source_fields": [
+        "station_latitude"
+      ],
+      "category": "D. Station Spatial Context",
+      "type": "float64",
+      "unit": "decimal degrees",
+      "available_at_prediction": true,
+      "lookback_days": 0,
+      "leakage_risk": "none",
+      "missing_policy": "Latitude of reference weather station (WGS84). Non-null float.",
+      "description": "Geographical latitude of the reference Automatic Weather Station."
+    },
+    {
+      "name": "station_longitude",
+      "source_fields": [
+        "station_longitude"
+      ],
+      "category": "D. Station Spatial Context",
+      "type": "float64",
+      "unit": "decimal degrees",
+      "available_at_prediction": true,
+      "lookback_days": 0,
+      "leakage_risk": "none",
+      "missing_policy": "Longitude of reference weather station (WGS84). Non-null float.",
+      "description": "Geographical longitude of the reference Automatic Weather Station."
+    },
+    {
+      "name": "lead_days",
+      "source_fields": [
+        "date",
+        "forecast_issue_date"
+      ],
+      "category": "E. Forecast Horizon",
+      "type": "int64",
+      "unit": "days",
+      "available_at_prediction": true,
+      "lookback_days": 0,
+      "leakage_risk": "none",
+      "missing_policy": "Computed as (date - forecast_issue_date). Must be an integer >= 0.",
+      "description": "Forecast lead horizon in integer days, accounting for temporal decay of numerical weather model predictive skill."
+    },
+    {
+      "name": "target_month",
+      "source_fields": [
+        "date"
+      ],
+      "category": "F. Calendar / Seasonality",
+      "type": "int64",
+      "unit": "month (1-12)",
+      "available_at_prediction": true,
+      "lookback_days": 0,
+      "leakage_risk": "none",
+      "missing_policy": "Extracted deterministically from target date. Non-null integer.",
+      "description": "Calendar month of the forecast target date, identifying pre-monsoon, peak monsoon, and post-monsoon phases."
+    },
+    {
+      "name": "target_day_of_year",
+      "source_fields": [
+        "date"
+      ],
+      "category": "F. Calendar / Seasonality",
+      "type": "int64",
+      "unit": "day of year (1-366)",
+      "available_at_prediction": true,
+      "lookback_days": 0,
+      "leakage_risk": "none",
+      "missing_policy": "Extracted deterministically from target date. Non-null integer.",
+      "description": "Sequential day of the year (1 to 366) of the forecast target date."
+    },
+    {
+      "name": "target_day_of_year_sin",
+      "source_fields": [
+        "date"
+      ],
+      "category": "F. Calendar / Seasonality",
+      "type": "float64",
+      "unit": "dimensionless (-1.0 to 1.0)",
+      "available_at_prediction": true,
+      "lookback_days": 0,
+      "leakage_risk": "none",
+      "missing_policy": "sin(2 * pi * day_of_year / 365.25). Non-null float.",
+      "description": "Sine cyclical transformation of day of year to preserve annual continuity across calendar boundary."
+    },
+    {
+      "name": "target_day_of_year_cos",
+      "source_fields": [
+        "date"
+      ],
+      "category": "F. Calendar / Seasonality",
+      "type": "float64",
+      "unit": "dimensionless (-1.0 to 1.0)",
+      "available_at_prediction": true,
+      "lookback_days": 0,
+      "leakage_risk": "none",
+      "missing_policy": "cos(2 * pi * day_of_year / 365.25). Non-null float.",
+      "description": "Cosine cyclical transformation of day of year to preserve annual continuity across calendar boundary."
+    },
+    {
+      "name": "historical_rainfall_prior_1d_mm",
+      "source_fields": [
+        "actual_rainfall_mm",
+        "forecast_issue_date"
+      ],
+      "category": "G. Historical Rainfall Context",
+      "type": "float64",
+      "unit": "mm",
+      "available_at_prediction": true,
+      "lookback_days": 1,
+      "leakage_risk": "low (strictly prior to forecast issuance date)",
+      "missing_policy": "NaN when prior day observation is not available in historical record (e.g. warm-up window or snapshot datasets). Never filled with 0 unless actually observed.",
+      "description": "Observed 24-hour rainfall at Panchayat on the day strictly prior to forecast issuance (forecast_issue_date - 1 day)."
+    },
+    {
+      "name": "historical_rainfall_prior_2d_mm",
+      "source_fields": [
+        "actual_rainfall_mm",
+        "forecast_issue_date"
+      ],
+      "category": "G. Historical Rainfall Context",
+      "type": "float64",
+      "unit": "mm",
+      "available_at_prediction": true,
+      "lookback_days": 2,
+      "leakage_risk": "low (strictly prior to forecast issuance date)",
+      "missing_policy": "NaN when observation on (forecast_issue_date - 2 days) is missing. Never filled with 0 unless actually observed.",
+      "description": "Observed 24-hour rainfall at Panchayat two days prior to forecast issuance (forecast_issue_date - 2 days)."
+    },
+    {
+      "name": "historical_rainfall_prior_3d_mean_mm",
+      "source_fields": [
+        "actual_rainfall_mm",
+        "forecast_issue_date"
+      ],
+      "category": "G. Historical Rainfall Context",
+      "type": "float64",
+      "unit": "mm",
+      "available_at_prediction": true,
+      "lookback_days": 3,
+      "leakage_risk": "low (strictly backward rolling window prior to forecast issuance)",
+      "missing_policy": "NaN if fewer than 2 valid observations are available in the 3-day backward window [issue - 3d, issue - 1d].",
+      "description": "Mean daily precipitation over the 3-day window strictly prior to forecast issuance, indicating short-term antecedent soil moisture."
+    },
+    {
+      "name": "historical_rainfall_prior_3d_sum_mm",
+      "source_fields": [
+        "actual_rainfall_mm",
+        "forecast_issue_date"
+      ],
+      "category": "G. Historical Rainfall Context",
+      "type": "float64",
+      "unit": "mm",
+      "available_at_prediction": true,
+      "lookback_days": 3,
+      "leakage_risk": "low (strictly backward rolling window prior to forecast issuance)",
+      "missing_policy": "NaN if fewer than 2 valid observations are available in the 3-day backward window [issue - 3d, issue - 1d].",
+      "description": "Total accumulated precipitation over the 3-day window strictly prior to forecast issuance."
+    },
+    {
+      "name": "historical_rainfall_prior_7d_mean_mm",
+      "source_fields": [
+        "actual_rainfall_mm",
+        "forecast_issue_date"
+      ],
+      "category": "G. Historical Rainfall Context",
+      "type": "float64",
+      "unit": "mm",
+      "available_at_prediction": true,
+      "lookback_days": 7,
+      "leakage_risk": "low (strictly backward rolling window prior to forecast issuance)",
+      "missing_policy": "NaN if fewer than 4 valid observations are available in the 7-day backward window [issue - 7d, issue - 1d].",
+      "description": "Mean daily precipitation over the 7-day window strictly prior to forecast issuance, capturing active monsoon wet/dry spell status."
+    },
+    {
+      "name": "historical_rainfall_prior_7d_sum_mm",
+      "source_fields": [
+        "actual_rainfall_mm",
+        "forecast_issue_date"
+      ],
+      "category": "G. Historical Rainfall Context",
+      "type": "float64",
+      "unit": "mm",
+      "available_at_prediction": true,
+      "lookback_days": 7,
+      "leakage_risk": "low (strictly backward rolling window prior to forecast issuance)",
+      "missing_policy": "NaN if fewer than 4 valid observations are available in the 7-day backward window [issue - 7d, issue - 1d].",
+      "description": "Total 7-day accumulated precipitation strictly prior to forecast issuance."
+    },
+    {
+      "name": "has_historical_rainfall_context",
+      "source_fields": [
+        "historical_rainfall_prior_1d_mm",
+        "historical_rainfall_prior_3d_mean_mm"
+      ],
+      "category": "G. Historical Rainfall Context",
+      "type": "float64",
+      "unit": "binary flag (0.0 or 1.0)",
+      "available_at_prediction": true,
+      "lookback_days": 0,
+      "leakage_risk": "none",
+      "missing_policy": "Always non-null (1.0 if historical features are present, 0.0 if in warm-up period or snapshot dataset).",
+      "description": "Explicit indicator flag denoting whether valid antecedent historical observations were available at forecast issuance time."
+    }
+  ],
+  "excluded_features": [
+    {
+      "name": "actual_rainfall_mm",
+      "reason": "Target variable y. Including actual rainfall as an input feature causes catastrophic 100% target leakage."
+    },
+    {
+      "name": "panchayat_id",
+      "reason": "Raw administrative integer identifier. Causes tree-based models to memorize specific Panchayats rather than learning generalizable geographic relationships."
+    },
+    {
+      "name": "panchayat_name",
+      "reason": "High-cardinality text categorical identifier with 1,300+ classes. Risk of severe overfitting on training entities."
+    },
+    {
+      "name": "station_id",
+      "reason": "Categorical station identifier prone to memorizing station-specific calibration artifacts. Replaced by continuous station geometric features."
+    },
+    {
+      "name": "source_row_id",
+      "reason": "ETL pipeline sequence number; no meteorological or spatial physical relevance."
+    },
+    {
+      "name": "source_file",
+      "reason": "ETL pipeline file path; no physical relevance."
+    },
+    {
+      "name": "source_dataset",
+      "reason": "District jurisdiction string; models should generalize across geographic coordinates rather than memorizing dataset labels."
+    }
+  ],
+  "districts": {
+    "nashik": {
+      "district_name": "Nashik",
+      "input_parquet": "data/processed/canonical_nashik.parquet",
+      "output_parquet": "data/ml/features/nashik/rainfall_features.parquet",
+      "file_size_bytes": 63335,
+      "total_rows": 1388,
+      "feature_count": 20,
+      "features_list": [
+        "block_forecast_rainfall_mm",
+        "log1p_block_forecast_rainfall_mm",
+        "panchayat_latitude",
+        "panchayat_longitude",
+        "elevation_m",
+        "station_distance_km",
+        "station_latitude",
+        "station_longitude",
+        "lead_days",
+        "target_month",
+        "target_day_of_year",
+        "target_day_of_year_sin",
+        "target_day_of_year_cos",
+        "historical_rainfall_prior_1d_mm",
+        "historical_rainfall_prior_2d_mm",
+        "historical_rainfall_prior_3d_mean_mm",
+        "historical_rainfall_prior_3d_sum_mm",
+        "historical_rainfall_prior_7d_mean_mm",
+        "historical_rainfall_prior_7d_sum_mm",
+        "has_historical_rainfall_context"
+      ],
+      "metadata_columns": [
+        "panchayat_id",
+        "lgd_code",
+        "panchayat_name",
+        "block_name",
+        "district_name",
+        "date",
+        "forecast_issue_date"
+      ],
+      "target_column": "actual_rainfall_mm",
+      "target_statistics": {
+        "valid_count": 1388,
+        "missing_count": 0,
+        "mean": 9.572,
+        "min": 0.4,
+        "max": 52.2
+      },
+      "feature_quality_statistics": {
+        "block_forecast_rainfall_mm": {
+          "missing_count": 0,
+          "missing_pct": 0.0,
+          "min": 2.0,
+          "max": 45.0,
+          "mean": 11.87,
+          "std": 7.6966,
+          "median": 10.0,
+          "is_constant": false,
+          "is_near_constant": false,
+          "target_correlation": 0.8777
+        },
+        "log1p_block_forecast_rainfall_mm": {
+          "missing_count": 0,
+          "missing_pct": 0.0,
+          "min": 1.0986,
+          "max": 3.8286,
+          "mean": 2.407,
+          "std": 0.5432,
+          "median": 2.3979,
+          "is_constant": false,
+          "is_near_constant": false,
+          "target_correlation": 0.7474
+        },
+        "panchayat_latitude": {
+          "missing_count": 0,
+          "missing_pct": 0.0,
+          "min": 19.1911,
+          "max": 20.8851,
+          "mean": 20.2347,
+          "std": 0.3024,
+          "median": 20.2411,
+          "is_constant": false,
+          "is_near_constant": false,
+          "target_correlation": -0.4248
+        },
+        "panchayat_longitude": {
+          "missing_count": 0,
+          "missing_pct": 0.0,
+          "min": 73.3945,
+          "max": 74.92,
+          "mean": 74.0156,
+          "std": 0.3825,
+          "median": 74.054,
+          "is_constant": false,
+          "is_near_constant": false,
+          "target_correlation": -0.3817
+        },
+        "elevation_m": {
+          "missing_count": 0,
+          "missing_pct": 0.0,
+          "min": 425.0,
+          "max": 745.0,
+          "mean": 594.6174,
+          "std": 65.9257,
+          "median": 612.0,
+          "is_constant": false,
+          "is_near_constant": false,
+          "target_correlation": 0.2346
+        },
+        "station_distance_km": {
+          "missing_count": 0,
+          "missing_pct": 0.0,
+          "min": 0.1,
+          "max": 99.1,
+          "mean": 12.5501,
+          "std": 8.3532,
+          "median": 11.05,
+          "is_constant": false,
+          "is_near_constant": false,
+          "target_correlation": -0.1039
+        },
+        "station_latitude": {
+          "missing_count": 0,
+          "missing_pct": 0.0,
+          "min": 19.698,
+          "max": 20.79,
+          "mean": 20.2065,
+          "std": 0.2797,
+          "median": 20.25,
+          "is_constant": false,
+          "is_near_constant": false,
+          "target_correlation": -0.4325
+        },
+        "station_longitude": {
+          "missing_count": 0,
+          "missing_pct": 0.0,
+          "min": 73.45,
+          "max": 74.65,
+          "mean": 74.0167,
+          "std": 0.3733,
+          "median": 73.98,
+          "is_constant": false,
+          "is_near_constant": false,
+          "target_correlation": -0.3813
+        },
+        "lead_days": {
+          "missing_count": 0,
+          "missing_pct": 0.0,
+          "min": 0.0,
+          "max": 0.0,
+          "mean": 0.0,
+          "std": 0.0,
+          "median": 0.0,
+          "is_constant": true,
+          "is_near_constant": true,
+          "target_correlation": 0.0
+        },
+        "target_month": {
+          "missing_count": 0,
+          "missing_pct": 0.0,
+          "min": 1.0,
+          "max": 9.0,
+          "mean": 4.0173,
+          "std": 2.3632,
+          "median": 4.0,
+          "is_constant": false,
+          "is_near_constant": false,
+          "target_correlation": -0.0808
+        },
+        "target_day_of_year": {
+          "missing_count": 0,
+          "missing_pct": 0.0,
+          "min": 9.0,
+          "max": 247.0,
+          "mean": 99.0007,
+          "std": 69.7586,
+          "median": 99.0,
+          "is_constant": false,
+          "is_near_constant": false,
+          "target_correlation": -0.0759
+        },
+        "target_day_of_year_sin": {
+          "missing_count": 0,
+          "missing_pct": 0.0,
+          "min": -0.8945,
+          "max": 0.9913,
+          "mean": 0.5291,
+          "std": 0.6293,
+          "median": 0.7971,
+          "is_constant": false,
+          "is_near_constant": false,
+          "target_correlation": 0.1148
+        },
+        "target_day_of_year_cos": {
+          "missing_count": 0,
+          "missing_pct": 0.0,
+          "min": -0.6038,
+          "max": 0.988,
+          "mean": 0.1215,
+          "std": 0.5562,
+          "median": -0.1319,
+          "is_constant": false,
+          "is_near_constant": false,
+          "target_correlation": 0.0477
+        },
+        "historical_rainfall_prior_1d_mm": {
+          "missing_count": 1388,
+          "missing_pct": 100.0,
+          "min": null,
+          "max": null,
+          "mean": null,
+          "std": null,
+          "median": null,
+          "is_constant": false,
+          "is_near_constant": false,
+          "target_correlation": null
+        },
+        "historical_rainfall_prior_2d_mm": {
+          "missing_count": 1388,
+          "missing_pct": 100.0,
+          "min": null,
+          "max": null,
+          "mean": null,
+          "std": null,
+          "median": null,
+          "is_constant": false,
+          "is_near_constant": false,
+          "target_correlation": null
+        },
+        "historical_rainfall_prior_3d_mean_mm": {
+          "missing_count": 1388,
+          "missing_pct": 100.0,
+          "min": null,
+          "max": null,
+          "mean": null,
+          "std": null,
+          "median": null,
+          "is_constant": false,
+          "is_near_constant": false,
+          "target_correlation": null
+        },
+        "historical_rainfall_prior_3d_sum_mm": {
+          "missing_count": 1388,
+          "missing_pct": 100.0,
+          "min": null,
+          "max": null,
+          "mean": null,
+          "std": null,
+          "median": null,
+          "is_constant": false,
+          "is_near_constant": false,
+          "target_correlation": null
+        },
+        "historical_rainfall_prior_7d_mean_mm": {
+          "missing_count": 1388,
+          "missing_pct": 100.0,
+          "min": null,
+          "max": null,
+          "mean": null,
+          "std": null,
+          "median": null,
+          "is_constant": false,
+          "is_near_constant": false,
+          "target_correlation": null
+        },
+        "historical_rainfall_prior_7d_sum_mm": {
+          "missing_count": 1388,
+          "missing_pct": 100.0,
+          "min": null,
+          "max": null,
+          "mean": null,
+          "std": null,
+          "median": null,
+          "is_constant": false,
+          "is_near_constant": false,
+          "target_correlation": null
+        },
+        "has_historical_rainfall_context": {
+          "missing_count": 0,
+          "missing_pct": 0.0,
+          "min": 0.0,
+          "max": 0.0,
+          "mean": 0.0,
+          "std": 0.0,
+          "median": 0.0,
+          "is_constant": true,
+          "is_near_constant": true,
+          "target_correlation": 0.0
+        }
+      },
+      "inter_feature_correlations_gte_85": [
+        {
+          "feature_1": "block_forecast_rainfall_mm",
+          "feature_2": "log1p_block_forecast_rainfall_mm",
+          "absolute_pearson_r": 0.9154
+        },
+        {
+          "feature_1": "panchayat_latitude",
+          "feature_2": "station_latitude",
+          "absolute_pearson_r": 0.9659
+        },
+        {
+          "feature_1": "panchayat_longitude",
+          "feature_2": "station_longitude",
+          "absolute_pearson_r": 0.9552
+        },
+        {
+          "feature_1": "target_month",
+          "feature_2": "target_day_of_year",
+          "absolute_pearson_r": 0.9999
+        }
+      ]
+    },
+    "pune": {
+      "district_name": "Pune",
+      "input_parquet": "data/processed/canonical_pune.parquet",
+      "output_parquet": "data/ml/features/pune/rainfall_features.parquet",
+      "file_size_bytes": 237906,
+      "total_rows": 187320,
+      "feature_count": 20,
+      "features_list": [
+        "block_forecast_rainfall_mm",
+        "log1p_block_forecast_rainfall_mm",
+        "panchayat_latitude",
+        "panchayat_longitude",
+        "elevation_m",
+        "station_distance_km",
+        "station_latitude",
+        "station_longitude",
+        "lead_days",
+        "target_month",
+        "target_day_of_year",
+        "target_day_of_year_sin",
+        "target_day_of_year_cos",
+        "historical_rainfall_prior_1d_mm",
+        "historical_rainfall_prior_2d_mm",
+        "historical_rainfall_prior_3d_mean_mm",
+        "historical_rainfall_prior_3d_sum_mm",
+        "historical_rainfall_prior_7d_mean_mm",
+        "historical_rainfall_prior_7d_sum_mm",
+        "has_historical_rainfall_context"
+      ],
+      "metadata_columns": [
+        "panchayat_id",
+        "lgd_code",
+        "panchayat_name",
+        "block_name",
+        "district_name",
+        "date",
+        "forecast_issue_date"
+      ],
+      "target_column": "actual_rainfall_mm",
+      "target_statistics": {
+        "valid_count": 187320,
+        "missing_count": 0,
+        "mean": 6.1843,
+        "min": 0.0,
+        "max": 120.3
+      },
+      "feature_quality_statistics": {
+        "block_forecast_rainfall_mm": {
+          "missing_count": 0,
+          "missing_pct": 0.0,
+          "min": 0.0,
+          "max": 12.4,
+          "mean": 5.6764,
+          "std": 3.9551,
+          "median": 6.05,
+          "is_constant": false,
+          "is_near_constant": false,
+          "target_correlation": 0.3708
+        },
+        "log1p_block_forecast_rainfall_mm": {
+          "missing_count": 0,
+          "missing_pct": 0.0,
+          "min": 0.0,
+          "max": 2.5953,
+          "mean": 1.6056,
+          "std": 0.8786,
+          "median": 1.953,
+          "is_constant": false,
+          "is_near_constant": false,
+          "target_correlation": 0.3214
+        },
+        "panchayat_latitude": {
+          "missing_count": 0,
+          "missing_pct": 0.0,
+          "min": 17.9128,
+          "max": 19.3546,
+          "mean": 18.5692,
+          "std": 0.3647,
+          "median": 18.5249,
+          "is_constant": false,
+          "is_near_constant": false,
+          "target_correlation": 0.0
+        },
+        "panchayat_longitude": {
+          "missing_count": 0,
+          "missing_pct": 0.0,
+          "min": 73.3751,
+          "max": 75.1343,
+          "mean": 74.013,
+          "std": 0.3929,
+          "median": 73.9127,
+          "is_constant": false,
+          "is_near_constant": false,
+          "target_correlation": 0.0
+        },
+        "elevation_m": {
+          "missing_count": 0,
+          "missing_pct": 0.0,
+          "min": 100.0,
+          "max": 763.0,
+          "mean": 620.2063,
+          "std": 87.7225,
+          "median": 619.0,
+          "is_constant": false,
+          "is_near_constant": false,
+          "target_correlation": -0.0
+        },
+        "station_distance_km": {
+          "missing_count": 0,
+          "missing_pct": 0.0,
+          "min": 0.59,
+          "max": 40.54,
+          "mean": 13.1118,
+          "std": 6.3598,
+          "median": 12.35,
+          "is_constant": false,
+          "is_near_constant": false,
+          "target_correlation": -0.0
+        },
+        "station_latitude": {
+          "missing_count": 0,
+          "missing_pct": 0.0,
+          "min": 18.12,
+          "max": 19.22,
+          "mean": 18.5702,
+          "std": 0.3547,
+          "median": 18.53,
+          "is_constant": false,
+          "is_near_constant": false,
+          "target_correlation": -0.0
+        },
+        "station_longitude": {
+          "missing_count": 0,
+          "missing_pct": 0.0,
+          "min": 73.367,
+          "max": 75.03,
+          "mean": 74.0111,
+          "std": 0.3941,
+          "median": 73.88,
+          "is_constant": false,
+          "is_near_constant": false,
+          "target_correlation": -0.0
+        },
+        "lead_days": {
+          "missing_count": 0,
+          "missing_pct": 0.0,
+          "min": 1.0,
+          "max": 1.0,
+          "mean": 1.0,
+          "std": 0.0,
+          "median": 1.0,
+          "is_constant": true,
+          "is_near_constant": true,
+          "target_correlation": 0.0
+        },
+        "target_month": {
+          "missing_count": 0,
+          "missing_pct": 0.0,
+          "min": 4.0,
+          "max": 9.0,
+          "mean": 6.6857,
+          "std": 1.6128,
+          "median": 7.0,
+          "is_constant": false,
+          "is_near_constant": false,
+          "target_correlation": 0.1377
+        },
+        "target_day_of_year": {
+          "missing_count": 0,
+          "missing_pct": 0.0,
+          "min": 103.0,
+          "max": 266.0,
+          "mean": 187.4786,
+          "std": 48.4612,
+          "median": 190.5,
+          "is_constant": false,
+          "is_near_constant": false,
+          "target_correlation": 0.1235
+        },
+        "target_day_of_year_sin": {
+          "missing_count": 0,
+          "missing_pct": 0.0,
+          "min": -0.9907,
+          "max": 0.9799,
+          "mean": -0.065,
+          "std": 0.6776,
+          "median": -0.1351,
+          "is_constant": false,
+          "is_near_constant": false,
+          "target_correlation": -0.1382
+        },
+        "target_day_of_year_cos": {
+          "missing_count": 0,
+          "missing_pct": 0.0,
+          "min": -1.0,
+          "max": -0.1361,
+          "mean": -0.6834,
+          "std": 0.2637,
+          "median": -0.7328,
+          "is_constant": false,
+          "is_near_constant": false,
+          "target_correlation": -0.297
+        },
+        "historical_rainfall_prior_1d_mm": {
+          "missing_count": 32112,
+          "missing_pct": 17.143,
+          "min": 0.0,
+          "max": 120.3,
+          "mean": 5.3552,
+          "std": 13.4333,
+          "median": 1.4,
+          "is_constant": false,
+          "is_near_constant": false,
+          "target_correlation": 0.4521
+        },
+        "historical_rainfall_prior_2d_mm": {
+          "missing_count": 33450,
+          "missing_pct": 17.857,
+          "min": 0.0,
+          "max": 120.3,
+          "mean": 6.3852,
+          "std": 15.8851,
+          "median": 1.6,
+          "is_constant": false,
+          "is_near_constant": false,
+          "target_correlation": 0.323
+        },
+        "historical_rainfall_prior_3d_mean_mm": {
+          "missing_count": 33450,
+          "missing_pct": 17.857,
+          "min": 0.0,
+          "max": 81.2667,
+          "mean": 5.7977,
+          "std": 12.4651,
+          "median": 1.8333,
+          "is_constant": false,
+          "is_near_constant": false,
+          "target_correlation": 0.3447
+        },
+        "historical_rainfall_prior_3d_sum_mm": {
+          "missing_count": 33450,
+          "missing_pct": 17.857,
+          "min": 0.0,
+          "max": 243.8,
+          "mean": 17.393,
+          "std": 37.3952,
+          "median": 5.5,
+          "is_constant": false,
+          "is_near_constant": false,
+          "target_correlation": 0.3447
+        },
+        "historical_rainfall_prior_7d_mean_mm": {
+          "missing_count": 36126,
+          "missing_pct": 19.286,
+          "min": 0.0,
+          "max": 45.2,
+          "mean": 6.1837,
+          "std": 10.238,
+          "median": 2.1571,
+          "is_constant": false,
+          "is_near_constant": false,
+          "target_correlation": 0.225
+        },
+        "historical_rainfall_prior_7d_sum_mm": {
+          "missing_count": 36126,
+          "missing_pct": 19.286,
+          "min": 0.0,
+          "max": 316.4,
+          "mean": 43.2858,
+          "std": 71.6662,
+          "median": 15.1,
+          "is_constant": false,
+          "is_near_constant": false,
+          "target_correlation": 0.225
+        },
+        "has_historical_rainfall_context": {
+          "missing_count": 0,
+          "missing_pct": 0.0,
+          "min": 0.0,
+          "max": 1.0,
+          "mean": 0.8286,
+          "std": 0.3769,
+          "median": 1.0,
+          "is_constant": false,
+          "is_near_constant": false,
+          "target_correlation": -0.1809
+        }
+      },
+      "inter_feature_correlations_gte_85": [
+        {
+          "feature_1": "block_forecast_rainfall_mm",
+          "feature_2": "log1p_block_forecast_rainfall_mm",
+          "absolute_pearson_r": 0.9592
+        },
+        {
+          "feature_1": "panchayat_latitude",
+          "feature_2": "station_latitude",
+          "absolute_pearson_r": 0.9741
+        },
+        {
+          "feature_1": "panchayat_longitude",
+          "feature_2": "station_longitude",
+          "absolute_pearson_r": 0.9626
+        },
+        {
+          "feature_1": "target_month",
+          "feature_2": "target_day_of_year",
+          "absolute_pearson_r": 0.9851
+        },
+        {
+          "feature_1": "target_month",
+          "feature_2": "target_day_of_year_sin",
+          "absolute_pearson_r": 0.9805
+        },
+        {
+          "feature_1": "target_day_of_year",
+          "feature_2": "target_day_of_year_sin",
+          "absolute_pearson_r": 0.9954
+        },
+        {
+          "feature_1": "historical_rainfall_prior_1d_mm",
+          "feature_2": "historical_rainfall_prior_2d_mm",
+          "absolute_pearson_r": 0.9056
+        },
+        {
+          "feature_1": "historical_rainfall_prior_2d_mm",
+          "feature_2": "historical_rainfall_prior_3d_mean_mm",
+          "absolute_pearson_r": 0.9306
+        },
+        {
+          "feature_1": "historical_rainfall_prior_2d_mm",
+          "feature_2": "historical_rainfall_prior_3d_sum_mm",
+          "absolute_pearson_r": 0.9306
+        },
+        {
+          "feature_1": "historical_rainfall_prior_3d_mean_mm",
+          "feature_2": "historical_rainfall_prior_3d_sum_mm",
+          "absolute_pearson_r": 1.0
+        },
+        {
+          "feature_1": "historical_rainfall_prior_7d_mean_mm",
+          "feature_2": "historical_rainfall_prior_7d_sum_mm",
+          "absolute_pearson_r": 1.0
+        }
+      ]
+    }
+  }
+}

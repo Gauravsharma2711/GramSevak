@@ -1,0 +1,136 @@
+{
+  "metadata": {
+    "phase": "2.6",
+    "title": "GramSevak ML Leakage & Information Boundary Audit",
+    "timestamp": "2026-09-27T17:50:22.048345+00:00",
+    "overall_status": "PASSED",
+    "target_variable": "actual_rainfall_mm",
+    "feature_count": 20
+  },
+  "checks": {
+    "forecast_timing": {
+      "status": "PASSED",
+      "total_records": 187320,
+      "strictly_prior_issue_count": 187320,
+      "same_day_issue_count": 0,
+      "future_issue_count": 0,
+      "min_lead_time_days": 1,
+      "max_lead_time_days": 1,
+      "mean_lead_time_days": 1.0,
+      "description": "Enforces that numerical forecasts were issued at least 1 day prior to observation date."
+    },
+    "target_exclusion": {
+      "status": "PASSED",
+      "target_column": "actual_rainfall_mm",
+      "is_target_in_features": false,
+      "features_evaluated_count": 20,
+      "suspicious_features": [],
+      "feature_correlations_with_target": {
+        "block_forecast_rainfall_mm": 0.3708,
+        "log1p_block_forecast_rainfall_mm": 0.3214,
+        "panchayat_latitude": 0.0,
+        "panchayat_longitude": 0.0,
+        "elevation_m": -0.0,
+        "station_distance_km": -0.0,
+        "station_latitude": -0.0,
+        "station_longitude": -0.0,
+        "target_month": 0.1377,
+        "target_day_of_year": 0.1235,
+        "target_day_of_year_sin": -0.1382,
+        "target_day_of_year_cos": -0.297,
+        "historical_rainfall_prior_1d_mm": 0.4521,
+        "historical_rainfall_prior_2d_mm": 0.323,
+        "historical_rainfall_prior_3d_mean_mm": 0.3447,
+        "historical_rainfall_prior_3d_sum_mm": 0.3447,
+        "historical_rainfall_prior_7d_mean_mm": 0.225,
+        "historical_rainfall_prior_7d_sum_mm": 0.225,
+        "has_historical_rainfall_context": -0.1809
+      },
+      "description": "Verifies target actual_rainfall_mm is excluded from predictors and has no proxy leaks."
+    },
+    "chronological_splits": {
+      "status": "PASSED",
+      "chronological_ordering_valid": true,
+      "max_train_date": "2026-07-31",
+      "min_val_date": "2026-08-01",
+      "max_val_date": "2026-08-31",
+      "min_test_date": "2026-09-01",
+      "train_rows": 119082,
+      "val_rows": 37464,
+      "test_rows": 30774,
+      "date_overlap_counts": {
+        "train_val": 0,
+        "val_test": 0,
+        "train_test": 0
+      },
+      "index_overlap_counts": {
+        "train_val": 0,
+        "val_test": 0,
+        "train_test": 0
+      },
+      "description": "Verifies chronological partitioning: Train (Apr-Jul) < Val (Aug) < Test (Sep)."
+    },
+    "duplicates_pune": {
+      "status": "PASSED",
+      "exact_duplicate_rows": 0,
+      "observation_key_duplicates": 0,
+      "observation_key": [
+        "panchayat_id",
+        "date",
+        "forecast_issue_date"
+      ],
+      "description": "Ensures no duplicate Panchayat forecasts on the same date/issue date."
+    },
+    "duplicates_nashik": {
+      "status": "PASSED",
+      "exact_duplicate_rows": 0,
+      "observation_key_duplicates": 0,
+      "observation_key": [
+        "panchayat_id",
+        "date",
+        "forecast_issue_date"
+      ],
+      "description": "Ensures no duplicate Panchayat forecasts on the same date/issue date."
+    },
+    "identifier_leakage": {
+      "status": "PASSED",
+      "forbidden_identifiers_found": [],
+      "features_checked_count": 20,
+      "description": "Ensures models do not memorize arbitrary administrative categorical primary keys."
+    },
+    "preprocessor_isolation": {
+      "status": "PASSED",
+      "preprocessors_checked": {
+        "random_forest": {
+          "status": "PASSED",
+          "statistics_count": 20,
+          "expected_features_count": 20,
+          "has_statistics": true
+        },
+        "xgboost": {
+          "status": "PASSED",
+          "statistics_count": 20,
+          "expected_features_count": 20,
+          "has_statistics": true
+        }
+      },
+      "description": "Confirms imputer was fitted strictly on training data."
+    },
+    "test_set_lock": {
+      "status": "PASSED",
+      "test_partition": {
+        "name": "Test (Late Monsoon & Withdrawal)",
+        "start_date": "2026-09-01",
+        "end_date": "2026-09-23",
+        "start_issue_date": "2026-08-31",
+        "end_issue_date": "2026-09-22",
+        "expected_dates_count": 23,
+        "expected_rows_count": 30774,
+        "expected_pct": 16.43,
+        "locked": true,
+        "description": "Strictly locked future simulation covering monsoon withdrawal in September."
+      },
+      "description": "Verifies test set remains strictly locked and sealed."
+    }
+  }
+}

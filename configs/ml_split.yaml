@@ -1,0 +1,84 @@
+# GramSevak ML Temporal Split & Evaluation Configuration (Phase 2.3)
+version: "1.0.0"
+phase: "2.3"
+problem_statement: "SIH 26074 - GramSevak Hyper-local Rainfall Downscaling"
+
+# Primary temporal evaluation district (140-day time-series)
+primary_district: "Pune"
+
+# Out-of-district spatial transferability evaluation district (snapshot)
+transferability_district: "Nashik"
+
+# Date controlling the temporal split (target validity date)
+split_key: "date"
+
+# Issue date verification key (must also satisfy chronological ordering)
+issue_key: "forecast_issue_date"
+
+# Strict chronological split boundaries for primary district (Pune)
+splits:
+  train:
+    name: "Train (Pre-monsoon & Peak Onset)"
+    start_date: "2026-04-13"
+    end_date: "2026-07-31"
+    start_issue_date: "2026-04-12"
+    end_issue_date: "2026-07-30"
+    expected_dates_count: 89
+    expected_rows_count: 119082
+    expected_pct: 63.57
+    description: "Covers pre-monsoon convective season (April-May) and active monsoon onset (June-July)."
+
+  validation:
+    name: "Validation (Mid-Monsoon Active Spell)"
+    start_date: "2026-08-01"
+    end_date: "2026-08-31"
+    start_issue_date: "2026-07-31"
+    end_issue_date: "2026-08-30"
+    expected_dates_count: 28
+    expected_rows_count: 37464
+    expected_pct: 20.00
+    description: "Covers sustained synoptic active monsoon spell in August for model selection and diagnostics."
+
+  test:
+    name: "Test (Late Monsoon & Withdrawal)"
+    start_date: "2026-09-01"
+    end_date: "2026-09-23"
+    start_issue_date: "2026-08-31"
+    end_issue_date: "2026-09-22"
+    expected_dates_count: 23
+    expected_rows_count: 30774
+    expected_pct: 16.43
+    locked: true
+    description: "Strictly locked future simulation covering monsoon withdrawal in September."
+
+# Minimum data requirements
+constraints:
+  min_train_dates: 60
+  min_val_dates: 14
+  min_test_dates: 14
+  zero_overlap_tolerance: true
+  allow_random_shuffling: false
+
+# Rainfall evaluation slices & thresholds (IMD meteorological standards)
+evaluation_slices:
+  dry_rainfall_threshold_mm: 0.0
+  rainy_threshold_mm: 0.001
+  moderate_rainfall_threshold_mm: 15.5
+  heavy_rainfall_threshold_mm: 35.5
+  very_heavy_rainfall_threshold_mm: 64.5
+
+# Baseline models to evaluate
+baselines:
+  - id: "block_forecast"
+    name: "Raw Numerical Block Forecast Baseline"
+    type: "domain_heuristic"
+    predictor: "block_forecast_rainfall_mm"
+    description: "Uncalibrated regional NWP forecast issued by IMD/NCMRWF at ~20km block scale."
+
+  - id: "linear_regression"
+    name: "Simple Linear Regression Baseline"
+    type: "linear_statistical_model"
+    algorithm: "Ridge(alpha=1.0)"
+    random_seed: 42
+    non_negative_clip: true
+    description: "Transparent, regularized linear baseline combining block forecast, terrain elevation, coordinates, and lead horizon."

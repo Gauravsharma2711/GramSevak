@@ -1,0 +1,43 @@
+# GramSevak Machine Learning Model Selection Configuration (Phase 2.7)
+# Defines production model candidate, artifact paths, and fallback policy.
+# Selected model: XGBoost Downscaler (supported by Phase 2.6 empirical evaluation).
+
+active_model: "xgboost"
+
+models:
+  xgboost:
+    model_name: "xgboost_downscaler"
+    model_family: "gradient_boosted_decision_trees"
+    model_version: "2.5.0"
+    artifact_dir: "ml/models/xgboost"
+    model_file: "best_model.joblib"
+    preprocessor_file: "preprocessor.joblib"
+    metadata_file: "metadata.json"
+    config_file: "config.json"
+    feature_registry_version: "1.0.0"
+    feature_count: 20
+    target: "actual_rainfall_mm"
+    clamping: "non_negative_gte_0"
+    selection_rationale: "Selected based on Phase 2.6 evaluation: lowest validation MAE (5.40 mm), lowest test MAE (5.91 mm), 91.3% test win rate against Random Forest, lowest seasonal bias drift (+1.61 mm vs +12.34 mm), and ultra-lightweight artifact footprint (52.4 KB)."
+
+  random_forest:
+    model_name: "random_forest_downscaler"
+    model_family: "ensemble_random_forest_regressor"
+    model_version: "2.4.0"
+    artifact_dir: "ml/models/random_forest"
+    model_file: "best_model.joblib"
+    preprocessor_file: "preprocessor.joblib"
+    metadata_file: "metadata.json"
+    config_file: "config.json"
+    feature_registry_version: "1.0.0"
+    feature_count: 20
+    target: "actual_rainfall_mm"
+    clamping: "non_negative_gte_0"
+    selection_rationale: "Retained as heavy rainfall / cloudburst fallback candidate (53.1% error reduction on >= 35.5 mm events in Phase 2.4/2.6)."
+
+feature_registry_path: "schemas/ml_feature_registry.json"
+
+fallback:
+  enabled: true
+  strategy: "block_forecast"
+  description: "If model artifact is missing or prediction fails, safely fall back to the raw numerical block forecast, explicitly flagging prediction_mode as 'fallback'."

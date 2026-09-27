@@ -1,0 +1,71 @@
+{
+  "metadata": {
+    "phase": "2.3",
+    "title": "ML Temporal Split & Test Set Lock Report",
+    "timestamp": "2026-09-27T16:13:04.544310+00:00",
+    "problem_statement": "SIH 26074 - GramSevak Hyper-local Rainfall Downscaling",
+    "contract_authority": "docs/phase-2-1-ml-data-contract.md"
+  },
+  "split_policy": {
+    "primary_methodology": "Forward Chronological Temporal Holdout",
+    "shuffling_allowed": false,
+    "test_set_locked": true,
+    "rationale": "Prevents future atmospheric auto-correlation leakage into past training folds."
+  },
+  "districts": {
+    "pune": {
+      "evaluation_role": "Primary Model Training & Temporal Validation",
+      "split_details": {
+        "split_key": "date",
+        "issue_key": "forecast_issue_date",
+        "total_input_rows": 187320,
+        "total_partitioned_rows": 187320,
+        "train": {
+          "start_date": "2026-04-13",
+          "end_date": "2026-07-31",
+          "unique_dates": 89,
+          "row_count": 119082,
+          "percentage": 63.57,
+          "panchayat_count": 1338
+        },
+        "validation": {
+          "start_date": "2026-08-01",
+          "end_date": "2026-08-31",
+          "unique_dates": 28,
+          "row_count": 37464,
+          "percentage": 20.0,
+          "panchayat_count": 1338
+        },
+        "test": {
+          "start_date": "2026-09-01",
+          "end_date": "2026-09-23",
+          "unique_dates": 23,
+          "row_count": 30774,
+          "percentage": 16.43,
+          "panchayat_count": 1338,
+          "locked": true
+        },
+        "panchayat_overlap": {
+          "total_unique_panchayats": 1338,
+          "shared_across_train_val_test": 1338,
+          "shared_percentage": 100.0,
+          "panchayats_only_in_train": 0,
+          "panchayats_only_in_test": 0
+        }
+      }
+    },
+    "nashik": {
+      "evaluation_role": "Out-of-District Spatial Generalization Benchmark",
+      "details": {
+        "total_rows": 1388,
+        "unique_panchayats": 1388,
+        "unique_dates": 9,
+        "earliest_date": "2026-01-09",
+        "latest_date": "2026-09-04",
+        "structure": "Single-observation spatial snapshot per Panchayat (lead_days=0)",
+        "recommendation": "Evaluated as an out-of-district spatial transferability test set."
+      }
+    }
+  },
+  "test_lock_status": "LOCKED (September 1 - September 23, 2026)"
+}

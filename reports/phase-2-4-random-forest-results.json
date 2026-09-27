@@ -1,0 +1,995 @@
+{
+  "metadata": {
+    "phase": "2.4",
+    "title": "Random Forest Downscaling Model Training & Evaluation Report",
+    "timestamp": "2026-09-27T16:35:00.792447+00:00",
+    "problem_statement": "SIH 26074 - GramSevak Hyper-local Rainfall Downscaling",
+    "contract_authority": "docs/phase-2-1-ml-data-contract.md",
+    "feature_registry_authority": "schemas/ml_feature_registry.json",
+    "split_authority": "configs/ml_split.yaml",
+    "pipeline_runtime_seconds": 17.06
+  },
+  "dataset": {
+    "pune_features_parquet": "data/ml/features/pune/rainfall_features.parquet",
+    "nashik_features_parquet": "data/ml/features/nashik/rainfall_features.parquet",
+    "pune_total_rows": 187320,
+    "nashik_total_rows": 1388,
+    "approved_features_count": 20,
+    "target_variable": "actual_rainfall_mm"
+  },
+  "split_summary": {
+    "split_key": "date",
+    "issue_key": "forecast_issue_date",
+    "total_input_rows": 187320,
+    "total_partitioned_rows": 187320,
+    "train": {
+      "start_date": "2026-04-13",
+      "end_date": "2026-07-31",
+      "unique_dates": 89,
+      "row_count": 119082,
+      "percentage": 63.57,
+      "panchayat_count": 1338
+    },
+    "validation": {
+      "start_date": "2026-08-01",
+      "end_date": "2026-08-31",
+      "unique_dates": 28,
+      "row_count": 37464,
+      "percentage": 20.0,
+      "panchayat_count": 1338
+    },
+    "test": {
+      "start_date": "2026-09-01",
+      "end_date": "2026-09-23",
+      "unique_dates": 23,
+      "row_count": 30774,
+      "percentage": 16.43,
+      "panchayat_count": 1338,
+      "locked": true
+    },
+    "panchayat_overlap": {
+      "total_unique_panchayats": 1338,
+      "shared_across_train_val_test": 1338,
+      "shared_percentage": 100.0,
+      "panchayats_only_in_train": 0,
+      "panchayats_only_in_test": 0
+    }
+  },
+  "hyperparameter_search": {
+    "strategy": "Controlled Validation Grid Search",
+    "selection_metric": "validation_mae",
+    "selection_justification": "Validation MAE was explicitly established as the primary downscaling metric in Phase 2.3. Minimizing MAE directly minimizes expected hyper-local absolute prediction errors for advisory services.",
+    "candidates_evaluated_count": 6,
+    "selected_candidate": {
+      "id": "candidate_1_conservative_regularized",
+      "name": "Conservative Regularized RF",
+      "n_estimators": 100,
+      "max_depth": 6,
+      "min_samples_split": 10,
+      "min_samples_leaf": 100,
+      "max_features": 0.2,
+      "description": "Shallow depth with high leaf regularisation and 20% feature subsampling to prevent monsoon peak memorization."
+    },
+    "candidate_results": [
+      {
+        "candidate_id": "candidate_1_conservative_regularized",
+        "name": "Conservative Regularized RF",
+        "parameters": {
+          "n_estimators": 100,
+          "max_depth": 6,
+          "min_samples_split": 10,
+          "min_samples_leaf": 100,
+          "max_features": 0.2,
+          "random_state": 42
+        },
+        "fit_time_seconds": 1.64,
+        "train_mae": 0.7327,
+        "train_rmse": 1.2105,
+        "validation_mae": 13.5058,
+        "validation_rmse": 14.2457,
+        "validation_bias": 12.3407,
+        "validation_pearson_r": 0.261,
+        "validation_r2": -2.8232,
+        "selected": true
+      },
+      {
+        "candidate_id": "candidate_2_balanced_shallow",
+        "name": "Balanced Shallow RF",
+        "parameters": {
+          "n_estimators": 100,
+          "max_depth": 6,
+          "min_samples_split": 5,
+          "min_samples_leaf": 50,
+          "max_features": 0.2,
+          "random_state": 42
+        },
+        "fit_time_seconds": 1.62,
+        "train_mae": 0.7189,
+        "train_rmse": 1.1699,
+        "validation_mae": 13.7967,
+        "validation_rmse": 14.5617,
+        "validation_bias": 12.6242,
+        "validation_pearson_r": 0.2097,
+        "validation_r2": -2.9947,
+        "selected": false
+      },
+      {
+        "candidate_id": "candidate_3_medium_depth_regularized",
+        "name": "Medium Depth Regularized RF",
+        "parameters": {
+          "n_estimators": 100,
+          "max_depth": 8,
+          "min_samples_split": 10,
+          "min_samples_leaf": 100,
+          "max_features": 0.2,
+          "random_state": 42
+        },
+        "fit_time_seconds": 2.1,
+        "train_mae": 0.1692,
+        "train_rmse": 0.3382,
+        "validation_mae": 14.7047,
+        "validation_rmse": 15.5445,
+        "validation_bias": 13.1633,
+        "validation_pearson_r": -0.158,
+        "validation_r2": -3.5521,
+        "selected": false
+      },
+      {
+        "candidate_id": "candidate_4_feature_sqrt",
+        "name": "Feature Sqrt RF",
+        "parameters": {
+          "n_estimators": 100,
+          "max_depth": 8,
+          "min_samples_split": 5,
+          "min_samples_leaf": 50,
+          "max_features": "sqrt",
+          "random_state": 42
+        },
+        "fit_time_seconds": 1.91,
+        "train_mae": 0.1692,
+        "train_rmse": 0.3361,
+        "validation_mae": 14.7998,
+        "validation_rmse": 15.6069,
+        "validation_bias": 13.2699,
+        "validation_pearson_r": -0.1202,
+        "validation_r2": -3.5888,
+        "selected": false
+      },
+      {
+        "candidate_id": "candidate_5_expressive_regularized",
+        "name": "Expressive Regularized RF",
+        "parameters": {
+          "n_estimators": 100,
+          "max_depth": 12,
+          "min_samples_split": 5,
+          "min_samples_leaf": 50,
+          "max_features": "sqrt",
+          "random_state": 42
+        },
+        "fit_time_seconds": 2.03,
+        "train_mae": 0.0103,
+        "train_rmse": 0.0339,
+        "validation_mae": 14.9505,
+        "validation_rmse": 15.8991,
+        "validation_bias": 13.4786,
+        "validation_pearson_r": -0.1111,
+        "validation_r2": -3.7622,
+        "selected": false
+      },
+      {
+        "candidate_id": "candidate_6_deep_low_leaf",
+        "name": "Deep Low Leaf RF",
+        "parameters": {
+          "n_estimators": 100,
+          "max_depth": 16,
+          "min_samples_split": 5,
+          "min_samples_leaf": 4,
+          "max_features": "sqrt",
+          "random_state": 42
+        },
+        "fit_time_seconds": 2.16,
+        "train_mae": 0.0003,
+        "train_rmse": 0.0083,
+        "validation_mae": 14.4738,
+        "validation_rmse": 15.2578,
+        "validation_bias": 13.0259,
+        "validation_pearson_r": -0.0646,
+        "validation_r2": -3.3858,
+        "selected": false
+      }
+    ]
+  },
+  "training_execution": {
+    "algorithm": "RandomForestRegressor",
+    "fitted_rows": 119082,
+    "feature_count": 20,
+    "random_seed": 42,
+    "training_duration_seconds": 2.36,
+    "in_sample_metrics": {
+      "count": 119082,
+      "mae": 0.7327,
+      "rmse": 1.2105,
+      "bias": -0.0021,
+      "median_abs_error": 0.3217,
+      "pearson_r": 0.998,
+      "r2": 0.9954,
+      "error_quantiles": {
+        "min": -5.1418,
+        "p25": -0.166,
+        "p50_median_error": 0.1094,
+        "p75": 0.4643,
+        "p90": 1.2822,
+        "max": 4.6714
+      }
+    }
+  },
+  "evaluations": {
+    "pune_validation": {
+      "period": "2026-08-01 to 2026-08-31",
+      "rows_count": 37464,
+      "comprehensive_metrics": {
+        "overall": {
+          "count": 37464,
+          "mae": 13.5058,
+          "rmse": 14.2457,
+          "bias": 12.3407,
+          "median_abs_error": 14.2792,
+          "pearson_r": 0.261,
+          "r2": -2.8232,
+          "error_quantiles": {
+            "min": -11.7783,
+            "p25": 11.4443,
+            "p50_median_error": 14.2792,
+            "p75": 15.9425,
+            "p90": 19.7972,
+            "max": 21.2268
+          }
+        },
+        "occurrence": {
+          "threshold_mm": 0.001,
+          "true_rain_events": 37464,
+          "predicted_rain_events": 37464,
+          "confusion_matrix": {
+            "tp": 37464,
+            "fp": 0,
+            "fn": 0,
+            "tn": 0
+          },
+          "accuracy": 1.0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        },
+        "zero_rainfall_slice": {
+          "count": 0,
+          "mae": null,
+          "rmse": null,
+          "bias": null,
+          "median_abs_error": null,
+          "pearson_r": null,
+          "r2": null,
+          "error_quantiles": {}
+        },
+        "nonzero_rainfall_slice": {
+          "count": 37464,
+          "mae": 13.5058,
+          "rmse": 14.2457,
+          "bias": 12.3407,
+          "median_abs_error": 14.2792,
+          "pearson_r": 0.261,
+          "r2": -2.8232,
+          "error_quantiles": {
+            "min": -11.7783,
+            "p25": 11.4443,
+            "p50_median_error": 14.2792,
+            "p75": 15.9425,
+            "p90": 19.7972,
+            "max": 21.2268
+          }
+        },
+        "moderate_plus_slice_gte_15_5mm": {
+          "count": 4014,
+          "mae": 5.7917,
+          "rmse": 7.2245,
+          "bias": -5.0825,
+          "median_abs_error": 4.8174,
+          "pearson_r": 0.7472,
+          "r2": 0.0163,
+          "error_quantiles": {
+            "min": -11.7783,
+            "p25": -11.3287,
+            "p50_median_error": -4.8174,
+            "p75": 0.8985,
+            "p90": 1.2121,
+            "max": 1.9111
+          }
+        },
+        "heavy_slice_gte_35_5mm": {
+          "count": 1338,
+          "mae": 11.4976,
+          "rmse": 11.4992,
+          "bias": -11.4976,
+          "median_abs_error": 11.6243,
+          "pearson_r": 0.0,
+          "r2": 0.0,
+          "error_quantiles": {
+            "min": -11.7783,
+            "p25": -11.6659,
+            "p50_median_error": -11.6243,
+            "p75": -11.3287,
+            "p90": -11.2925,
+            "max": -10.9996
+          }
+        },
+        "very_heavy_slice_gte_64_5mm": {
+          "count": 0,
+          "mae": null,
+          "rmse": null,
+          "bias": null,
+          "median_abs_error": null,
+          "pearson_r": null,
+          "r2": null,
+          "error_quantiles": {}
+        }
+      },
+      "baseline_comparison": {
+        "metrics_summary": {
+          "block_forecast": {
+            "mae": 5.7464,
+            "rmse": 7.1634,
+            "bias": 2.6893,
+            "pearson_r": 0.4256
+          },
+          "linear_regression": {
+            "mae": 18.3521,
+            "rmse": 18.8882,
+            "bias": 17.6377,
+            "pearson_r": 0.382
+          },
+          "random_forest": {
+            "mae": 13.5058,
+            "rmse": 14.2457,
+            "bias": 12.3407,
+            "pearson_r": 0.261
+          }
+        },
+        "rf_vs_linear_improvement": {
+          "mae_delta_mm": -4.8463,
+          "mae_improvement_pct": 26.41,
+          "rmse_delta_mm": -4.6425,
+          "rmse_improvement_pct": 24.58,
+          "bias_reduction_mm": 5.297
+        },
+        "rf_vs_block_comparison": {
+          "mae_delta_mm": 7.7594,
+          "mae_improvement_pct": -135.03,
+          "rmse_delta_mm": 7.0823,
+          "rmse_improvement_pct": -98.87
+        }
+      },
+      "heavy_rainfall_analysis": {
+        "heavy_rain_events_count": 1338,
+        "block_forecast_heavy_mae": 24.5,
+        "linear_regression_heavy_mae": 10.0026,
+        "random_forest_heavy_mae": 11.4976,
+        "rf_heavy_rain_mae_reduction_vs_block_pct": 53.07
+      },
+      "panchayat_spatial_diagnostics": {
+        "panchayats_evaluated": 1338,
+        "min_mae": 13.4599,
+        "p25_mae": 13.4821,
+        "median_mae": 13.4928,
+        "p75_mae": 13.5058,
+        "max_mae": 13.7057,
+        "mean_mae": 13.5058,
+        "std_mae": 0.0418
+      }
+    },
+    "pune_test_locked": {
+      "period": "2026-09-01 to 2026-09-23",
+      "rows_count": 30774,
+      "status": "LOCKED TEST EVALUATION (Evaluated exactly once)",
+      "comprehensive_metrics": {
+        "overall": {
+          "count": 30774,
+          "mae": 13.6777,
+          "rmse": 14.1641,
+          "bias": 13.4549,
+          "median_abs_error": 14.2953,
+          "pearson_r": -0.078,
+          "r2": -10.4324,
+          "error_quantiles": {
+            "min": -2.6182,
+            "p25": 13.9961,
+            "p50_median_error": 14.2953,
+            "p75": 15.6553,
+            "p90": 15.8573,
+            "max": 18.9563
+          }
+        },
+        "occurrence": {
+          "threshold_mm": 0.001,
+          "true_rain_events": 28098,
+          "predicted_rain_events": 30774,
+          "confusion_matrix": {
+            "tp": 28098,
+            "fp": 2676,
+            "fn": 0,
+            "tn": 0
+          },
+          "accuracy": 0.913,
+          "precision": 0.913,
+          "recall": 1.0,
+          "f1": 0.9545
+        },
+        "zero_rainfall_slice": {
+          "count": 2676,
+          "mae": 15.7589,
+          "rmse": 15.7592,
+          "bias": 15.7589,
+          "median_abs_error": 15.7921,
+          "pearson_r": 0.0,
+          "r2": 0.0,
+          "error_quantiles": {
+            "min": 15.6145,
+            "p25": 15.6486,
+            "p50_median_error": 15.7921,
+            "p75": 15.8262,
+            "p90": 15.8545,
+            "max": 16.186
+          }
+        },
+        "nonzero_rainfall_slice": {
+          "count": 28098,
+          "mae": 13.4795,
+          "rmse": 14.0027,
+          "bias": 13.2354,
+          "median_abs_error": 14.2502,
+          "pearson_r": -0.1203,
+          "r2": -9.7051,
+          "error_quantiles": {
+            "min": -2.6182,
+            "p25": 13.9078,
+            "p50_median_error": 14.2502,
+            "p75": 15.632,
+            "p90": 15.8573,
+            "max": 18.9563
+          }
+        },
+        "moderate_plus_slice_gte_15_5mm": {
+          "count": 1338,
+          "mae": 2.5626,
+          "rmse": 2.5634,
+          "bias": -2.5626,
+          "median_abs_error": 2.5841,
+          "pearson_r": 0.0,
+          "r2": 0.0,
+          "error_quantiles": {
+            "min": -2.6182,
+            "p25": -2.5974,
+            "p50_median_error": -2.5841,
+            "p75": -2.5558,
+            "p90": -2.4675,
+            "max": -2.2243
+          }
+        },
+        "heavy_slice_gte_35_5mm": {
+          "count": 0,
+          "mae": null,
+          "rmse": null,
+          "bias": null,
+          "median_abs_error": null,
+          "pearson_r": null,
+          "r2": null,
+          "error_quantiles": {}
+        },
+        "very_heavy_slice_gte_64_5mm": {
+          "count": 0,
+          "mae": null,
+          "rmse": null,
+          "bias": null,
+          "median_abs_error": null,
+          "pearson_r": null,
+          "r2": null,
+          "error_quantiles": {}
+        }
+      },
+      "baseline_comparison": {
+        "metrics_summary": {
+          "block_forecast": {
+            "mae": 4.5783,
+            "rmse": 5.0508,
+            "bias": 2.8739,
+            "pearson_r": 0.161
+          },
+          "linear_regression": {
+            "mae": 23.9176,
+            "rmse": 24.1842,
+            "bias": 23.9176,
+            "pearson_r": 0.5437
+          },
+          "random_forest": {
+            "mae": 13.6777,
+            "rmse": 14.1641,
+            "bias": 13.4549,
+            "pearson_r": -0.078
+          }
+        },
+        "rf_vs_linear_improvement": {
+          "mae_delta_mm": -10.2399,
+          "mae_improvement_pct": 42.81,
+          "rmse_delta_mm": -10.0201,
+          "rmse_improvement_pct": 41.43,
+          "bias_reduction_mm": 10.4627
+        },
+        "rf_vs_block_comparison": {
+          "mae_delta_mm": 9.0994,
+          "mae_improvement_pct": -198.75,
+          "rmse_delta_mm": 9.1133,
+          "rmse_improvement_pct": -180.43
+        }
+      },
+      "panchayat_spatial_diagnostics": {
+        "panchayats_evaluated": 1338,
+        "min_mae": 13.625,
+        "p25_mae": 13.644,
+        "median_mae": 13.6547,
+        "p75_mae": 13.6881,
+        "max_mae": 13.9867,
+        "mean_mae": 13.6777,
+        "std_mae": 0.0563
+      }
+    },
+    "nashik_out_of_district_transferability": {
+      "period": "2026-01-09 to 2026-09-04",
+      "rows_count": 1388,
+      "structure": "Single-observation spatial snapshot (1,388 Panchayats)",
+      "comprehensive_metrics": {
+        "overall": {
+          "count": 1388,
+          "mae": 7.8966,
+          "rmse": 11.4317,
+          "bias": -2.0812,
+          "median_abs_error": 4.9348,
+          "pearson_r": 0.1046,
+          "r2": -0.2381,
+          "error_quantiles": {
+            "min": -43.5354,
+            "p25": -5.6284,
+            "p50_median_error": -1.9821,
+            "p75": 1.6341,
+            "p90": 15.7465,
+            "max": 21.1148
+          }
+        },
+        "occurrence": {
+          "threshold_mm": 0.001,
+          "true_rain_events": 1388,
+          "predicted_rain_events": 1388,
+          "confusion_matrix": {
+            "tp": 1388,
+            "fp": 0,
+            "fn": 0,
+            "tn": 0
+          },
+          "accuracy": 1.0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        },
+        "zero_rainfall_slice": {
+          "count": 0,
+          "mae": null,
+          "rmse": null,
+          "bias": null,
+          "median_abs_error": null,
+          "pearson_r": null,
+          "r2": null,
+          "error_quantiles": {}
+        },
+        "nonzero_rainfall_slice": {
+          "count": 1388,
+          "mae": 7.8966,
+          "rmse": 11.4317,
+          "bias": -2.0812,
+          "median_abs_error": 4.9348,
+          "pearson_r": 0.1046,
+          "r2": -0.2381,
+          "error_quantiles": {
+            "min": -43.5354,
+            "p25": -5.6284,
+            "p50_median_error": -1.9821,
+            "p75": 1.6341,
+            "p90": 15.7465,
+            "max": 21.1148
+          }
+        },
+        "moderate_plus_slice_gte_15_5mm": {
+          "count": 222,
+          "mae": 19.1266,
+          "rmse": 21.3054,
+          "bias": -19.1266,
+          "median_abs_error": 16.3354,
+          "pearson_r": 0.5791,
+          "r2": -2.5825,
+          "error_quantiles": {
+            "min": -43.5354,
+            "p25": -21.3364,
+            "p50_median_error": -16.3354,
+            "p75": -14.8364,
+            "p90": -11.3284,
+            "max": -9.3354
+          }
+        },
+        "heavy_slice_gte_35_5mm": {
+          "count": 50,
+          "mae": 32.8848,
+          "rmse": 34.5291,
+          "bias": -32.8848,
+          "median_abs_error": 29.9125,
+          "pearson_r": -0.8957,
+          "r2": -67.0742,
+          "error_quantiles": {
+            "min": -43.5354,
+            "p25": -43.5354,
+            "p50_median_error": -29.9125,
+            "p75": -23.3453,
+            "p90": -23.3184,
+            "max": -16.4845
+          }
+        },
+        "very_heavy_slice_gte_64_5mm": {
+          "count": 0,
+          "mae": null,
+          "rmse": null,
+          "bias": null,
+          "median_abs_error": null,
+          "pearson_r": null,
+          "r2": null,
+          "error_quantiles": {}
+        }
+      },
+      "baseline_comparison": {
+        "metrics_summary": {
+          "block_forecast": {
+            "mae": 4.3651,
+            "rmse": 5.5919,
+            "bias": 2.298,
+            "pearson_r": 0.8777
+          },
+          "linear_regression": {
+            "mae": 12.8697,
+            "rmse": 16.3147,
+            "bias": 11.0297,
+            "pearson_r": 0.2806
+          },
+          "random_forest": {
+            "mae": 7.8966,
+            "rmse": 11.4317,
+            "bias": -2.0812,
+            "pearson_r": 0.1046
+          }
+        },
+        "rf_vs_linear_improvement": {
+          "mae_delta_mm": -4.9731,
+          "mae_improvement_pct": 38.64,
+          "rmse_delta_mm": -4.883,
+          "rmse_improvement_pct": 29.93,
+          "bias_reduction_mm": 8.9485
+        },
+        "rf_vs_block_comparison": {
+          "mae_delta_mm": 3.5315,
+          "mae_improvement_pct": -80.9,
+          "rmse_delta_mm": 5.8398,
+          "rmse_improvement_pct": -104.43
+        }
+      },
+      "panchayat_spatial_diagnostics": {
+        "panchayats_evaluated": 1388,
+        "min_mae": 0.0092,
+        "p25_mae": 1.9821,
+        "median_mae": 4.9348,
+        "p75_mae": 11.5689,
+        "max_mae": 43.5354,
+        "mean_mae": 7.8966,
+        "std_mae": 8.266
+      }
+    }
+  },
+  "monthly_breakdown_pune": {
+    "4": {
+      "count": 20070,
+      "mae": 0.1026,
+      "rmse": 0.1266,
+      "bias": 0.0559,
+      "median_abs_error": 0.075,
+      "pearson_r": -0.0247,
+      "r2": -0.568,
+      "error_quantiles": {
+        "min": -0.3106,
+        "p25": 0.0406,
+        "p50_median_error": 0.067,
+        "p75": 0.1113,
+        "p90": 0.1821,
+        "max": 0.2921
+      }
+    },
+    "5": {
+      "count": 33450,
+      "mae": 0.3962,
+      "rmse": 0.9883,
+      "bias": 0.0002,
+      "median_abs_error": 0.1117,
+      "pearson_r": 0.986,
+      "r2": 0.8866,
+      "error_quantiles": {
+        "min": -4.8437,
+        "p25": 0.0365,
+        "p50_median_error": 0.1085,
+        "p75": 0.2201,
+        "p90": 0.288,
+        "max": 1.3593
+      }
+    },
+    "6": {
+      "count": 30774,
+      "mae": 1.0218,
+      "rmse": 1.4138,
+      "bias": -0.0248,
+      "median_abs_error": 0.5845,
+      "pearson_r": 0.983,
+      "r2": 0.9614,
+      "error_quantiles": {
+        "min": -4.458,
+        "p25": -0.3807,
+        "p50_median_error": 0.3223,
+        "p75": 0.8542,
+        "p90": 1.3494,
+        "max": 1.8906
+      }
+    },
+    "7": {
+      "count": 34788,
+      "mae": 1.1641,
+      "rmse": 1.5163,
+      "bias": -0.0177,
+      "median_abs_error": 0.9487,
+      "pearson_r": 0.9989,
+      "r2": 0.997,
+      "error_quantiles": {
+        "min": -5.1418,
+        "p25": -0.8744,
+        "p50_median_error": 0.0029,
+        "p75": 0.9521,
+        "p90": 1.4223,
+        "max": 4.6714
+      }
+    },
+    "8": {
+      "count": 37464,
+      "mae": 13.5058,
+      "rmse": 14.2457,
+      "bias": 12.3407,
+      "median_abs_error": 14.2792,
+      "pearson_r": 0.261,
+      "r2": -2.8232,
+      "error_quantiles": {
+        "min": -11.7783,
+        "p25": 11.4443,
+        "p50_median_error": 14.2792,
+        "p75": 15.9425,
+        "p90": 19.7972,
+        "max": 21.2268
+      }
+    },
+    "9": {
+      "count": 30774,
+      "mae": 13.6777,
+      "rmse": 14.1641,
+      "bias": 13.4549,
+      "median_abs_error": 14.2953,
+      "pearson_r": -0.078,
+      "r2": -10.4324,
+      "error_quantiles": {
+        "min": -2.6182,
+        "p25": 13.9961,
+        "p50_median_error": 14.2953,
+        "p75": 15.6553,
+        "p90": 15.8573,
+        "max": 18.9563
+      }
+    }
+  },
+  "feature_importance": {
+    "method": "Gini Impurity MDI (Mean Decrease in Impurity)",
+    "rankings": [
+      {
+        "rank": 1,
+        "feature": "target_day_of_year_sin",
+        "importance": 0.201634,
+        "cumulative_importance": 0.201634
+      },
+      {
+        "rank": 2,
+        "feature": "historical_rainfall_prior_2d_mm",
+        "importance": 0.145944,
+        "cumulative_importance": 0.347577
+      },
+      {
+        "rank": 3,
+        "feature": "target_day_of_year_cos",
+        "importance": 0.144778,
+        "cumulative_importance": 0.492356
+      },
+      {
+        "rank": 4,
+        "feature": "target_day_of_year",
+        "importance": 0.132997,
+        "cumulative_importance": 0.625353
+      },
+      {
+        "rank": 5,
+        "feature": "log1p_block_forecast_rainfall_mm",
+        "importance": 0.087354,
+        "cumulative_importance": 0.712707
+      },
+      {
+        "rank": 6,
+        "feature": "block_forecast_rainfall_mm",
+        "importance": 0.074234,
+        "cumulative_importance": 0.786941
+      },
+      {
+        "rank": 7,
+        "feature": "historical_rainfall_prior_7d_mean_mm",
+        "importance": 0.044331,
+        "cumulative_importance": 0.831272
+      },
+      {
+        "rank": 8,
+        "feature": "target_month",
+        "importance": 0.03787,
+        "cumulative_importance": 0.869142
+      },
+      {
+        "rank": 9,
+        "feature": "historical_rainfall_prior_1d_mm",
+        "importance": 0.037389,
+        "cumulative_importance": 0.90653
+      },
+      {
+        "rank": 10,
+        "feature": "historical_rainfall_prior_3d_mean_mm",
+        "importance": 0.0328,
+        "cumulative_importance": 0.93933
+      },
+      {
+        "rank": 11,
+        "feature": "historical_rainfall_prior_7d_sum_mm",
+        "importance": 0.029801,
+        "cumulative_importance": 0.969131
+      },
+      {
+        "rank": 12,
+        "feature": "historical_rainfall_prior_3d_sum_mm",
+        "importance": 0.021427,
+        "cumulative_importance": 0.990558
+      },
+      {
+        "rank": 13,
+        "feature": "has_historical_rainfall_context",
+        "importance": 0.009408,
+        "cumulative_importance": 0.999966
+      },
+      {
+        "rank": 14,
+        "feature": "station_longitude",
+        "importance": 1.1e-05,
+        "cumulative_importance": 0.999976
+      },
+      {
+        "rank": 15,
+        "feature": "station_distance_km",
+        "importance": 9e-06,
+        "cumulative_importance": 0.999985
+      },
+      {
+        "rank": 16,
+        "feature": "panchayat_latitude",
+        "importance": 8e-06,
+        "cumulative_importance": 0.999992
+      },
+      {
+        "rank": 17,
+        "feature": "panchayat_longitude",
+        "importance": 5e-06,
+        "cumulative_importance": 0.999997
+      },
+      {
+        "rank": 18,
+        "feature": "station_latitude",
+        "importance": 2e-06,
+        "cumulative_importance": 0.999999
+      },
+      {
+        "rank": 19,
+        "feature": "elevation_m",
+        "importance": 1e-06,
+        "cumulative_importance": 1.0
+      },
+      {
+        "rank": 20,
+        "feature": "lead_days",
+        "importance": 0.0,
+        "cumulative_importance": 1.0
+      }
+    ],
+    "top_5": [
+      {
+        "rank": 1,
+        "feature": "target_day_of_year_sin",
+        "importance": 0.201634,
+        "cumulative_importance": 0.201634
+      },
+      {
+        "rank": 2,
+        "feature": "historical_rainfall_prior_2d_mm",
+        "importance": 0.145944,
+        "cumulative_importance": 0.347577
+      },
+      {
+        "rank": 3,
+        "feature": "target_day_of_year_cos",
+        "importance": 0.144778,
+        "cumulative_importance": 0.492356
+      },
+      {
+        "rank": 4,
+        "feature": "target_day_of_year",
+        "importance": 0.132997,
+        "cumulative_importance": 0.625353
+      },
+      {
+        "rank": 5,
+        "feature": "log1p_block_forecast_rainfall_mm",
+        "importance": 0.087354,
+        "cumulative_importance": 0.712707
+      }
+    ]
+  },
+  "leakage_verification": {
+    "status": "PASSED",
+    "temporal_ordering_verified": true,
+    "max_train_date": "2026-07-31",
+    "min_val_date": "2026-08-01",
+    "max_val_date": "2026-08-31",
+    "min_test_date": "2026-09-01",
+    "target_variable_excluded_from_features": true,
+    "imputer_fitted_strictly_on_train": true,
+    "imputer_learned_statistics_count": 20,
+    "index_overlap_counts": {
+      "train_val": 0,
+      "val_test": 0,
+      "train_test": 0
+    },
+    "date_overlap_counts": {
+      "train_val": 0,
+      "val_test": 0,
+      "train_test": 0
+    },
+    "test_set_lock_enforced": true
+  },
+  "artifacts": {
+    "model_path": "ml/models/random_forest/best_model.joblib",
+    "preprocessor_path": "ml/models/random_forest/preprocessor.joblib",
+    "metadata_path": "ml/models/random_forest/metadata.json",
+    "config_path": "ml/models/random_forest/config.json",
+    "report_path": "reports/phase-2-4-random-forest-results.json"
+  },
+  "reproducibility": {
+    "script": "scripts/train_random_forest.py",
+    "seed": 42,
+    "deterministic": true,
+    "python_version": "3.12.7 | packaged by Anaconda, Inc. | (main, Oct  4 2024, 13:17:27) [MSC v.1929 64 bit (AMD64)]"
+  }
+}

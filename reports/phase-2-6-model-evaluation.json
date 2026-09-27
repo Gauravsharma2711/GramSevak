@@ -1,0 +1,4566 @@
+{
+  "evaluation": {
+    "phase": "2.6",
+    "title": "GramSevak Multi-Model Evaluation and Leakage Analysis Report",
+    "timestamp": "2026-09-27T17:51:07.555592+00:00",
+    "execution_runtime_seconds": 2.98,
+    "problem_statement": "SIH 26074 - GramSevak Hyper-local Rainfall Downscaling",
+    "evaluation_authority": "docs/phase-2-3-temporal-baseline.md",
+    "contract_authority": "docs/phase-2-1-ml-data-contract.md",
+    "feature_registry_authority": "schemas/ml_feature_registry.json"
+  },
+  "models": {
+    "model_a_block_forecast": {
+      "name": "Raw Block Forecast Baseline",
+      "type": "nwp_direct_baseline",
+      "artifact_location": "N/A (Derived directly from numerical forecast)",
+      "target": "actual_rainfall_mm",
+      "feature_set": [
+        "block_forecast_rainfall_mm"
+      ],
+      "version": "1.0.0",
+      "parameters": {
+        "clamping": ">= 0.0 mm"
+      }
+    },
+    "model_b_simple_linear": {
+      "name": "Simple Statistical Baseline (Ridge)",
+      "type": "regularized_linear_regression",
+      "artifact_location": "In-memory fitted pipeline on Train split",
+      "target": "actual_rainfall_mm",
+      "feature_set": [
+        "block_forecast_rainfall_mm",
+        "panchayat_latitude",
+        "panchayat_longitude",
+        "elevation_m",
+        "station_distance_km",
+        "lead_days",
+        "target_day_of_year_sin",
+        "target_day_of_year_cos",
+        "historical_rainfall_prior_1d_mm",
+        "has_historical_rainfall_context"
+      ],
+      "version": "1.0.0",
+      "parameters": {
+        "alpha": 10.0,
+        "scaler": "StandardScaler",
+        "imputer": "median"
+      }
+    },
+    "model_c_random_forest": {
+      "name": "Random Forest Downscaler",
+      "type": "ensemble_random_forest_regressor",
+      "artifact_location": "ml/models/random_forest/best_model.joblib",
+      "target": "actual_rainfall_mm",
+      "feature_set": [
+        "block_forecast_rainfall_mm",
+        "log1p_block_forecast_rainfall_mm",
+        "panchayat_latitude",
+        "panchayat_longitude",
+        "elevation_m",
+        "station_distance_km",
+        "station_latitude",
+        "station_longitude",
+        "lead_days",
+        "target_month",
+        "target_day_of_year",
+        "target_day_of_year_sin",
+        "target_day_of_year_cos",
+        "historical_rainfall_prior_1d_mm",
+        "historical_rainfall_prior_2d_mm",
+        "historical_rainfall_prior_3d_mean_mm",
+        "historical_rainfall_prior_3d_sum_mm",
+        "historical_rainfall_prior_7d_mean_mm",
+        "historical_rainfall_prior_7d_sum_mm",
+        "has_historical_rainfall_context"
+      ],
+      "version": "2.4.0",
+      "parameters": {
+        "n_estimators": 100,
+        "max_depth": 6,
+        "min_samples_split": 5,
+        "min_samples_leaf": 100,
+        "max_features": 0.2,
+        "random_state": 42,
+        "n_jobs": -1
+      }
+    },
+    "model_d_xgboost": {
+      "name": "XGBoost Downscaler",
+      "type": "gradient_boosted_decision_trees",
+      "artifact_location": "ml/models/xgboost/best_model.joblib",
+      "target": "actual_rainfall_mm",
+      "feature_set": [
+        "block_forecast_rainfall_mm",
+        "log1p_block_forecast_rainfall_mm",
+        "panchayat_latitude",
+        "panchayat_longitude",
+        "elevation_m",
+        "station_distance_km",
+        "station_latitude",
+        "station_longitude",
+        "lead_days",
+        "target_month",
+        "target_day_of_year",
+        "target_day_of_year_sin",
+        "target_day_of_year_cos",
+        "historical_rainfall_prior_1d_mm",
+        "historical_rainfall_prior_2d_mm",
+        "historical_rainfall_prior_3d_mean_mm",
+        "historical_rainfall_prior_3d_sum_mm",
+        "historical_rainfall_prior_7d_mean_mm",
+        "historical_rainfall_prior_7d_sum_mm",
+        "has_historical_rainfall_context"
+      ],
+      "version": "2.5.0",
+      "parameters": {
+        "n_estimators": 200,
+        "max_depth": 6,
+        "learning_rate": 0.03,
+        "subsample": 0.8,
+        "colsample_bytree": 0.7,
+        "reg_alpha": 1.0,
+        "reg_lambda": 5.0,
+        "min_child_weight": 20.0,
+        "random_state": 42,
+        "n_jobs": -1,
+        "eval_metric": "mae",
+        "early_stopping_rounds": 15
+      },
+      "best_iteration": 1
+    }
+  },
+  "dataset": {
+    "pune_path": "data/ml/features/pune/rainfall_features.parquet",
+    "nashik_path": "data/ml/features/nashik/rainfall_features.parquet",
+    "pune_total_rows": 187320,
+    "nashik_total_rows": 1388,
+    "approved_features_count": 20,
+    "target_variable": "actual_rainfall_mm"
+  },
+  "split": {
+    "split_key": "date",
+    "issue_key": "forecast_issue_date",
+    "train_rows": 119082,
+    "val_rows": 37464,
+    "test_rows": 30774,
+    "test_locked": true
+  },
+  "overall_metrics": {
+    "pune_test_locked": {
+      "block_forecast": {
+        "overall": {
+          "count": 30774,
+          "mae": 4.5783,
+          "rmse": 5.0508,
+          "bias": 2.8739,
+          "median_abs_error": 4.2,
+          "pearson_r": 0.161,
+          "r2": -0.4537,
+          "error_quantiles": {
+            "min": -12.3,
+            "p25": 3.3,
+            "p50_median_error": 4.0,
+            "p75": 4.8,
+            "p90": 5.7,
+            "max": 6.8
+          }
+        },
+        "occurrence": {
+          "threshold_mm": 0.001,
+          "true_rain_events": 28098,
+          "predicted_rain_events": 30774,
+          "confusion_matrix": {
+            "tp": 28098,
+            "fp": 2676,
+            "fn": 0,
+            "tn": 0
+          },
+          "accuracy": 0.913,
+          "precision": 0.913,
+          "recall": 1.0,
+          "f1": 0.9545
+        },
+        "zero_rainfall_slice": {
+          "count": 2676,
+          "mae": 5.75,
+          "rmse": 5.7554,
+          "bias": 5.75,
+          "median_abs_error": 5.75,
+          "pearson_r": 0.0,
+          "r2": 0.0,
+          "error_quantiles": {
+            "min": 5.5,
+            "p25": 5.5,
+            "p50_median_error": 5.75,
+            "p75": 6.0,
+            "p90": 6.0,
+            "max": 6.0
+          }
+        },
+        "nonzero_rainfall_slice": {
+          "count": 28098,
+          "mae": 4.4667,
+          "rmse": 4.9785,
+          "bias": 2.6,
+          "median_abs_error": 4.0,
+          "pearson_r": 0.1611,
+          "r2": -0.3532,
+          "error_quantiles": {
+            "min": -12.3,
+            "p25": 3.3,
+            "p50_median_error": 3.7,
+            "p75": 4.8,
+            "p90": 5.4,
+            "max": 6.8
+          }
+        },
+        "moderate_plus_slice_gte_15_5mm": {
+          "count": 1338,
+          "mae": 12.3,
+          "rmse": 12.3,
+          "bias": -12.3,
+          "median_abs_error": 12.3,
+          "pearson_r": 0.0,
+          "r2": 0.0,
+          "error_quantiles": {
+            "min": -12.3,
+            "p25": -12.3,
+            "p50_median_error": -12.3,
+            "p75": -12.3,
+            "p90": -12.3,
+            "max": -12.3
+          }
+        },
+        "heavy_slice_gte_35_5mm": {
+          "count": 0,
+          "mae": null,
+          "rmse": null,
+          "bias": null,
+          "median_abs_error": null,
+          "pearson_r": null,
+          "r2": null,
+          "error_quantiles": {}
+        },
+        "very_heavy_slice_gte_64_5mm": {
+          "count": 0,
+          "mae": null,
+          "rmse": null,
+          "bias": null,
+          "median_abs_error": null,
+          "pearson_r": null,
+          "r2": null,
+          "error_quantiles": {}
+        }
+      },
+      "linear_baseline": {
+        "overall": {
+          "count": 30774,
+          "mae": 23.9029,
+          "rmse": 24.1696,
+          "bias": 23.9029,
+          "median_abs_error": 24.4269,
+          "pearson_r": 0.5437,
+          "r2": -32.2889,
+          "error_quantiles": {
+            "min": 10.6556,
+            "p25": 22.9552,
+            "p50_median_error": 24.4269,
+            "p75": 26.56,
+            "p90": 26.7963,
+            "max": 27.8195
+          }
+        },
+        "occurrence": {
+          "threshold_mm": 0.001,
+          "true_rain_events": 28098,
+          "predicted_rain_events": 30774,
+          "confusion_matrix": {
+            "tp": 28098,
+            "fp": 2676,
+            "fn": 0,
+            "tn": 0
+          },
+          "accuracy": 0.913,
+          "precision": 0.913,
+          "recall": 1.0,
+          "f1": 0.9545
+        },
+        "zero_rainfall_slice": {
+          "count": 2676,
+          "mae": 26.6156,
+          "rmse": 26.6157,
+          "bias": 26.6156,
+          "median_abs_error": 26.6156,
+          "pearson_r": 0.0,
+          "r2": 0.0,
+          "error_quantiles": {
+            "min": 26.56,
+            "p25": 26.56,
+            "p50_median_error": 26.6156,
+            "p75": 26.6712,
+            "p90": 26.6712,
+            "max": 26.6712
+          }
+        },
+        "nonzero_rainfall_slice": {
+          "count": 28098,
+          "mae": 23.6445,
+          "rmse": 23.9237,
+          "bias": 23.6445,
+          "median_abs_error": 24.3998,
+          "pearson_r": 0.5476,
+          "r2": -30.248,
+          "error_quantiles": {
+            "min": 10.6556,
+            "p25": 22.9552,
+            "p50_median_error": 24.3998,
+            "p75": 26.0536,
+            "p90": 26.7963,
+            "max": 27.8195
+          }
+        },
+        "moderate_plus_slice_gte_15_5mm": {
+          "count": 1338,
+          "mae": 10.6556,
+          "rmse": 10.6556,
+          "bias": 10.6556,
+          "median_abs_error": 10.6556,
+          "pearson_r": 0.0,
+          "r2": 0.0,
+          "error_quantiles": {
+            "min": 10.6556,
+            "p25": 10.6556,
+            "p50_median_error": 10.6556,
+            "p75": 10.6556,
+            "p90": 10.6556,
+            "max": 10.6556
+          }
+        },
+        "heavy_slice_gte_35_5mm": {
+          "count": 0,
+          "mae": null,
+          "rmse": null,
+          "bias": null,
+          "median_abs_error": null,
+          "pearson_r": null,
+          "r2": null,
+          "error_quantiles": {}
+        },
+        "very_heavy_slice_gte_64_5mm": {
+          "count": 0,
+          "mae": null,
+          "rmse": null,
+          "bias": null,
+          "median_abs_error": null,
+          "pearson_r": null,
+          "r2": null,
+          "error_quantiles": {}
+        }
+      },
+      "random_forest": {
+        "overall": {
+          "count": 30774,
+          "mae": 13.6777,
+          "rmse": 14.1641,
+          "bias": 13.4549,
+          "median_abs_error": 14.2953,
+          "pearson_r": -0.078,
+          "r2": -10.4324,
+          "error_quantiles": {
+            "min": -2.6182,
+            "p25": 13.9961,
+            "p50_median_error": 14.2953,
+            "p75": 15.6553,
+            "p90": 15.8573,
+            "max": 18.9563
+          }
+        },
+        "occurrence": {
+          "threshold_mm": 0.001,
+          "true_rain_events": 28098,
+          "predicted_rain_events": 30774,
+          "confusion_matrix": {
+            "tp": 28098,
+            "fp": 2676,
+            "fn": 0,
+            "tn": 0
+          },
+          "accuracy": 0.913,
+          "precision": 0.913,
+          "recall": 1.0,
+          "f1": 0.9545
+        },
+        "zero_rainfall_slice": {
+          "count": 2676,
+          "mae": 15.7589,
+          "rmse": 15.7592,
+          "bias": 15.7589,
+          "median_abs_error": 15.7921,
+          "pearson_r": 0.0,
+          "r2": 0.0,
+          "error_quantiles": {
+            "min": 15.6145,
+            "p25": 15.6486,
+            "p50_median_error": 15.7921,
+            "p75": 15.8262,
+            "p90": 15.8545,
+            "max": 16.186
+          }
+        },
+        "nonzero_rainfall_slice": {
+          "count": 28098,
+          "mae": 13.4795,
+          "rmse": 14.0027,
+          "bias": 13.2354,
+          "median_abs_error": 14.2502,
+          "pearson_r": -0.1203,
+          "r2": -9.7051,
+          "error_quantiles": {
+            "min": -2.6182,
+            "p25": 13.9078,
+            "p50_median_error": 14.2502,
+            "p75": 15.632,
+            "p90": 15.8573,
+            "max": 18.9563
+          }
+        },
+        "moderate_plus_slice_gte_15_5mm": {
+          "count": 1338,
+          "mae": 2.5626,
+          "rmse": 2.5634,
+          "bias": -2.5626,
+          "median_abs_error": 2.5841,
+          "pearson_r": 0.0,
+          "r2": 0.0,
+          "error_quantiles": {
+            "min": -2.6182,
+            "p25": -2.5974,
+            "p50_median_error": -2.5841,
+            "p75": -2.5558,
+            "p90": -2.4675,
+            "max": -2.2243
+          }
+        },
+        "heavy_slice_gte_35_5mm": {
+          "count": 0,
+          "mae": null,
+          "rmse": null,
+          "bias": null,
+          "median_abs_error": null,
+          "pearson_r": null,
+          "r2": null,
+          "error_quantiles": {}
+        },
+        "very_heavy_slice_gte_64_5mm": {
+          "count": 0,
+          "mae": null,
+          "rmse": null,
+          "bias": null,
+          "median_abs_error": null,
+          "pearson_r": null,
+          "r2": null,
+          "error_quantiles": {}
+        }
+      },
+      "xgboost": {
+        "overall": {
+          "count": 30774,
+          "mae": 5.907,
+          "rmse": 6.1865,
+          "bias": 4.552,
+          "median_abs_error": 5.6089,
+          "pearson_r": 0.0002,
+          "r2": -1.1809,
+          "error_quantiles": {
+            "min": -10.8911,
+            "p25": 5.2506,
+            "p50_median_error": 5.6089,
+            "p75": 6.9089,
+            "p90": 7.4089,
+            "max": 7.5089
+          }
+        },
+        "occurrence": {
+          "threshold_mm": 0.001,
+          "true_rain_events": 28098,
+          "predicted_rain_events": 30774,
+          "confusion_matrix": {
+            "tp": 28098,
+            "fp": 2676,
+            "fn": 0,
+            "tn": 0
+          },
+          "accuracy": 0.913,
+          "precision": 0.913,
+          "recall": 1.0,
+          "f1": 0.9545
+        },
+        "zero_rainfall_slice": {
+          "count": 2676,
+          "mae": 7.4797,
+          "rmse": 7.4798,
+          "bias": 7.4797,
+          "median_abs_error": 7.4797,
+          "pearson_r": 0.0,
+          "r2": 0.0,
+          "error_quantiles": {
+            "min": 7.4506,
+            "p25": 7.4506,
+            "p50_median_error": 7.4797,
+            "p75": 7.5089,
+            "p90": 7.5089,
+            "max": 7.5089
+          }
+        },
+        "nonzero_rainfall_slice": {
+          "count": 28098,
+          "mae": 5.7572,
+          "rmse": 6.0489,
+          "bias": 4.2732,
+          "median_abs_error": 5.6089,
+          "pearson_r": -0.0192,
+          "r2": -0.9976,
+          "error_quantiles": {
+            "min": -10.8911,
+            "p25": 5.2506,
+            "p50_median_error": 5.6089,
+            "p75": 6.0089,
+            "p90": 7.1089,
+            "max": 7.4089
+          }
+        },
+        "moderate_plus_slice_gte_15_5mm": {
+          "count": 1338,
+          "mae": 10.8911,
+          "rmse": 10.8911,
+          "bias": -10.8911,
+          "median_abs_error": 10.8911,
+          "pearson_r": 0.0,
+          "r2": 0.0,
+          "error_quantiles": {
+            "min": -10.8911,
+            "p25": -10.8911,
+            "p50_median_error": -10.8911,
+            "p75": -10.8911,
+            "p90": -10.8911,
+            "max": -10.8911
+          }
+        },
+        "heavy_slice_gte_35_5mm": {
+          "count": 0,
+          "mae": null,
+          "rmse": null,
+          "bias": null,
+          "median_abs_error": null,
+          "pearson_r": null,
+          "r2": null,
+          "error_quantiles": {}
+        },
+        "very_heavy_slice_gte_64_5mm": {
+          "count": 0,
+          "mae": null,
+          "rmse": null,
+          "bias": null,
+          "median_abs_error": null,
+          "pearson_r": null,
+          "r2": null,
+          "error_quantiles": {}
+        }
+      }
+    },
+    "pune_validation": {
+      "block_forecast": {
+        "overall": {
+          "count": 37464,
+          "mae": 5.7464,
+          "rmse": 7.1634,
+          "bias": 2.6893,
+          "median_abs_error": 5.1,
+          "pearson_r": 0.4256,
+          "r2": 0.0333,
+          "error_quantiles": {
+            "min": -24.5,
+            "p25": 2.75,
+            "p50_median_error": 4.55,
+            "p75": 5.9,
+            "p90": 7.3,
+            "max": 9.7
+          }
+        },
+        "occurrence": {
+          "threshold_mm": 0.001,
+          "true_rain_events": 37464,
+          "predicted_rain_events": 37464,
+          "confusion_matrix": {
+            "tp": 37464,
+            "fp": 0,
+            "fn": 0,
+            "tn": 0
+          },
+          "accuracy": 1.0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        },
+        "zero_rainfall_slice": {
+          "count": 0,
+          "mae": null,
+          "rmse": null,
+          "bias": null,
+          "median_abs_error": null,
+          "pearson_r": null,
+          "r2": null,
+          "error_quantiles": {}
+        },
+        "nonzero_rainfall_slice": {
+          "count": 37464,
+          "mae": 5.7464,
+          "rmse": 7.1634,
+          "bias": 2.6893,
+          "median_abs_error": 5.1,
+          "pearson_r": 0.4256,
+          "r2": 0.0333,
+          "error_quantiles": {
+            "min": -24.5,
+            "p25": 2.75,
+            "p50_median_error": 4.55,
+            "p75": 5.9,
+            "p90": 7.3,
+            "max": 9.7
+          }
+        },
+        "moderate_plus_slice_gte_15_5mm": {
+          "count": 4014,
+          "mae": 14.2667,
+          "rmse": 15.9969,
+          "bias": -14.2667,
+          "median_abs_error": 9.2,
+          "pearson_r": 0.5145,
+          "r2": -3.8228,
+          "error_quantiles": {
+            "min": -24.5,
+            "p25": -24.5,
+            "p50_median_error": -9.2,
+            "p75": -9.1,
+            "p90": -9.1,
+            "max": -9.1
+          }
+        },
+        "heavy_slice_gte_35_5mm": {
+          "count": 1338,
+          "mae": 24.5,
+          "rmse": 24.5,
+          "bias": -24.5,
+          "median_abs_error": 24.5,
+          "pearson_r": 0.0,
+          "r2": 0.0,
+          "error_quantiles": {
+            "min": -24.5,
+            "p25": -24.5,
+            "p50_median_error": -24.5,
+            "p75": -24.5,
+            "p90": -24.5,
+            "max": -24.5
+          }
+        },
+        "very_heavy_slice_gte_64_5mm": {
+          "count": 0,
+          "mae": null,
+          "rmse": null,
+          "bias": null,
+          "median_abs_error": null,
+          "pearson_r": null,
+          "r2": null,
+          "error_quantiles": {}
+        }
+      },
+      "linear_baseline": {
+        "overall": {
+          "count": 37464,
+          "mae": 18.3443,
+          "rmse": 18.88,
+          "bias": 17.6295,
+          "median_abs_error": 18.8931,
+          "pearson_r": 0.3827,
+          "r2": -5.7153,
+          "error_quantiles": {
+            "min": -10.0067,
+            "p25": 17.3344,
+            "p50_median_error": 18.8931,
+            "p75": 20.6563,
+            "p90": 22.9448,
+            "max": 25.9351
+          }
+        },
+        "occurrence": {
+          "threshold_mm": 0.001,
+          "true_rain_events": 37464,
+          "predicted_rain_events": 37464,
+          "confusion_matrix": {
+            "tp": 37464,
+            "fp": 0,
+            "fn": 0,
+            "tn": 0
+          },
+          "accuracy": 1.0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        },
+        "zero_rainfall_slice": {
+          "count": 0,
+          "mae": null,
+          "rmse": null,
+          "bias": null,
+          "median_abs_error": null,
+          "pearson_r": null,
+          "r2": null,
+          "error_quantiles": {}
+        },
+        "nonzero_rainfall_slice": {
+          "count": 37464,
+          "mae": 18.3443,
+          "rmse": 18.88,
+          "bias": 17.6295,
+          "median_abs_error": 18.8931,
+          "pearson_r": 0.3827,
+          "r2": -5.7153,
+          "error_quantiles": {
+            "min": -10.0067,
+            "p25": 17.3344,
+            "p50_median_error": 18.8931,
+            "p75": 20.6563,
+            "p90": 22.9448,
+            "max": 25.9351
+          }
+        },
+        "moderate_plus_slice_gte_15_5mm": {
+          "count": 4014,
+          "mae": 7.4469,
+          "rmse": 7.6638,
+          "bias": 0.7757,
+          "median_abs_error": 6.2209,
+          "pearson_r": -0.9707,
+          "r2": -0.1069,
+          "error_quantiles": {
+            "min": -10.0067,
+            "p25": -10.0067,
+            "p50_median_error": 6.113,
+            "p75": 6.2209,
+            "p90": 6.2209,
+            "max": 6.2209
+          }
+        },
+        "heavy_slice_gte_35_5mm": {
+          "count": 1338,
+          "mae": 10.0067,
+          "rmse": 10.0067,
+          "bias": -10.0067,
+          "median_abs_error": 10.0067,
+          "pearson_r": 0.0,
+          "r2": 0.0,
+          "error_quantiles": {
+            "min": -10.0067,
+            "p25": -10.0067,
+            "p50_median_error": -10.0067,
+            "p75": -10.0067,
+            "p90": -10.0067,
+            "max": -10.0067
+          }
+        },
+        "very_heavy_slice_gte_64_5mm": {
+          "count": 0,
+          "mae": null,
+          "rmse": null,
+          "bias": null,
+          "median_abs_error": null,
+          "pearson_r": null,
+          "r2": null,
+          "error_quantiles": {}
+        }
+      },
+      "random_forest": {
+        "overall": {
+          "count": 37464,
+          "mae": 13.5058,
+          "rmse": 14.2457,
+          "bias": 12.3407,
+          "median_abs_error": 14.2792,
+          "pearson_r": 0.261,
+          "r2": -2.8232,
+          "error_quantiles": {
+            "min": -11.7783,
+            "p25": 11.4443,
+            "p50_median_error": 14.2792,
+            "p75": 15.9425,
+            "p90": 19.7972,
+            "max": 21.2268
+          }
+        },
+        "occurrence": {
+          "threshold_mm": 0.001,
+          "true_rain_events": 37464,
+          "predicted_rain_events": 37464,
+          "confusion_matrix": {
+            "tp": 37464,
+            "fp": 0,
+            "fn": 0,
+            "tn": 0
+          },
+          "accuracy": 1.0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        },
+        "zero_rainfall_slice": {
+          "count": 0,
+          "mae": null,
+          "rmse": null,
+          "bias": null,
+          "median_abs_error": null,
+          "pearson_r": null,
+          "r2": null,
+          "error_quantiles": {}
+        },
+        "nonzero_rainfall_slice": {
+          "count": 37464,
+          "mae": 13.5058,
+          "rmse": 14.2457,
+          "bias": 12.3407,
+          "median_abs_error": 14.2792,
+          "pearson_r": 0.261,
+          "r2": -2.8232,
+          "error_quantiles": {
+            "min": -11.7783,
+            "p25": 11.4443,
+            "p50_median_error": 14.2792,
+            "p75": 15.9425,
+            "p90": 19.7972,
+            "max": 21.2268
+          }
+        },
+        "moderate_plus_slice_gte_15_5mm": {
+          "count": 4014,
+          "mae": 5.7917,
+          "rmse": 7.2245,
+          "bias": -5.0825,
+          "median_abs_error": 4.8174,
+          "pearson_r": 0.7472,
+          "r2": 0.0163,
+          "error_quantiles": {
+            "min": -11.7783,
+            "p25": -11.3287,
+            "p50_median_error": -4.8174,
+            "p75": 0.8985,
+            "p90": 1.2121,
+            "max": 1.9111
+          }
+        },
+        "heavy_slice_gte_35_5mm": {
+          "count": 1338,
+          "mae": 11.4976,
+          "rmse": 11.4992,
+          "bias": -11.4976,
+          "median_abs_error": 11.6243,
+          "pearson_r": 0.0,
+          "r2": 0.0,
+          "error_quantiles": {
+            "min": -11.7783,
+            "p25": -11.6659,
+            "p50_median_error": -11.6243,
+            "p75": -11.3287,
+            "p90": -11.2925,
+            "max": -10.9996
+          }
+        },
+        "very_heavy_slice_gte_64_5mm": {
+          "count": 0,
+          "mae": null,
+          "rmse": null,
+          "bias": null,
+          "median_abs_error": null,
+          "pearson_r": null,
+          "r2": null,
+          "error_quantiles": {}
+        }
+      },
+      "xgboost": {
+        "overall": {
+          "count": 37464,
+          "mae": 5.4047,
+          "rmse": 7.3652,
+          "bias": 1.6128,
+          "median_abs_error": 4.1752,
+          "pearson_r": 0.4857,
+          "r2": -0.0219,
+          "error_quantiles": {
+            "min": -27.6395,
+            "p25": 1.8211,
+            "p50_median_error": 4.0671,
+            "p75": 4.738,
+            "p90": 6.0089,
+            "max": 6.9089
+          }
+        },
+        "occurrence": {
+          "threshold_mm": 0.001,
+          "true_rain_events": 37464,
+          "predicted_rain_events": 37464,
+          "confusion_matrix": {
+            "tp": 37464,
+            "fp": 0,
+            "fn": 0,
+            "tn": 0
+          },
+          "accuracy": 1.0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        },
+        "zero_rainfall_slice": {
+          "count": 0,
+          "mae": null,
+          "rmse": null,
+          "bias": null,
+          "median_abs_error": null,
+          "pearson_r": null,
+          "r2": null,
+          "error_quantiles": {}
+        },
+        "nonzero_rainfall_slice": {
+          "count": 37464,
+          "mae": 5.4047,
+          "rmse": 7.3652,
+          "bias": 1.6128,
+          "median_abs_error": 4.1752,
+          "pearson_r": 0.4857,
+          "r2": -0.0219,
+          "error_quantiles": {
+            "min": -27.6395,
+            "p25": 1.8211,
+            "p50_median_error": 4.0671,
+            "p75": 4.738,
+            "p90": 6.0089,
+            "max": 6.9089
+          }
+        },
+        "moderate_plus_slice_gte_15_5mm": {
+          "count": 4014,
+          "mae": 17.3395,
+          "rmse": 18.8074,
+          "bias": -17.3395,
+          "median_abs_error": 12.3395,
+          "pearson_r": 0.0,
+          "r2": -5.6664,
+          "error_quantiles": {
+            "min": -27.6395,
+            "p25": -27.6395,
+            "p50_median_error": -12.3395,
+            "p75": -12.0395,
+            "p90": -12.0395,
+            "max": -12.0395
+          }
+        },
+        "heavy_slice_gte_35_5mm": {
+          "count": 1338,
+          "mae": 27.6395,
+          "rmse": 27.6395,
+          "bias": -27.6395,
+          "median_abs_error": 27.6395,
+          "pearson_r": 0.0,
+          "r2": 0.0,
+          "error_quantiles": {
+            "min": -27.6395,
+            "p25": -27.6395,
+            "p50_median_error": -27.6395,
+            "p75": -27.6395,
+            "p90": -27.6395,
+            "max": -27.6395
+          }
+        },
+        "very_heavy_slice_gte_64_5mm": {
+          "count": 0,
+          "mae": null,
+          "rmse": null,
+          "bias": null,
+          "median_abs_error": null,
+          "pearson_r": null,
+          "r2": null,
+          "error_quantiles": {}
+        }
+      }
+    },
+    "pune_train_in_sample": {
+      "block_forecast": {
+        "overall": {
+          "count": 119082,
+          "mae": 6.7427,
+          "rmse": 16.6103,
+          "bias": -2.3876,
+          "median_abs_error": 2.1,
+          "pearson_r": 0.4235,
+          "r2": 0.1292,
+          "error_quantiles": {
+            "min": -110.2,
+            "p25": 0.0,
+            "p50_median_error": 0.3,
+            "p75": 4.2,
+            "p90": 7.7,
+            "max": 10.5
+          }
+        },
+        "occurrence": {
+          "threshold_mm": 0.001,
+          "true_rain_events": 53520,
+          "predicted_rain_events": 112392,
+          "confusion_matrix": {
+            "tp": 53520,
+            "fp": 58872,
+            "fn": 0,
+            "tn": 6690
+          },
+          "accuracy": 0.5056,
+          "precision": 0.4762,
+          "recall": 1.0,
+          "f1": 0.6452
+        },
+        "zero_rainfall_slice": {
+          "count": 65562,
+          "mae": 2.3,
+          "rmse": 3.9311,
+          "bias": 2.3,
+          "median_abs_error": 0.5,
+          "pearson_r": 0.0,
+          "r2": 0.0,
+          "error_quantiles": {
+            "min": 0.0,
+            "p25": 0.2,
+            "p50_median_error": 0.5,
+            "p75": 4.3,
+            "p90": 7.9,
+            "max": 10.5
+          }
+        },
+        "nonzero_rainfall_slice": {
+          "count": 53520,
+          "mae": 12.185,
+          "rmse": 24.3917,
+          "bias": -8.13,
+          "median_abs_error": 5.9,
+          "pearson_r": 0.2984,
+          "r2": -0.0476,
+          "error_quantiles": {
+            "min": -110.2,
+            "p25": -11.7,
+            "p50_median_error": -0.35,
+            "p75": 3.8,
+            "p90": 6.13,
+            "max": 10.4
+          }
+        },
+        "moderate_plus_slice_gte_15_5mm": {
+          "count": 18732,
+          "mae": 27.3571,
+          "rmse": 40.5654,
+          "bias": -27.3571,
+          "median_abs_error": 15.6,
+          "pearson_r": -0.317,
+          "r2": -0.9024,
+          "error_quantiles": {
+            "min": -110.2,
+            "p25": -22.7,
+            "p50_median_error": -15.6,
+            "p75": -10.5,
+            "p90": -8.9,
+            "max": -7.9
+          }
+        },
+        "heavy_slice_gte_35_5mm": {
+          "count": 4014,
+          "mae": 76.2,
+          "rmse": 82.8881,
+          "bias": -76.2,
+          "median_abs_error": 86.2,
+          "pearson_r": 0.3505,
+          "r2": -5.3131,
+          "error_quantiles": {
+            "min": -110.2,
+            "p25": -110.2,
+            "p50_median_error": -86.2,
+            "p75": -32.2,
+            "p90": -32.2,
+            "max": -32.2
+          }
+        },
+        "very_heavy_slice_gte_64_5mm": {
+          "count": 2676,
+          "mae": 98.2,
+          "rmse": 98.9305,
+          "bias": -98.2,
+          "median_abs_error": 98.2,
+          "pearson_r": 1.0,
+          "r2": -53.9158,
+          "error_quantiles": {
+            "min": -110.2,
+            "p25": -110.2,
+            "p50_median_error": -98.2,
+            "p75": -86.2,
+            "p90": -86.2,
+            "max": -86.2
+          }
+        }
+      },
+      "linear_baseline": {
+        "overall": {
+          "count": 119082,
+          "mae": 7.0675,
+          "rmse": 15.5762,
+          "bias": 0.5551,
+          "median_abs_error": 3.4915,
+          "pearson_r": 0.4864,
+          "r2": 0.2342,
+          "error_quantiles": {
+            "min": -101.8241,
+            "p25": 0.0,
+            "p50_median_error": 1.5589,
+            "p75": 5.7757,
+            "p90": 12.722,
+            "max": 18.9336
+          }
+        },
+        "occurrence": {
+          "threshold_mm": 0.001,
+          "true_rain_events": 53520,
+          "predicted_rain_events": 78942,
+          "confusion_matrix": {
+            "tp": 48168,
+            "fp": 30774,
+            "fn": 5352,
+            "tn": 34788
+          },
+          "accuracy": 0.6966,
+          "precision": 0.6102,
+          "recall": 0.9,
+          "f1": 0.7273
+        },
+        "zero_rainfall_slice": {
+          "count": 65562,
+          "mae": 3.5076,
+          "rmse": 5.823,
+          "bias": 3.5076,
+          "median_abs_error": 0.0,
+          "pearson_r": 0.0,
+          "r2": 0.0,
+          "error_quantiles": {
+            "min": 0.0,
+            "p25": 0.0,
+            "p50_median_error": 0.0,
+            "p75": 5.6949,
+            "p90": 12.4448,
+            "max": 17.1876
+          }
+        },
+        "nonzero_rainfall_slice": {
+          "count": 53520,
+          "mae": 11.4284,
+          "rmse": 22.3224,
+          "bias": -3.0617,
+          "median_abs_error": 6.0148,
+          "pearson_r": 0.3738,
+          "r2": 0.1226,
+          "error_quantiles": {
+            "min": -101.8241,
+            "p25": -2.1147,
+            "p50_median_error": 1.9987,
+            "p75": 7.0407,
+            "p90": 12.8664,
+            "max": 18.9336
+          }
+        },
+        "moderate_plus_slice_gte_15_5mm": {
+          "count": 18732,
+          "mae": 21.2562,
+          "rmse": 36.1268,
+          "bias": -18.5306,
+          "median_abs_error": 11.2206,
+          "pearson_r": -0.1225,
+          "r2": -0.5089,
+          "error_quantiles": {
+            "min": -101.8241,
+            "p25": -20.688,
+            "p50_median_error": -10.6577,
+            "p75": -0.3036,
+            "p90": 2.3258,
+            "max": 14.786
+          }
+        },
+        "heavy_slice_gte_35_5mm": {
+          "count": 4014,
+          "mae": 68.1782,
+          "rmse": 75.3453,
+          "bias": -68.1782,
+          "median_abs_error": 77.6978,
+          "pearson_r": 0.7613,
+          "r2": -4.2164,
+          "error_quantiles": {
+            "min": -101.8241,
+            "p25": -101.8241,
+            "p50_median_error": -77.6978,
+            "p75": -25.0127,
+            "p90": -25.0127,
+            "max": -25.0127
+          }
+        },
+        "very_heavy_slice_gte_64_5mm": {
+          "count": 2676,
+          "mae": 89.7609,
+          "rmse": 90.5679,
+          "bias": -89.7609,
+          "median_abs_error": 89.7609,
+          "pearson_r": 1.0,
+          "r2": -45.0242,
+          "error_quantiles": {
+            "min": -101.8241,
+            "p25": -101.8241,
+            "p50_median_error": -89.7609,
+            "p75": -77.6978,
+            "p90": -77.6978,
+            "max": -77.6978
+          }
+        }
+      },
+      "random_forest": {
+        "overall": {
+          "count": 119082,
+          "mae": 0.7327,
+          "rmse": 1.2105,
+          "bias": -0.0021,
+          "median_abs_error": 0.3217,
+          "pearson_r": 0.998,
+          "r2": 0.9954,
+          "error_quantiles": {
+            "min": -5.1418,
+            "p25": -0.166,
+            "p50_median_error": 0.1094,
+            "p75": 0.4643,
+            "p90": 1.2822,
+            "max": 4.6714
+          }
+        },
+        "occurrence": {
+          "threshold_mm": 0.001,
+          "true_rain_events": 53520,
+          "predicted_rain_events": 119082,
+          "confusion_matrix": {
+            "tp": 53520,
+            "fp": 65562,
+            "fn": 0,
+            "tn": 0
+          },
+          "accuracy": 0.4494,
+          "precision": 0.4494,
+          "recall": 1.0,
+          "f1": 0.6201
+        },
+        "zero_rainfall_slice": {
+          "count": 65562,
+          "mae": 0.3703,
+          "rmse": 0.5985,
+          "bias": 0.3703,
+          "median_abs_error": 0.1354,
+          "pearson_r": 0.0,
+          "r2": 0.0,
+          "error_quantiles": {
+            "min": 0.0286,
+            "p25": 0.0637,
+            "p50_median_error": 0.1354,
+            "p75": 0.3338,
+            "p90": 1.3108,
+            "max": 1.8906
+          }
+        },
+        "nonzero_rainfall_slice": {
+          "count": 53520,
+          "mae": 1.1767,
+          "rmse": 1.6797,
+          "bias": -0.4583,
+          "median_abs_error": 0.857,
+          "pearson_r": 0.9979,
+          "r2": 0.995,
+          "error_quantiles": {
+            "min": -5.1418,
+            "p25": -1.2175,
+            "p50_median_error": -0.2572,
+            "p75": 0.531,
+            "p90": 1.1858,
+            "max": 4.6714
+          }
+        },
+        "moderate_plus_slice_gte_15_5mm": {
+          "count": 18732,
+          "mae": 1.0693,
+          "rmse": 1.488,
+          "bias": -1.0509,
+          "median_abs_error": 0.6263,
+          "pearson_r": 0.9994,
+          "r2": 0.9974,
+          "error_quantiles": {
+            "min": -5.1418,
+            "p25": -1.6403,
+            "p50_median_error": -0.6263,
+            "p75": -0.1981,
+            "p90": -0.087,
+            "max": 0.5526
+          }
+        },
+        "heavy_slice_gte_35_5mm": {
+          "count": 4014,
+          "mae": 2.1523,
+          "rmse": 2.6167,
+          "bias": -2.0771,
+          "median_abs_error": 3.0807,
+          "pearson_r": 0.999,
+          "r2": 0.9937,
+          "error_quantiles": {
+            "min": -5.1418,
+            "p25": -3.3382,
+            "p50_median_error": -3.0807,
+            "p75": 0.1296,
+            "p90": 0.1296,
+            "max": 0.1296
+          }
+        },
+        "very_heavy_slice_gte_64_5mm": {
+          "count": 2676,
+          "mae": 1.5471,
+          "rmse": 2.1484,
+          "bias": -1.4344,
+          "median_abs_error": 1.4045,
+          "pearson_r": 0.9993,
+          "r2": 0.9741,
+          "error_quantiles": {
+            "min": -5.1418,
+            "p25": -3.0807,
+            "p50_median_error": -1.4045,
+            "p75": 0.1296,
+            "p90": 0.1296,
+            "max": 0.1296
+          }
+        }
+      },
+      "xgboost": {
+        "overall": {
+          "count": 119082,
+          "mae": 9.4738,
+          "rmse": 16.7578,
+          "bias": -0.001,
+          "median_abs_error": 6.6748,
+          "pearson_r": 0.9984,
+          "r2": 0.1136,
+          "error_quantiles": {
+            "min": -106.5491,
+            "p25": 1.4727,
+            "p50_median_error": 6.6735,
+            "p75": 6.6748,
+            "p90": 6.6832,
+            "max": 6.7425
+          }
+        },
+        "occurrence": {
+          "threshold_mm": 0.001,
+          "true_rain_events": 53520,
+          "predicted_rain_events": 119082,
+          "confusion_matrix": {
+            "tp": 53520,
+            "fp": 65562,
+            "fn": 0,
+            "tn": 0
+          },
+          "accuracy": 0.4494,
+          "precision": 0.4494,
+          "recall": 1.0,
+          "f1": 0.6201
+        },
+        "zero_rainfall_slice": {
+          "count": 65562,
+          "mae": 6.6809,
+          "rmse": 6.6809,
+          "bias": 6.6809,
+          "median_abs_error": 6.6748,
+          "pearson_r": 0.0,
+          "r2": 0.0,
+          "error_quantiles": {
+            "min": 6.6724,
+            "p25": 6.6748,
+            "p50_median_error": 6.6748,
+            "p75": 6.6789,
+            "p90": 6.7084,
+            "max": 6.7425
+          }
+        },
+        "nonzero_rainfall_slice": {
+          "count": 53520,
+          "mae": 12.8951,
+          "rmse": 23.878,
+          "bias": -8.1864,
+          "median_abs_error": 6.4962,
+          "pearson_r": 0.9981,
+          "r2": -0.004,
+          "error_quantiles": {
+            "min": -106.5491,
+            "p25": -14.4,
+            "p50_median_error": -0.2145,
+            "p75": 5.3036,
+            "p90": 6.5232,
+            "max": 6.5832
+          }
+        },
+        "moderate_plus_slice_gte_15_5mm": {
+          "count": 18732,
+          "mae": 28.6044,
+          "rmse": 39.8,
+          "bias": -28.6044,
+          "median_abs_error": 17.7467,
+          "pearson_r": 0.999,
+          "r2": -0.8313,
+          "error_quantiles": {
+            "min": -106.5491,
+            "p25": -24.4789,
+            "p50_median_error": -17.7467,
+            "p75": -14.2202,
+            "p90": -10.2673,
+            "max": -9.6395
+          }
+        },
+        "heavy_slice_gte_35_5mm": {
+          "count": 4014,
+          "mae": 73.2631,
+          "rmse": 79.5706,
+          "bias": -73.2631,
+          "median_abs_error": 81.4201,
+          "pearson_r": 1.0,
+          "r2": -4.8179,
+          "error_quantiles": {
+            "min": -106.5491,
+            "p25": -106.5491,
+            "p50_median_error": -81.4201,
+            "p75": -31.8201,
+            "p90": -31.8201,
+            "max": -31.8201
+          }
+        },
+        "very_heavy_slice_gte_64_5mm": {
+          "count": 2676,
+          "mae": 93.9846,
+          "rmse": 94.8207,
+          "bias": -93.9846,
+          "median_abs_error": 93.9846,
+          "pearson_r": 1.0,
+          "r2": -49.448,
+          "error_quantiles": {
+            "min": -106.5491,
+            "p25": -106.5491,
+            "p50_median_error": -93.9846,
+            "p75": -81.4201,
+            "p90": -81.4201,
+            "max": -81.4201
+          }
+        }
+      }
+    }
+  },
+  "district_metrics": {
+    "pune_test": {
+      "block_forecast": {
+        "overall": {
+          "count": 30774,
+          "mae": 4.5783,
+          "rmse": 5.0508,
+          "bias": 2.8739,
+          "median_abs_error": 4.2,
+          "pearson_r": 0.161,
+          "r2": -0.4537,
+          "error_quantiles": {
+            "min": -12.3,
+            "p25": 3.3,
+            "p50_median_error": 4.0,
+            "p75": 4.8,
+            "p90": 5.7,
+            "max": 6.8
+          }
+        },
+        "occurrence": {
+          "threshold_mm": 0.001,
+          "true_rain_events": 28098,
+          "predicted_rain_events": 30774,
+          "confusion_matrix": {
+            "tp": 28098,
+            "fp": 2676,
+            "fn": 0,
+            "tn": 0
+          },
+          "accuracy": 0.913,
+          "precision": 0.913,
+          "recall": 1.0,
+          "f1": 0.9545
+        },
+        "zero_rainfall_slice": {
+          "count": 2676,
+          "mae": 5.75,
+          "rmse": 5.7554,
+          "bias": 5.75,
+          "median_abs_error": 5.75,
+          "pearson_r": 0.0,
+          "r2": 0.0,
+          "error_quantiles": {
+            "min": 5.5,
+            "p25": 5.5,
+            "p50_median_error": 5.75,
+            "p75": 6.0,
+            "p90": 6.0,
+            "max": 6.0
+          }
+        },
+        "nonzero_rainfall_slice": {
+          "count": 28098,
+          "mae": 4.4667,
+          "rmse": 4.9785,
+          "bias": 2.6,
+          "median_abs_error": 4.0,
+          "pearson_r": 0.1611,
+          "r2": -0.3532,
+          "error_quantiles": {
+            "min": -12.3,
+            "p25": 3.3,
+            "p50_median_error": 3.7,
+            "p75": 4.8,
+            "p90": 5.4,
+            "max": 6.8
+          }
+        },
+        "moderate_plus_slice_gte_15_5mm": {
+          "count": 1338,
+          "mae": 12.3,
+          "rmse": 12.3,
+          "bias": -12.3,
+          "median_abs_error": 12.3,
+          "pearson_r": 0.0,
+          "r2": 0.0,
+          "error_quantiles": {
+            "min": -12.3,
+            "p25": -12.3,
+            "p50_median_error": -12.3,
+            "p75": -12.3,
+            "p90": -12.3,
+            "max": -12.3
+          }
+        },
+        "heavy_slice_gte_35_5mm": {
+          "count": 0,
+          "mae": null,
+          "rmse": null,
+          "bias": null,
+          "median_abs_error": null,
+          "pearson_r": null,
+          "r2": null,
+          "error_quantiles": {}
+        },
+        "very_heavy_slice_gte_64_5mm": {
+          "count": 0,
+          "mae": null,
+          "rmse": null,
+          "bias": null,
+          "median_abs_error": null,
+          "pearson_r": null,
+          "r2": null,
+          "error_quantiles": {}
+        }
+      },
+      "linear_baseline": {
+        "overall": {
+          "count": 30774,
+          "mae": 23.9029,
+          "rmse": 24.1696,
+          "bias": 23.9029,
+          "median_abs_error": 24.4269,
+          "pearson_r": 0.5437,
+          "r2": -32.2889,
+          "error_quantiles": {
+            "min": 10.6556,
+            "p25": 22.9552,
+            "p50_median_error": 24.4269,
+            "p75": 26.56,
+            "p90": 26.7963,
+            "max": 27.8195
+          }
+        },
+        "occurrence": {
+          "threshold_mm": 0.001,
+          "true_rain_events": 28098,
+          "predicted_rain_events": 30774,
+          "confusion_matrix": {
+            "tp": 28098,
+            "fp": 2676,
+            "fn": 0,
+            "tn": 0
+          },
+          "accuracy": 0.913,
+          "precision": 0.913,
+          "recall": 1.0,
+          "f1": 0.9545
+        },
+        "zero_rainfall_slice": {
+          "count": 2676,
+          "mae": 26.6156,
+          "rmse": 26.6157,
+          "bias": 26.6156,
+          "median_abs_error": 26.6156,
+          "pearson_r": 0.0,
+          "r2": 0.0,
+          "error_quantiles": {
+            "min": 26.56,
+            "p25": 26.56,
+            "p50_median_error": 26.6156,
+            "p75": 26.6712,
+            "p90": 26.6712,
+            "max": 26.6712
+          }
+        },
+        "nonzero_rainfall_slice": {
+          "count": 28098,
+          "mae": 23.6445,
+          "rmse": 23.9237,
+          "bias": 23.6445,
+          "median_abs_error": 24.3998,
+          "pearson_r": 0.5476,
+          "r2": -30.248,
+          "error_quantiles": {
+            "min": 10.6556,
+            "p25": 22.9552,
+            "p50_median_error": 24.3998,
+            "p75": 26.0536,
+            "p90": 26.7963,
+            "max": 27.8195
+          }
+        },
+        "moderate_plus_slice_gte_15_5mm": {
+          "count": 1338,
+          "mae": 10.6556,
+          "rmse": 10.6556,
+          "bias": 10.6556,
+          "median_abs_error": 10.6556,
+          "pearson_r": 0.0,
+          "r2": 0.0,
+          "error_quantiles": {
+            "min": 10.6556,
+            "p25": 10.6556,
+            "p50_median_error": 10.6556,
+            "p75": 10.6556,
+            "p90": 10.6556,
+            "max": 10.6556
+          }
+        },
+        "heavy_slice_gte_35_5mm": {
+          "count": 0,
+          "mae": null,
+          "rmse": null,
+          "bias": null,
+          "median_abs_error": null,
+          "pearson_r": null,
+          "r2": null,
+          "error_quantiles": {}
+        },
+        "very_heavy_slice_gte_64_5mm": {
+          "count": 0,
+          "mae": null,
+          "rmse": null,
+          "bias": null,
+          "median_abs_error": null,
+          "pearson_r": null,
+          "r2": null,
+          "error_quantiles": {}
+        }
+      },
+      "random_forest": {
+        "overall": {
+          "count": 30774,
+          "mae": 13.6777,
+          "rmse": 14.1641,
+          "bias": 13.4549,
+          "median_abs_error": 14.2953,
+          "pearson_r": -0.078,
+          "r2": -10.4324,
+          "error_quantiles": {
+            "min": -2.6182,
+            "p25": 13.9961,
+            "p50_median_error": 14.2953,
+            "p75": 15.6553,
+            "p90": 15.8573,
+            "max": 18.9563
+          }
+        },
+        "occurrence": {
+          "threshold_mm": 0.001,
+          "true_rain_events": 28098,
+          "predicted_rain_events": 30774,
+          "confusion_matrix": {
+            "tp": 28098,
+            "fp": 2676,
+            "fn": 0,
+            "tn": 0
+          },
+          "accuracy": 0.913,
+          "precision": 0.913,
+          "recall": 1.0,
+          "f1": 0.9545
+        },
+        "zero_rainfall_slice": {
+          "count": 2676,
+          "mae": 15.7589,
+          "rmse": 15.7592,
+          "bias": 15.7589,
+          "median_abs_error": 15.7921,
+          "pearson_r": 0.0,
+          "r2": 0.0,
+          "error_quantiles": {
+            "min": 15.6145,
+            "p25": 15.6486,
+            "p50_median_error": 15.7921,
+            "p75": 15.8262,
+            "p90": 15.8545,
+            "max": 16.186
+          }
+        },
+        "nonzero_rainfall_slice": {
+          "count": 28098,
+          "mae": 13.4795,
+          "rmse": 14.0027,
+          "bias": 13.2354,
+          "median_abs_error": 14.2502,
+          "pearson_r": -0.1203,
+          "r2": -9.7051,
+          "error_quantiles": {
+            "min": -2.6182,
+            "p25": 13.9078,
+            "p50_median_error": 14.2502,
+            "p75": 15.632,
+            "p90": 15.8573,
+            "max": 18.9563
+          }
+        },
+        "moderate_plus_slice_gte_15_5mm": {
+          "count": 1338,
+          "mae": 2.5626,
+          "rmse": 2.5634,
+          "bias": -2.5626,
+          "median_abs_error": 2.5841,
+          "pearson_r": 0.0,
+          "r2": 0.0,
+          "error_quantiles": {
+            "min": -2.6182,
+            "p25": -2.5974,
+            "p50_median_error": -2.5841,
+            "p75": -2.5558,
+            "p90": -2.4675,
+            "max": -2.2243
+          }
+        },
+        "heavy_slice_gte_35_5mm": {
+          "count": 0,
+          "mae": null,
+          "rmse": null,
+          "bias": null,
+          "median_abs_error": null,
+          "pearson_r": null,
+          "r2": null,
+          "error_quantiles": {}
+        },
+        "very_heavy_slice_gte_64_5mm": {
+          "count": 0,
+          "mae": null,
+          "rmse": null,
+          "bias": null,
+          "median_abs_error": null,
+          "pearson_r": null,
+          "r2": null,
+          "error_quantiles": {}
+        }
+      },
+      "xgboost": {
+        "overall": {
+          "count": 30774,
+          "mae": 5.907,
+          "rmse": 6.1865,
+          "bias": 4.552,
+          "median_abs_error": 5.6089,
+          "pearson_r": 0.0002,
+          "r2": -1.1809,
+          "error_quantiles": {
+            "min": -10.8911,
+            "p25": 5.2506,
+            "p50_median_error": 5.6089,
+            "p75": 6.9089,
+            "p90": 7.4089,
+            "max": 7.5089
+          }
+        },
+        "occurrence": {
+          "threshold_mm": 0.001,
+          "true_rain_events": 28098,
+          "predicted_rain_events": 30774,
+          "confusion_matrix": {
+            "tp": 28098,
+            "fp": 2676,
+            "fn": 0,
+            "tn": 0
+          },
+          "accuracy": 0.913,
+          "precision": 0.913,
+          "recall": 1.0,
+          "f1": 0.9545
+        },
+        "zero_rainfall_slice": {
+          "count": 2676,
+          "mae": 7.4797,
+          "rmse": 7.4798,
+          "bias": 7.4797,
+          "median_abs_error": 7.4797,
+          "pearson_r": 0.0,
+          "r2": 0.0,
+          "error_quantiles": {
+            "min": 7.4506,
+            "p25": 7.4506,
+            "p50_median_error": 7.4797,
+            "p75": 7.5089,
+            "p90": 7.5089,
+            "max": 7.5089
+          }
+        },
+        "nonzero_rainfall_slice": {
+          "count": 28098,
+          "mae": 5.7572,
+          "rmse": 6.0489,
+          "bias": 4.2732,
+          "median_abs_error": 5.6089,
+          "pearson_r": -0.0192,
+          "r2": -0.9976,
+          "error_quantiles": {
+            "min": -10.8911,
+            "p25": 5.2506,
+            "p50_median_error": 5.6089,
+            "p75": 6.0089,
+            "p90": 7.1089,
+            "max": 7.4089
+          }
+        },
+        "moderate_plus_slice_gte_15_5mm": {
+          "count": 1338,
+          "mae": 10.8911,
+          "rmse": 10.8911,
+          "bias": -10.8911,
+          "median_abs_error": 10.8911,
+          "pearson_r": 0.0,
+          "r2": 0.0,
+          "error_quantiles": {
+            "min": -10.8911,
+            "p25": -10.8911,
+            "p50_median_error": -10.8911,
+            "p75": -10.8911,
+            "p90": -10.8911,
+            "max": -10.8911
+          }
+        },
+        "heavy_slice_gte_35_5mm": {
+          "count": 0,
+          "mae": null,
+          "rmse": null,
+          "bias": null,
+          "median_abs_error": null,
+          "pearson_r": null,
+          "r2": null,
+          "error_quantiles": {}
+        },
+        "very_heavy_slice_gte_64_5mm": {
+          "count": 0,
+          "mae": null,
+          "rmse": null,
+          "bias": null,
+          "median_abs_error": null,
+          "pearson_r": null,
+          "r2": null,
+          "error_quantiles": {}
+        }
+      }
+    },
+    "nashik_snapshot": {
+      "block_forecast": {
+        "overall": {
+          "count": 1388,
+          "mae": 4.3651,
+          "rmse": 5.5919,
+          "bias": 2.298,
+          "median_abs_error": 3.2,
+          "pearson_r": 0.8777,
+          "r2": 0.7038,
+          "error_quantiles": {
+            "min": -8.5,
+            "p25": -0.4,
+            "p50_median_error": 2.2,
+            "p75": 6.0,
+            "p90": 10.4,
+            "max": 13.7
+          }
+        },
+        "occurrence": {
+          "threshold_mm": 0.001,
+          "true_rain_events": 1388,
+          "predicted_rain_events": 1388,
+          "confusion_matrix": {
+            "tp": 1388,
+            "fp": 0,
+            "fn": 0,
+            "tn": 0
+          },
+          "accuracy": 1.0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        },
+        "zero_rainfall_slice": {
+          "count": 0,
+          "mae": null,
+          "rmse": null,
+          "bias": null,
+          "median_abs_error": null,
+          "pearson_r": null,
+          "r2": null,
+          "error_quantiles": {}
+        },
+        "nonzero_rainfall_slice": {
+          "count": 1388,
+          "mae": 4.3651,
+          "rmse": 5.5919,
+          "bias": 2.298,
+          "median_abs_error": 3.2,
+          "pearson_r": 0.8777,
+          "r2": 0.7038,
+          "error_quantiles": {
+            "min": -8.5,
+            "p25": -0.4,
+            "p50_median_error": 2.2,
+            "p75": 6.0,
+            "p90": 10.4,
+            "max": 13.7
+          }
+        },
+        "moderate_plus_slice_gte_15_5mm": {
+          "count": 222,
+          "mae": 4.9928,
+          "rmse": 5.2805,
+          "bias": -4.955,
+          "median_abs_error": 5.0,
+          "pearson_r": 0.9891,
+          "r2": 0.7799,
+          "error_quantiles": {
+            "min": -8.5,
+            "p25": -5.2,
+            "p50_median_error": -5.0,
+            "p75": -4.0,
+            "p90": -3.2,
+            "max": 2.0
+          }
+        },
+        "heavy_slice_gte_35_5mm": {
+          "count": 50,
+          "mae": 5.958,
+          "rmse": 6.1251,
+          "bias": -5.95,
+          "median_abs_error": 5.2,
+          "pearson_r": 0.9695,
+          "r2": -1.1421,
+          "error_quantiles": {
+            "min": -7.2,
+            "p25": -7.2,
+            "p50_median_error": -5.2,
+            "p75": -5.2,
+            "p90": -5.2,
+            "max": 0.2
+          }
+        },
+        "very_heavy_slice_gte_64_5mm": {
+          "count": 0,
+          "mae": null,
+          "rmse": null,
+          "bias": null,
+          "median_abs_error": null,
+          "pearson_r": null,
+          "r2": null,
+          "error_quantiles": {}
+        }
+      },
+      "linear_baseline": {
+        "overall": {
+          "count": 1388,
+          "mae": 12.8658,
+          "rmse": 16.3088,
+          "bias": 11.0291,
+          "median_abs_error": 10.4695,
+          "pearson_r": 0.2813,
+          "r2": -1.5198,
+          "error_quantiles": {
+            "min": -12.0615,
+            "p25": 2.9744,
+            "p50_median_error": 9.3054,
+            "p75": 22.3421,
+            "p90": 28.7946,
+            "max": 34.4246
+          }
+        },
+        "occurrence": {
+          "threshold_mm": 0.001,
+          "true_rain_events": 1388,
+          "predicted_rain_events": 1388,
+          "confusion_matrix": {
+            "tp": 1388,
+            "fp": 0,
+            "fn": 0,
+            "tn": 0
+          },
+          "accuracy": 1.0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        },
+        "zero_rainfall_slice": {
+          "count": 0,
+          "mae": null,
+          "rmse": null,
+          "bias": null,
+          "median_abs_error": null,
+          "pearson_r": null,
+          "r2": null,
+          "error_quantiles": {}
+        },
+        "nonzero_rainfall_slice": {
+          "count": 1388,
+          "mae": 12.8658,
+          "rmse": 16.3088,
+          "bias": 11.0291,
+          "median_abs_error": 10.4695,
+          "pearson_r": 0.2813,
+          "r2": -1.5198,
+          "error_quantiles": {
+            "min": -12.0615,
+            "p25": 2.9744,
+            "p50_median_error": 9.3054,
+            "p75": 22.3421,
+            "p90": 28.7946,
+            "max": 34.4246
+          }
+        },
+        "moderate_plus_slice_gte_15_5mm": {
+          "count": 222,
+          "mae": 6.7182,
+          "rmse": 7.2434,
+          "bias": -3.8488,
+          "median_abs_error": 6.0688,
+          "pearson_r": 0.8777,
+          "r2": 0.5859,
+          "error_quantiles": {
+            "min": -12.0615,
+            "p25": -6.5932,
+            "p50_median_error": -6.0688,
+            "p75": 3.9326,
+            "p90": 4.1351,
+            "max": 10.9326
+          }
+        },
+        "heavy_slice_gte_35_5mm": {
+          "count": 50,
+          "mae": 7.3522,
+          "rmse": 7.9633,
+          "bias": -2.7226,
+          "median_abs_error": 8.2557,
+          "pearson_r": -0.8253,
+          "r2": -2.6208,
+          "error_quantiles": {
+            "min": -10.3707,
+            "p25": -10.3707,
+            "p50_median_error": 0.5822,
+            "p75": 4.1351,
+            "p90": 4.1351,
+            "max": 8.2557
+          }
+        },
+        "very_heavy_slice_gte_64_5mm": {
+          "count": 0,
+          "mae": null,
+          "rmse": null,
+          "bias": null,
+          "median_abs_error": null,
+          "pearson_r": null,
+          "r2": null,
+          "error_quantiles": {}
+        }
+      },
+      "random_forest": {
+        "overall": {
+          "count": 1388,
+          "mae": 7.8966,
+          "rmse": 11.4317,
+          "bias": -2.0812,
+          "median_abs_error": 4.9348,
+          "pearson_r": 0.1046,
+          "r2": -0.2381,
+          "error_quantiles": {
+            "min": -43.5354,
+            "p25": -5.6284,
+            "p50_median_error": -1.9821,
+            "p75": 1.6341,
+            "p90": 15.7465,
+            "max": 21.1148
+          }
+        },
+        "occurrence": {
+          "threshold_mm": 0.001,
+          "true_rain_events": 1388,
+          "predicted_rain_events": 1388,
+          "confusion_matrix": {
+            "tp": 1388,
+            "fp": 0,
+            "fn": 0,
+            "tn": 0
+          },
+          "accuracy": 1.0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        },
+        "zero_rainfall_slice": {
+          "count": 0,
+          "mae": null,
+          "rmse": null,
+          "bias": null,
+          "median_abs_error": null,
+          "pearson_r": null,
+          "r2": null,
+          "error_quantiles": {}
+        },
+        "nonzero_rainfall_slice": {
+          "count": 1388,
+          "mae": 7.8966,
+          "rmse": 11.4317,
+          "bias": -2.0812,
+          "median_abs_error": 4.9348,
+          "pearson_r": 0.1046,
+          "r2": -0.2381,
+          "error_quantiles": {
+            "min": -43.5354,
+            "p25": -5.6284,
+            "p50_median_error": -1.9821,
+            "p75": 1.6341,
+            "p90": 15.7465,
+            "max": 21.1148
+          }
+        },
+        "moderate_plus_slice_gte_15_5mm": {
+          "count": 222,
+          "mae": 19.1266,
+          "rmse": 21.3054,
+          "bias": -19.1266,
+          "median_abs_error": 16.3354,
+          "pearson_r": 0.5791,
+          "r2": -2.5825,
+          "error_quantiles": {
+            "min": -43.5354,
+            "p25": -21.3364,
+            "p50_median_error": -16.3354,
+            "p75": -14.8364,
+            "p90": -11.3284,
+            "max": -9.3354
+          }
+        },
+        "heavy_slice_gte_35_5mm": {
+          "count": 50,
+          "mae": 32.8848,
+          "rmse": 34.5291,
+          "bias": -32.8848,
+          "median_abs_error": 29.9125,
+          "pearson_r": -0.8957,
+          "r2": -67.0742,
+          "error_quantiles": {
+            "min": -43.5354,
+            "p25": -43.5354,
+            "p50_median_error": -29.9125,
+            "p75": -23.3453,
+            "p90": -23.3184,
+            "max": -16.4845
+          }
+        },
+        "very_heavy_slice_gte_64_5mm": {
+          "count": 0,
+          "mae": null,
+          "rmse": null,
+          "bias": null,
+          "median_abs_error": null,
+          "pearson_r": null,
+          "r2": null,
+          "error_quantiles": {}
+        }
+      },
+      "xgboost": {
+        "overall": {
+          "count": 1388,
+          "mae": 7.1062,
+          "rmse": 10.5818,
+          "bias": -2.5801,
+          "median_abs_error": 5.4505,
+          "pearson_r": 0.0543,
+          "r2": -0.0608,
+          "error_quantiles": {
+            "min": -45.2505,
+            "p25": -5.4505,
+            "p50_median_error": 1.3495,
+            "p75": 4.4495,
+            "p90": 5.7474,
+            "max": 6.5495
+          }
+        },
+        "occurrence": {
+          "threshold_mm": 0.001,
+          "true_rain_events": 1388,
+          "predicted_rain_events": 1388,
+          "confusion_matrix": {
+            "tp": 1388,
+            "fp": 0,
+            "fn": 0,
+            "tn": 0
+          },
+          "accuracy": 1.0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        },
+        "zero_rainfall_slice": {
+          "count": 0,
+          "mae": null,
+          "rmse": null,
+          "bias": null,
+          "median_abs_error": null,
+          "pearson_r": null,
+          "r2": null,
+          "error_quantiles": {}
+        },
+        "nonzero_rainfall_slice": {
+          "count": 1388,
+          "mae": 7.1062,
+          "rmse": 10.5818,
+          "bias": -2.5801,
+          "median_abs_error": 5.4505,
+          "pearson_r": 0.0543,
+          "r2": -0.0608,
+          "error_quantiles": {
+            "min": -45.2505,
+            "p25": -5.4505,
+            "p50_median_error": 1.3495,
+            "p75": 4.4495,
+            "p90": 5.7474,
+            "max": 6.5495
+          }
+        },
+        "moderate_plus_slice_gte_15_5mm": {
+          "count": 222,
+          "mae": 21.3641,
+          "rmse": 24.0914,
+          "bias": -21.3641,
+          "median_abs_error": 18.0505,
+          "pearson_r": 0.5062,
+          "r2": -3.5807,
+          "error_quantiles": {
+            "min": -45.2505,
+            "p25": -21.5505,
+            "p50_median_error": -18.0505,
+            "p75": -15.0505,
+            "p90": -11.2505,
+            "max": -11.0505
+          }
+        },
+        "heavy_slice_gte_35_5mm": {
+          "count": 50,
+          "mae": 40.8127,
+          "rmse": 41.064,
+          "bias": -40.8127,
+          "median_abs_error": 37.6627,
+          "pearson_r": -0.897,
+          "r2": -95.2795,
+          "error_quantiles": {
+            "min": -45.2505,
+            "p25": -45.2505,
+            "p50_median_error": -37.6627,
+            "p75": -37.4748,
+            "p90": -37.4748,
+            "max": -30.7748
+          }
+        },
+        "very_heavy_slice_gte_64_5mm": {
+          "count": 0,
+          "mae": null,
+          "rmse": null,
+          "bias": null,
+          "median_abs_error": null,
+          "pearson_r": null,
+          "r2": null,
+          "error_quantiles": {}
+        }
+      }
+    }
+  },
+  "panchayat_metrics": {
+    "pune_test": {
+      "block_forecast": {
+        "panchayats_evaluated": 1338,
+        "min_observations_threshold": 10,
+        "min_mae": 4.5783,
+        "p25_mae": 4.5783,
+        "median_mae": 4.5783,
+        "p75_mae": 4.5783,
+        "max_mae": 4.5783,
+        "mean_mae": 4.5783,
+        "std_mae": 0.0,
+        "highest_error_panchayats_top5": {
+          "185262": {
+            "count": 23,
+            "mae": 4.5783,
+            "bias": 2.8739
+          },
+          "185263": {
+            "count": 23,
+            "mae": 4.5783,
+            "bias": 2.8739
+          },
+          "185264": {
+            "count": 23,
+            "mae": 4.5783,
+            "bias": 2.8739
+          },
+          "185265": {
+            "count": 23,
+            "mae": 4.5783,
+            "bias": 2.8739
+          },
+          "185266": {
+            "count": 23,
+            "mae": 4.5783,
+            "bias": 2.8739
+          }
+        },
+        "lowest_error_panchayats_top5": {
+          "185262": {
+            "count": 23,
+            "mae": 4.5783,
+            "bias": 2.8739
+          },
+          "185263": {
+            "count": 23,
+            "mae": 4.5783,
+            "bias": 2.8739
+          },
+          "185264": {
+            "count": 23,
+            "mae": 4.5783,
+            "bias": 2.8739
+          },
+          "185265": {
+            "count": 23,
+            "mae": 4.5783,
+            "bias": 2.8739
+          },
+          "185266": {
+            "count": 23,
+            "mae": 4.5783,
+            "bias": 2.8739
+          }
+        }
+      },
+      "linear_baseline": {
+        "panchayats_evaluated": 1338,
+        "min_observations_threshold": 10,
+        "min_mae": 23.9029,
+        "p25_mae": 23.9029,
+        "median_mae": 23.9029,
+        "p75_mae": 23.9029,
+        "max_mae": 23.9029,
+        "mean_mae": 23.9029,
+        "std_mae": 0.0,
+        "highest_error_panchayats_top5": {
+          "185262": {
+            "count": 23,
+            "mae": 23.9029,
+            "bias": 23.9029
+          },
+          "185263": {
+            "count": 23,
+            "mae": 23.9029,
+            "bias": 23.9029
+          },
+          "185264": {
+            "count": 23,
+            "mae": 23.9029,
+            "bias": 23.9029
+          },
+          "185265": {
+            "count": 23,
+            "mae": 23.9029,
+            "bias": 23.9029
+          },
+          "185266": {
+            "count": 23,
+            "mae": 23.9029,
+            "bias": 23.9029
+          }
+        },
+        "lowest_error_panchayats_top5": {
+          "185262": {
+            "count": 23,
+            "mae": 23.9029,
+            "bias": 23.9029
+          },
+          "185263": {
+            "count": 23,
+            "mae": 23.9029,
+            "bias": 23.9029
+          },
+          "185264": {
+            "count": 23,
+            "mae": 23.9029,
+            "bias": 23.9029
+          },
+          "185265": {
+            "count": 23,
+            "mae": 23.9029,
+            "bias": 23.9029
+          },
+          "185266": {
+            "count": 23,
+            "mae": 23.9029,
+            "bias": 23.9029
+          }
+        }
+      },
+      "random_forest": {
+        "panchayats_evaluated": 1338,
+        "min_observations_threshold": 10,
+        "min_mae": 13.625,
+        "p25_mae": 13.644,
+        "median_mae": 13.6547,
+        "p75_mae": 13.6881,
+        "max_mae": 13.9867,
+        "mean_mae": 13.6777,
+        "std_mae": 0.0563,
+        "highest_error_panchayats_top5": {
+          "185910": {
+            "count": 23,
+            "mae": 13.9867,
+            "bias": 13.7933
+          },
+          "185915": {
+            "count": 23,
+            "mae": 13.9867,
+            "bias": 13.7933
+          },
+          "185917": {
+            "count": 23,
+            "mae": 13.9867,
+            "bias": 13.7933
+          },
+          "185942": {
+            "count": 23,
+            "mae": 13.9867,
+            "bias": 13.7933
+          },
+          "185974": {
+            "count": 23,
+            "mae": 13.9867,
+            "bias": 13.7933
+          }
+        },
+        "lowest_error_panchayats_top5": {
+          "185391": {
+            "count": 23,
+            "mae": 13.625,
+            "bias": 13.3973
+          },
+          "186427": {
+            "count": 23,
+            "mae": 13.625,
+            "bias": 13.3973
+          },
+          "185418": {
+            "count": 23,
+            "mae": 13.625,
+            "bias": 13.3973
+          },
+          "185424": {
+            "count": 23,
+            "mae": 13.625,
+            "bias": 13.3973
+          },
+          "185451": {
+            "count": 23,
+            "mae": 13.625,
+            "bias": 13.3973
+          }
+        }
+      },
+      "xgboost": {
+        "panchayats_evaluated": 1338,
+        "min_observations_threshold": 10,
+        "min_mae": 5.907,
+        "p25_mae": 5.907,
+        "median_mae": 5.907,
+        "p75_mae": 5.907,
+        "max_mae": 5.907,
+        "mean_mae": 5.907,
+        "std_mae": 0.0,
+        "highest_error_panchayats_top5": {
+          "185262": {
+            "count": 23,
+            "mae": 5.907,
+            "bias": 4.552
+          },
+          "185263": {
+            "count": 23,
+            "mae": 5.907,
+            "bias": 4.552
+          },
+          "185264": {
+            "count": 23,
+            "mae": 5.907,
+            "bias": 4.552
+          },
+          "185265": {
+            "count": 23,
+            "mae": 5.907,
+            "bias": 4.552
+          },
+          "185266": {
+            "count": 23,
+            "mae": 5.907,
+            "bias": 4.552
+          }
+        },
+        "lowest_error_panchayats_top5": {
+          "185262": {
+            "count": 23,
+            "mae": 5.907,
+            "bias": 4.552
+          },
+          "185263": {
+            "count": 23,
+            "mae": 5.907,
+            "bias": 4.552
+          },
+          "185264": {
+            "count": 23,
+            "mae": 5.907,
+            "bias": 4.552
+          },
+          "185265": {
+            "count": 23,
+            "mae": 5.907,
+            "bias": 4.552
+          },
+          "185266": {
+            "count": 23,
+            "mae": 5.907,
+            "bias": 4.552
+          }
+        }
+      }
+    },
+    "nashik_snapshot": {
+      "block_forecast": {
+        "panchayats_evaluated": 1388,
+        "min_observations_threshold": 1,
+        "min_mae": 0.0,
+        "p25_mae": 2.0,
+        "median_mae": 3.2,
+        "p75_mae": 6.6,
+        "max_mae": 13.7,
+        "mean_mae": 4.3651,
+        "std_mae": 3.495,
+        "highest_error_panchayats_top5": {
+          "1276": {
+            "count": 1,
+            "mae": 13.7,
+            "bias": 13.7
+          },
+          "1277": {
+            "count": 1,
+            "mae": 13.7,
+            "bias": 13.7
+          },
+          "1278": {
+            "count": 1,
+            "mae": 13.7,
+            "bias": 13.7
+          },
+          "1279": {
+            "count": 1,
+            "mae": 13.7,
+            "bias": 13.7
+          },
+          "1280": {
+            "count": 1,
+            "mae": 13.7,
+            "bias": 13.7
+          }
+        },
+        "lowest_error_panchayats_top5": {
+          "1751": {
+            "count": 1,
+            "mae": 0.0,
+            "bias": 0.0
+          },
+          "1752": {
+            "count": 1,
+            "mae": 0.0,
+            "bias": 0.0
+          },
+          "1753": {
+            "count": 1,
+            "mae": 0.0,
+            "bias": 0.0
+          },
+          "1754": {
+            "count": 1,
+            "mae": 0.0,
+            "bias": 0.0
+          },
+          "1755": {
+            "count": 1,
+            "mae": 0.0,
+            "bias": 0.0
+          }
+        }
+      },
+      "linear_baseline": {
+        "panchayats_evaluated": 1388,
+        "min_observations_threshold": 1,
+        "min_mae": 0.3688,
+        "p25_mae": 5.3165,
+        "median_mae": 10.4695,
+        "p75_mae": 22.3421,
+        "max_mae": 34.4246,
+        "mean_mae": 12.8658,
+        "std_mae": 10.0224,
+        "highest_error_panchayats_top5": {
+          "1276": {
+            "count": 1,
+            "mae": 34.4246,
+            "bias": 34.4246
+          },
+          "1277": {
+            "count": 1,
+            "mae": 34.4246,
+            "bias": 34.4246
+          },
+          "1278": {
+            "count": 1,
+            "mae": 34.4246,
+            "bias": 34.4246
+          },
+          "1279": {
+            "count": 1,
+            "mae": 34.4246,
+            "bias": 34.4246
+          },
+          "1280": {
+            "count": 1,
+            "mae": 34.4246,
+            "bias": 34.4246
+          }
+        },
+        "lowest_error_panchayats_top5": {
+          "2054": {
+            "count": 1,
+            "mae": 0.3688,
+            "bias": -0.3688
+          },
+          "2055": {
+            "count": 1,
+            "mae": 0.3688,
+            "bias": -0.3688
+          },
+          "2056": {
+            "count": 1,
+            "mae": 0.3688,
+            "bias": -0.3688
+          },
+          "2057": {
+            "count": 1,
+            "mae": 0.3688,
+            "bias": -0.3688
+          },
+          "2058": {
+            "count": 1,
+            "mae": 0.3688,
+            "bias": -0.3688
+          }
+        }
+      },
+      "random_forest": {
+        "panchayats_evaluated": 1388,
+        "min_observations_threshold": 1,
+        "min_mae": 0.0092,
+        "p25_mae": 1.9821,
+        "median_mae": 4.9348,
+        "p75_mae": 11.5689,
+        "max_mae": 43.5354,
+        "mean_mae": 7.8966,
+        "std_mae": 8.266,
+        "highest_error_panchayats_top5": {
+          "1351": {
+            "count": 1,
+            "mae": 43.5354,
+            "bias": -43.5354
+          },
+          "1354": {
+            "count": 1,
+            "mae": 43.5354,
+            "bias": -43.5354
+          },
+          "1355": {
+            "count": 1,
+            "mae": 43.5354,
+            "bias": -43.5354
+          },
+          "1359": {
+            "count": 1,
+            "mae": 43.5354,
+            "bias": -43.5354
+          },
+          "1360": {
+            "count": 1,
+            "mae": 43.5354,
+            "bias": -43.5354
+          }
+        },
+        "lowest_error_panchayats_top5": {
+          "1377": {
+            "count": 1,
+            "mae": 0.0092,
+            "bias": -0.0092
+          },
+          "1379": {
+            "count": 1,
+            "mae": 0.0092,
+            "bias": -0.0092
+          },
+          "1380": {
+            "count": 1,
+            "mae": 0.0092,
+            "bias": -0.0092
+          },
+          "1381": {
+            "count": 1,
+            "mae": 0.0092,
+            "bias": -0.0092
+          },
+          "1382": {
+            "count": 1,
+            "mae": 0.0092,
+            "bias": -0.0092
+          }
+        }
+      },
+      "xgboost": {
+        "panchayats_evaluated": 1388,
+        "min_observations_threshold": 1,
+        "min_mae": 0.2044,
+        "p25_mae": 3.7294,
+        "median_mae": 5.4505,
+        "p75_mae": 6.3252,
+        "max_mae": 45.2505,
+        "mean_mae": 7.1062,
+        "std_mae": 7.8406,
+        "highest_error_panchayats_top5": {
+          "1351": {
+            "count": 1,
+            "mae": 45.2505,
+            "bias": -45.2505
+          },
+          "1353": {
+            "count": 1,
+            "mae": 45.2505,
+            "bias": -45.2505
+          },
+          "1354": {
+            "count": 1,
+            "mae": 45.2505,
+            "bias": -45.2505
+          },
+          "1355": {
+            "count": 1,
+            "mae": 45.2505,
+            "bias": -45.2505
+          },
+          "1356": {
+            "count": 1,
+            "mae": 45.2505,
+            "bias": -45.2505
+          }
+        },
+        "lowest_error_panchayats_top5": {
+          "2200": {
+            "count": 1,
+            "mae": 0.2044,
+            "bias": 0.2044
+          },
+          "2300": {
+            "count": 1,
+            "mae": 0.2044,
+            "bias": 0.2044
+          },
+          "1776": {
+            "count": 1,
+            "mae": 0.5505,
+            "bias": -0.5505
+          },
+          "1777": {
+            "count": 1,
+            "mae": 0.5505,
+            "bias": -0.5505
+          },
+          "1778": {
+            "count": 1,
+            "mae": 0.5505,
+            "bias": -0.5505
+          }
+        }
+      }
+    }
+  },
+  "block_metrics": {
+    "pune_test": {
+      "status": "SKIPPED",
+      "reason": "block_id column not in dataset"
+    }
+  },
+  "temporal_metrics": {
+    "monthly_breakdown_pune": {
+      "block_forecast": {
+        "4": {
+          "count": 20070,
+          "mae": 0.16,
+          "rmse": 0.2477,
+          "bias": 0.1333,
+          "median_abs_error": 0.1,
+          "pearson_r": 0.0238,
+          "r2": -5.0,
+          "error_quantiles": {
+            "min": -0.2,
+            "p25": 0.0,
+            "p50_median_error": 0.1,
+            "p75": 0.2,
+            "p90": 0.5,
+            "max": 0.6
+          },
+          "occurrence": {
+            "threshold_mm": 0.001,
+            "true_rain_events": 2676,
+            "predicted_rain_events": 13380,
+            "confusion_matrix": {
+              "tp": 2676,
+              "fp": 10704,
+              "fn": 0,
+              "tn": 6690
+            },
+            "accuracy": 0.4667,
+            "precision": 0.2,
+            "recall": 1.0,
+            "f1": 0.3333
+          }
+        },
+        "5": {
+          "count": 33450,
+          "mae": 1.012,
+          "rmse": 2.9492,
+          "bias": -0.172,
+          "median_abs_error": 0.3,
+          "pearson_r": 0.0199,
+          "r2": -0.0099,
+          "error_quantiles": {
+            "min": -14.5,
+            "p25": 0.2,
+            "p50_median_error": 0.3,
+            "p75": 0.6,
+            "p90": 1.0,
+            "max": 1.1
+          },
+          "occurrence": {
+            "threshold_mm": 0.001,
+            "true_rain_events": 5352,
+            "predicted_rain_events": 33450,
+            "confusion_matrix": {
+              "tp": 5352,
+              "fp": 28098,
+              "fn": 0,
+              "tn": 0
+            },
+            "accuracy": 0.16,
+            "precision": 0.16,
+            "recall": 1.0,
+            "f1": 0.2759
+          }
+        },
+        "6": {
+          "count": 30774,
+          "mae": 5.8913,
+          "rmse": 7.1496,
+          "bias": 2.6826,
+          "median_abs_error": 4.6,
+          "pearson_r": 0.4235,
+          "r2": 0.0142,
+          "error_quantiles": {
+            "min": -21.6,
+            "p25": 3.6,
+            "p50_median_error": 4.4,
+            "p75": 6.0,
+            "p90": 7.3,
+            "max": 7.7
+          },
+          "occurrence": {
+            "threshold_mm": 0.001,
+            "true_rain_events": 17394,
+            "predicted_rain_events": 30774,
+            "confusion_matrix": {
+              "tp": 17394,
+              "fp": 13380,
+              "fn": 0,
+              "tn": 0
+            },
+            "accuracy": 0.5652,
+            "precision": 0.5652,
+            "recall": 1.0,
+            "f1": 0.7222
+          }
+        },
+        "7": {
+          "count": 34788,
+          "mae": 16.8038,
+          "rmse": 29.8466,
+          "bias": -10.4577,
+          "median_abs_error": 9.6,
+          "pearson_r": -0.0874,
+          "r2": -0.1534,
+          "error_quantiles": {
+            "min": -110.2,
+            "p25": -13.7,
+            "p50_median_error": -2.0,
+            "p75": 7.9,
+            "p90": 9.9,
+            "max": 10.5
+          },
+          "occurrence": {
+            "threshold_mm": 0.001,
+            "true_rain_events": 28098,
+            "predicted_rain_events": 34788,
+            "confusion_matrix": {
+              "tp": 28098,
+              "fp": 6690,
+              "fn": 0,
+              "tn": 0
+            },
+            "accuracy": 0.8077,
+            "precision": 0.8077,
+            "recall": 1.0,
+            "f1": 0.8936
+          }
+        },
+        "8": {
+          "count": 37464,
+          "mae": 5.7464,
+          "rmse": 7.1634,
+          "bias": 2.6893,
+          "median_abs_error": 5.1,
+          "pearson_r": 0.4256,
+          "r2": 0.0333,
+          "error_quantiles": {
+            "min": -24.5,
+            "p25": 2.75,
+            "p50_median_error": 4.55,
+            "p75": 5.9,
+            "p90": 7.3,
+            "max": 9.7
+          },
+          "occurrence": {
+            "threshold_mm": 0.001,
+            "true_rain_events": 37464,
+            "predicted_rain_events": 37464,
+            "confusion_matrix": {
+              "tp": 37464,
+              "fp": 0,
+              "fn": 0,
+              "tn": 0
+            },
+            "accuracy": 1.0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          }
+        },
+        "9": {
+          "count": 30774,
+          "mae": 4.5783,
+          "rmse": 5.0508,
+          "bias": 2.8739,
+          "median_abs_error": 4.2,
+          "pearson_r": 0.161,
+          "r2": -0.4537,
+          "error_quantiles": {
+            "min": -12.3,
+            "p25": 3.3,
+            "p50_median_error": 4.0,
+            "p75": 4.8,
+            "p90": 5.7,
+            "max": 6.8
+          },
+          "occurrence": {
+            "threshold_mm": 0.001,
+            "true_rain_events": 28098,
+            "predicted_rain_events": 30774,
+            "confusion_matrix": {
+              "tp": 28098,
+              "fp": 2676,
+              "fn": 0,
+              "tn": 0
+            },
+            "accuracy": 0.913,
+            "precision": 0.913,
+            "recall": 1.0,
+            "f1": 0.9545
+          }
+        }
+      },
+      "linear_baseline": {
+        "4": {
+          "count": 20070,
+          "mae": 1.1074,
+          "rmse": 2.4117,
+          "bias": 1.0408,
+          "median_abs_error": 0.0,
+          "pearson_r": -0.1642,
+          "r2": -567.9981,
+          "error_quantiles": {
+            "min": -0.4,
+            "p25": 0.0,
+            "p50_median_error": 0.0,
+            "p75": 0.0,
+            "p90": 5.6508,
+            "max": 5.6949
+          },
+          "occurrence": {
+            "threshold_mm": 0.001,
+            "true_rain_events": 2676,
+            "predicted_rain_events": 4014,
+            "confusion_matrix": {
+              "tp": 0,
+              "fp": 4014,
+              "fn": 2676,
+              "tn": 13380
+            },
+            "accuracy": 0.6667,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0
+          }
+        },
+        "5": {
+          "count": 33450,
+          "mae": 1.5661,
+          "rmse": 3.0818,
+          "bias": 0.7433,
+          "median_abs_error": 0.0,
+          "pearson_r": 0.3723,
+          "r2": -0.1027,
+          "error_quantiles": {
+            "min": -9.2851,
+            "p25": 0.0,
+            "p50_median_error": 0.0,
+            "p75": 0.0,
+            "p90": 5.0656,
+            "max": 6.4603
+          },
+          "occurrence": {
+            "threshold_mm": 0.001,
+            "true_rain_events": 5352,
+            "predicted_rain_events": 9366,
+            "confusion_matrix": {
+              "tp": 2676,
+              "fp": 6690,
+              "fn": 2676,
+              "tn": 21408
+            },
+            "accuracy": 0.72,
+            "precision": 0.2857,
+            "recall": 0.5,
+            "f1": 0.3636
+          }
+        },
+        "6": {
+          "count": 30774,
+          "mae": 6.4513,
+          "rmse": 8.0657,
+          "bias": 3.6462,
+          "median_abs_error": 5.3858,
+          "pearson_r": 0.2868,
+          "r2": -0.2546,
+          "error_quantiles": {
+            "min": -20.688,
+            "p25": 1.9736,
+            "p50_median_error": 3.8171,
+            "p75": 6.6438,
+            "p90": 11.5127,
+            "max": 13.2986
+          },
+          "occurrence": {
+            "threshold_mm": 0.001,
+            "true_rain_events": 17394,
+            "predicted_rain_events": 30774,
+            "confusion_matrix": {
+              "tp": 17394,
+              "fp": 13380,
+              "fn": 0,
+              "tn": 0
+            },
+            "accuracy": 0.5652,
+            "precision": 0.5652,
+            "recall": 1.0,
+            "f1": 0.7222
+          }
+        },
+        "7": {
+          "count": 34788,
+          "mae": 16.3408,
+          "rmse": 27.5765,
+          "bias": -2.6405,
+          "median_abs_error": 11.9688,
+          "pearson_r": 0.1603,
+          "r2": 0.0153,
+          "error_quantiles": {
+            "min": -101.8241,
+            "p25": -4.7776,
+            "p50_median_error": 6.0836,
+            "p75": 12.722,
+            "p90": 14.786,
+            "max": 18.9336
+          },
+          "occurrence": {
+            "threshold_mm": 0.001,
+            "true_rain_events": 28098,
+            "predicted_rain_events": 34788,
+            "confusion_matrix": {
+              "tp": 28098,
+              "fp": 6690,
+              "fn": 0,
+              "tn": 0
+            },
+            "accuracy": 0.8077,
+            "precision": 0.8077,
+            "recall": 1.0,
+            "f1": 0.8936
+          }
+        },
+        "8": {
+          "count": 37464,
+          "mae": 18.3443,
+          "rmse": 18.88,
+          "bias": 17.6295,
+          "median_abs_error": 18.8931,
+          "pearson_r": 0.3827,
+          "r2": -5.7153,
+          "error_quantiles": {
+            "min": -10.0067,
+            "p25": 17.3344,
+            "p50_median_error": 18.8931,
+            "p75": 20.6563,
+            "p90": 22.9448,
+            "max": 25.9351
+          },
+          "occurrence": {
+            "threshold_mm": 0.001,
+            "true_rain_events": 37464,
+            "predicted_rain_events": 37464,
+            "confusion_matrix": {
+              "tp": 37464,
+              "fp": 0,
+              "fn": 0,
+              "tn": 0
+            },
+            "accuracy": 1.0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          }
+        },
+        "9": {
+          "count": 30774,
+          "mae": 23.9029,
+          "rmse": 24.1696,
+          "bias": 23.9029,
+          "median_abs_error": 24.4269,
+          "pearson_r": 0.5437,
+          "r2": -32.2889,
+          "error_quantiles": {
+            "min": 10.6556,
+            "p25": 22.9552,
+            "p50_median_error": 24.4269,
+            "p75": 26.56,
+            "p90": 26.7963,
+            "max": 27.8195
+          },
+          "occurrence": {
+            "threshold_mm": 0.001,
+            "true_rain_events": 28098,
+            "predicted_rain_events": 30774,
+            "confusion_matrix": {
+              "tp": 28098,
+              "fp": 2676,
+              "fn": 0,
+              "tn": 0
+            },
+            "accuracy": 0.913,
+            "precision": 0.913,
+            "recall": 1.0,
+            "f1": 0.9545
+          }
+        }
+      },
+      "random_forest": {
+        "4": {
+          "count": 20070,
+          "mae": 0.1026,
+          "rmse": 0.1266,
+          "bias": 0.0559,
+          "median_abs_error": 0.075,
+          "pearson_r": -0.0247,
+          "r2": -0.568,
+          "error_quantiles": {
+            "min": -0.3106,
+            "p25": 0.0406,
+            "p50_median_error": 0.067,
+            "p75": 0.1113,
+            "p90": 0.1821,
+            "max": 0.2921
+          },
+          "occurrence": {
+            "threshold_mm": 0.001,
+            "true_rain_events": 2676,
+            "predicted_rain_events": 20070,
+            "confusion_matrix": {
+              "tp": 2676,
+              "fp": 17394,
+              "fn": 0,
+              "tn": 0
+            },
+            "accuracy": 0.1333,
+            "precision": 0.1333,
+            "recall": 1.0,
+            "f1": 0.2352
+          }
+        },
+        "5": {
+          "count": 33450,
+          "mae": 0.3962,
+          "rmse": 0.9883,
+          "bias": 0.0002,
+          "median_abs_error": 0.1117,
+          "pearson_r": 0.986,
+          "r2": 0.8866,
+          "error_quantiles": {
+            "min": -4.8437,
+            "p25": 0.0365,
+            "p50_median_error": 0.1085,
+            "p75": 0.2201,
+            "p90": 0.288,
+            "max": 1.3593
+          },
+          "occurrence": {
+            "threshold_mm": 0.001,
+            "true_rain_events": 5352,
+            "predicted_rain_events": 33450,
+            "confusion_matrix": {
+              "tp": 5352,
+              "fp": 28098,
+              "fn": 0,
+              "tn": 0
+            },
+            "accuracy": 0.16,
+            "precision": 0.16,
+            "recall": 1.0,
+            "f1": 0.2759
+          }
+        },
+        "6": {
+          "count": 30774,
+          "mae": 1.0218,
+          "rmse": 1.4138,
+          "bias": -0.0248,
+          "median_abs_error": 0.5845,
+          "pearson_r": 0.983,
+          "r2": 0.9614,
+          "error_quantiles": {
+            "min": -4.458,
+            "p25": -0.3807,
+            "p50_median_error": 0.3223,
+            "p75": 0.8542,
+            "p90": 1.3494,
+            "max": 1.8906
+          },
+          "occurrence": {
+            "threshold_mm": 0.001,
+            "true_rain_events": 17394,
+            "predicted_rain_events": 30774,
+            "confusion_matrix": {
+              "tp": 17394,
+              "fp": 13380,
+              "fn": 0,
+              "tn": 0
+            },
+            "accuracy": 0.5652,
+            "precision": 0.5652,
+            "recall": 1.0,
+            "f1": 0.7222
+          }
+        },
+        "7": {
+          "count": 34788,
+          "mae": 1.1641,
+          "rmse": 1.5163,
+          "bias": -0.0177,
+          "median_abs_error": 0.9487,
+          "pearson_r": 0.9989,
+          "r2": 0.997,
+          "error_quantiles": {
+            "min": -5.1418,
+            "p25": -0.8744,
+            "p50_median_error": 0.0029,
+            "p75": 0.9521,
+            "p90": 1.4223,
+            "max": 4.6714
+          },
+          "occurrence": {
+            "threshold_mm": 0.001,
+            "true_rain_events": 28098,
+            "predicted_rain_events": 34788,
+            "confusion_matrix": {
+              "tp": 28098,
+              "fp": 6690,
+              "fn": 0,
+              "tn": 0
+            },
+            "accuracy": 0.8077,
+            "precision": 0.8077,
+            "recall": 1.0,
+            "f1": 0.8936
+          }
+        },
+        "8": {
+          "count": 37464,
+          "mae": 13.5058,
+          "rmse": 14.2457,
+          "bias": 12.3407,
+          "median_abs_error": 14.2792,
+          "pearson_r": 0.261,
+          "r2": -2.8232,
+          "error_quantiles": {
+            "min": -11.7783,
+            "p25": 11.4443,
+            "p50_median_error": 14.2792,
+            "p75": 15.9425,
+            "p90": 19.7972,
+            "max": 21.2268
+          },
+          "occurrence": {
+            "threshold_mm": 0.001,
+            "true_rain_events": 37464,
+            "predicted_rain_events": 37464,
+            "confusion_matrix": {
+              "tp": 37464,
+              "fp": 0,
+              "fn": 0,
+              "tn": 0
+            },
+            "accuracy": 1.0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          }
+        },
+        "9": {
+          "count": 30774,
+          "mae": 13.6777,
+          "rmse": 14.1641,
+          "bias": 13.4549,
+          "median_abs_error": 14.2953,
+          "pearson_r": -0.078,
+          "r2": -10.4324,
+          "error_quantiles": {
+            "min": -2.6182,
+            "p25": 13.9961,
+            "p50_median_error": 14.2953,
+            "p75": 15.6553,
+            "p90": 15.8573,
+            "max": 18.9563
+          },
+          "occurrence": {
+            "threshold_mm": 0.001,
+            "true_rain_events": 28098,
+            "predicted_rain_events": 30774,
+            "confusion_matrix": {
+              "tp": 28098,
+              "fp": 2676,
+              "fn": 0,
+              "tn": 0
+            },
+            "accuracy": 0.913,
+            "precision": 0.913,
+            "recall": 1.0,
+            "f1": 0.9545
+          }
+        }
+      },
+      "xgboost": {
+        "4": {
+          "count": 20070,
+          "mae": 6.6412,
+          "rmse": 6.642,
+          "bias": 6.6412,
+          "median_abs_error": 6.6748,
+          "pearson_r": 0.1648,
+          "r2": -4314.6955,
+          "error_quantiles": {
+            "min": 6.2748,
+            "p25": 6.6735,
+            "p50_median_error": 6.6748,
+            "p75": 6.6748,
+            "p90": 6.6748,
+            "max": 6.6748
+          },
+          "occurrence": {
+            "threshold_mm": 0.001,
+            "true_rain_events": 2676,
+            "predicted_rain_events": 20070,
+            "confusion_matrix": {
+              "tp": 2676,
+              "fp": 17394,
+              "fn": 0,
+              "tn": 0
+            },
+            "accuracy": 0.1333,
+            "precision": 0.1333,
+            "recall": 1.0,
+            "f1": 0.2352
+          }
+        },
+        "5": {
+          "count": 33450,
+          "mae": 6.6649,
+          "rmse": 6.6688,
+          "bias": 6.0694,
+          "median_abs_error": 6.6748,
+          "pearson_r": 0.9969,
+          "r2": -4.1635,
+          "error_quantiles": {
+            "min": -7.4437,
+            "p25": 6.6735,
+            "p50_median_error": 6.6748,
+            "p75": 6.6748,
+            "p90": 6.6789,
+            "max": 6.7084
+          },
+          "occurrence": {
+            "threshold_mm": 0.001,
+            "true_rain_events": 5352,
+            "predicted_rain_events": 33450,
+            "confusion_matrix": {
+              "tp": 5352,
+              "fp": 28098,
+              "fn": 0,
+              "tn": 0
+            },
+            "accuracy": 0.16,
+            "precision": 0.16,
+            "recall": 1.0,
+            "f1": 0.2759
+          }
+        },
+        "6": {
+          "count": 30774,
+          "mae": 6.3756,
+          "rmse": 7.5525,
+          "bias": 3.2875,
+          "median_abs_error": 6.6789,
+          "pearson_r": 0.9881,
+          "r2": -0.1,
+          "error_quantiles": {
+            "min": -20.9025,
+            "p25": 2.3445,
+            "p50_median_error": 6.5832,
+            "p75": 6.6832,
+            "p90": 6.7084,
+            "max": 6.7425
+          },
+          "occurrence": {
+            "threshold_mm": 0.001,
+            "true_rain_events": 17394,
+            "predicted_rain_events": 30774,
+            "confusion_matrix": {
+              "tp": 17394,
+              "fp": 13380,
+              "fn": 0,
+              "tn": 0
+            },
+            "accuracy": 0.5652,
+            "precision": 0.5652,
+            "recall": 1.0,
+            "f1": 0.7222
+          }
+        },
+        "7": {
+          "count": 34788,
+          "mae": 16.5495,
+          "rmse": 29.0278,
+          "bias": -12.579,
+          "median_abs_error": 6.6732,
+          "pearson_r": 0.9985,
+          "r2": -0.091,
+          "error_quantiles": {
+            "min": -106.5491,
+            "p25": -16.8967,
+            "p50_median_error": -4.5342,
+            "p75": 5.0768,
+            "p90": 6.6724,
+            "max": 6.6739
+          },
+          "occurrence": {
+            "threshold_mm": 0.001,
+            "true_rain_events": 28098,
+            "predicted_rain_events": 34788,
+            "confusion_matrix": {
+              "tp": 28098,
+              "fp": 6690,
+              "fn": 0,
+              "tn": 0
+            },
+            "accuracy": 0.8077,
+            "precision": 0.8077,
+            "recall": 1.0,
+            "f1": 0.8936
+          }
+        },
+        "8": {
+          "count": 37464,
+          "mae": 5.4047,
+          "rmse": 7.3652,
+          "bias": 1.6128,
+          "median_abs_error": 4.1752,
+          "pearson_r": 0.4857,
+          "r2": -0.0219,
+          "error_quantiles": {
+            "min": -27.6395,
+            "p25": 1.8211,
+            "p50_median_error": 4.0671,
+            "p75": 4.738,
+            "p90": 6.0089,
+            "max": 6.9089
+          },
+          "occurrence": {
+            "threshold_mm": 0.001,
+            "true_rain_events": 37464,
+            "predicted_rain_events": 37464,
+            "confusion_matrix": {
+              "tp": 37464,
+              "fp": 0,
+              "fn": 0,
+              "tn": 0
+            },
+            "accuracy": 1.0,
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          }
+        },
+        "9": {
+          "count": 30774,
+          "mae": 5.907,
+          "rmse": 6.1865,
+          "bias": 4.552,
+          "median_abs_error": 5.6089,
+          "pearson_r": 0.0002,
+          "r2": -1.1809,
+          "error_quantiles": {
+            "min": -10.8911,
+            "p25": 5.2506,
+            "p50_median_error": 5.6089,
+            "p75": 6.9089,
+            "p90": 7.4089,
+            "max": 7.5089
+          },
+          "occurrence": {
+            "threshold_mm": 0.001,
+            "true_rain_events": 28098,
+            "predicted_rain_events": 30774,
+            "confusion_matrix": {
+              "tp": 28098,
+              "fp": 2676,
+              "fn": 0,
+              "tn": 0
+            },
+            "accuracy": 0.913,
+            "precision": 0.913,
+            "recall": 1.0,
+            "f1": 0.9545
+          }
+        }
+      }
+    }
+  },
+  "rainfall_intensity_metrics": {
+    "pune_test_slices": {
+      "block_forecast": {
+        "zero_rainfall": {
+          "count": 2676,
+          "mae": 5.75,
+          "rmse": 5.7554,
+          "bias": 5.75,
+          "median_abs_error": 5.75,
+          "pearson_r": 0.0,
+          "r2": 0.0,
+          "error_quantiles": {
+            "min": 5.5,
+            "p25": 5.5,
+            "p50_median_error": 5.75,
+            "p75": 6.0,
+            "p90": 6.0,
+            "max": 6.0
+          }
+        },
+        "nonzero_rainfall": {
+          "count": 28098,
+          "mae": 4.4667,
+          "rmse": 4.9785,
+          "bias": 2.6,
+          "median_abs_error": 4.0,
+          "pearson_r": 0.1611,
+          "r2": -0.3532,
+          "error_quantiles": {
+            "min": -12.3,
+            "p25": 3.3,
+            "p50_median_error": 3.7,
+            "p75": 4.8,
+            "p90": 5.4,
+            "max": 6.8
+          }
+        },
+        "moderate_plus_gte_15_5mm": {
+          "count": 1338,
+          "mae": 12.3,
+          "rmse": 12.3,
+          "bias": -12.3,
+          "median_abs_error": 12.3,
+          "pearson_r": 0.0,
+          "r2": 0.0,
+          "error_quantiles": {
+            "min": -12.3,
+            "p25": -12.3,
+            "p50_median_error": -12.3,
+            "p75": -12.3,
+            "p90": -12.3,
+            "max": -12.3
+          }
+        },
+        "heavy_gte_35_5mm": {
+          "count": 0,
+          "mae": null,
+          "rmse": null,
+          "bias": null,
+          "median_abs_error": null,
+          "pearson_r": null,
+          "r2": null,
+          "error_quantiles": {}
+        },
+        "very_heavy_gte_64_5mm": {
+          "count": 0,
+          "mae": null,
+          "rmse": null,
+          "bias": null,
+          "median_abs_error": null,
+          "pearson_r": null,
+          "r2": null,
+          "error_quantiles": {}
+        }
+      },
+      "linear_baseline": {
+        "zero_rainfall": {
+          "count": 2676,
+          "mae": 26.6156,
+          "rmse": 26.6157,
+          "bias": 26.6156,
+          "median_abs_error": 26.6156,
+          "pearson_r": 0.0,
+          "r2": 0.0,
+          "error_quantiles": {
+            "min": 26.56,
+            "p25": 26.56,
+            "p50_median_error": 26.6156,
+            "p75": 26.6712,
+            "p90": 26.6712,
+            "max": 26.6712
+          }
+        },
+        "nonzero_rainfall": {
+          "count": 28098,
+          "mae": 23.6445,
+          "rmse": 23.9237,
+          "bias": 23.6445,
+          "median_abs_error": 24.3998,
+          "pearson_r": 0.5476,
+          "r2": -30.248,
+          "error_quantiles": {
+            "min": 10.6556,
+            "p25": 22.9552,
+            "p50_median_error": 24.3998,
+            "p75": 26.0536,
+            "p90": 26.7963,
+            "max": 27.8195
+          }
+        },
+        "moderate_plus_gte_15_5mm": {
+          "count": 1338,
+          "mae": 10.6556,
+          "rmse": 10.6556,
+          "bias": 10.6556,
+          "median_abs_error": 10.6556,
+          "pearson_r": 0.0,
+          "r2": 0.0,
+          "error_quantiles": {
+            "min": 10.6556,
+            "p25": 10.6556,
+            "p50_median_error": 10.6556,
+            "p75": 10.6556,
+            "p90": 10.6556,
+            "max": 10.6556
+          }
+        },
+        "heavy_gte_35_5mm": {
+          "count": 0,
+          "mae": null,
+          "rmse": null,
+          "bias": null,
+          "median_abs_error": null,
+          "pearson_r": null,
+          "r2": null,
+          "error_quantiles": {}
+        },
+        "very_heavy_gte_64_5mm": {
+          "count": 0,
+          "mae": null,
+          "rmse": null,
+          "bias": null,
+          "median_abs_error": null,
+          "pearson_r": null,
+          "r2": null,
+          "error_quantiles": {}
+        }
+      },
+      "random_forest": {
+        "zero_rainfall": {
+          "count": 2676,
+          "mae": 15.7589,
+          "rmse": 15.7592,
+          "bias": 15.7589,
+          "median_abs_error": 15.7921,
+          "pearson_r": 0.0,
+          "r2": 0.0,
+          "error_quantiles": {
+            "min": 15.6145,
+            "p25": 15.6486,
+            "p50_median_error": 15.7921,
+            "p75": 15.8262,
+            "p90": 15.8545,
+            "max": 16.186
+          }
+        },
+        "nonzero_rainfall": {
+          "count": 28098,
+          "mae": 13.4795,
+          "rmse": 14.0027,
+          "bias": 13.2354,
+          "median_abs_error": 14.2502,
+          "pearson_r": -0.1203,
+          "r2": -9.7051,
+          "error_quantiles": {
+            "min": -2.6182,
+            "p25": 13.9078,
+            "p50_median_error": 14.2502,
+            "p75": 15.632,
+            "p90": 15.8573,
+            "max": 18.9563
+          }
+        },
+        "moderate_plus_gte_15_5mm": {
+          "count": 1338,
+          "mae": 2.5626,
+          "rmse": 2.5634,
+          "bias": -2.5626,
+          "median_abs_error": 2.5841,
+          "pearson_r": 0.0,
+          "r2": 0.0,
+          "error_quantiles": {
+            "min": -2.6182,
+            "p25": -2.5974,
+            "p50_median_error": -2.5841,
+            "p75": -2.5558,
+            "p90": -2.4675,
+            "max": -2.2243
+          }
+        },
+        "heavy_gte_35_5mm": {
+          "count": 0,
+          "mae": null,
+          "rmse": null,
+          "bias": null,
+          "median_abs_error": null,
+          "pearson_r": null,
+          "r2": null,
+          "error_quantiles": {}
+        },
+        "very_heavy_gte_64_5mm": {
+          "count": 0,
+          "mae": null,
+          "rmse": null,
+          "bias": null,
+          "median_abs_error": null,
+          "pearson_r": null,
+          "r2": null,
+          "error_quantiles": {}
+        }
+      },
+      "xgboost": {
+        "zero_rainfall": {
+          "count": 2676,
+          "mae": 7.4797,
+          "rmse": 7.4798,
+          "bias": 7.4797,
+          "median_abs_error": 7.4797,
+          "pearson_r": 0.0,
+          "r2": 0.0,
+          "error_quantiles": {
+            "min": 7.4506,
+            "p25": 7.4506,
+            "p50_median_error": 7.4797,
+            "p75": 7.5089,
+            "p90": 7.5089,
+            "max": 7.5089
+          }
+        },
+        "nonzero_rainfall": {
+          "count": 28098,
+          "mae": 5.7572,
+          "rmse": 6.0489,
+          "bias": 4.2732,
+          "median_abs_error": 5.6089,
+          "pearson_r": -0.0192,
+          "r2": -0.9976,
+          "error_quantiles": {
+            "min": -10.8911,
+            "p25": 5.2506,
+            "p50_median_error": 5.6089,
+            "p75": 6.0089,
+            "p90": 7.1089,
+            "max": 7.4089
+          }
+        },
+        "moderate_plus_gte_15_5mm": {
+          "count": 1338,
+          "mae": 10.8911,
+          "rmse": 10.8911,
+          "bias": -10.8911,
+          "median_abs_error": 10.8911,
+          "pearson_r": 0.0,
+          "r2": 0.0,
+          "error_quantiles": {
+            "min": -10.8911,
+            "p25": -10.8911,
+            "p50_median_error": -10.8911,
+            "p75": -10.8911,
+            "p90": -10.8911,
+            "max": -10.8911
+          }
+        },
+        "heavy_gte_35_5mm": {
+          "count": 0,
+          "mae": null,
+          "rmse": null,
+          "bias": null,
+          "median_abs_error": null,
+          "pearson_r": null,
+          "r2": null,
+          "error_quantiles": {}
+        },
+        "very_heavy_gte_64_5mm": {
+          "count": 0,
+          "mae": null,
+          "rmse": null,
+          "bias": null,
+          "median_abs_error": null,
+          "pearson_r": null,
+          "r2": null,
+          "error_quantiles": {}
+        }
+      }
+    }
+  },
+  "error_analysis": {
+    "pune_test_distribution": {
+      "block_forecast": {
+        "count": 30774,
+        "mean_error": 2.8739,
+        "median_error": 4.0,
+        "std_error": 4.1535,
+        "skewness": -2.5284,
+        "iqr": 1.5,
+        "mean_absolute_error": 4.5783,
+        "median_absolute_error": 4.2,
+        "max_absolute_error": 12.3,
+        "percentiles": {
+          "min": -12.3,
+          "p5": -6.4,
+          "p10": -0.9,
+          "p25": 3.3,
+          "p50_median": 4.0,
+          "p75": 4.8,
+          "p90": 5.7,
+          "p95": 6.0,
+          "max": 6.8
+        },
+        "directional_breakdown": {
+          "overprediction_count": 26760,
+          "overprediction_percentage": 86.96,
+          "underprediction_count": 4014,
+          "underprediction_percentage": 13.04,
+          "near_exact_count": 0,
+          "near_exact_percentage": 0.0
+        }
+      },
+      "linear_baseline": {
+        "count": 30774,
+        "mean_error": 23.9029,
+        "median_error": 24.4269,
+        "std_error": 3.5812,
+        "skewness": -2.2384,
+        "iqr": 3.6048,
+        "mean_absolute_error": 23.9029,
+        "median_absolute_error": 24.4269,
+        "max_absolute_error": 27.8195,
+        "percentiles": {
+          "min": 10.6556,
+          "p5": 17.9426,
+          "p10": 21.4058,
+          "p25": 22.9552,
+          "p50_median": 24.4269,
+          "p75": 26.56,
+          "p90": 26.7963,
+          "p95": 26.9101,
+          "max": 27.8195
+        },
+        "directional_breakdown": {
+          "overprediction_count": 30774,
+          "overprediction_percentage": 100.0,
+          "underprediction_count": 0,
+          "underprediction_percentage": 0.0,
+          "near_exact_count": 0,
+          "near_exact_percentage": 0.0
+        }
+      },
+      "random_forest": {
+        "count": 30774,
+        "mean_error": 13.4549,
+        "median_error": 14.2953,
+        "std_error": 4.4258,
+        "skewness": -2.46,
+        "iqr": 1.6592,
+        "mean_absolute_error": 13.6777,
+        "median_absolute_error": 14.2953,
+        "max_absolute_error": 18.9563,
+        "percentiles": {
+          "min": -2.6182,
+          "p5": 3.6893,
+          "p10": 8.4929,
+          "p25": 13.9961,
+          "p50_median": 14.2953,
+          "p75": 15.6553,
+          "p90": 15.8573,
+          "p95": 16.6576,
+          "max": 18.9563
+        },
+        "directional_breakdown": {
+          "overprediction_count": 29436,
+          "overprediction_percentage": 95.65,
+          "underprediction_count": 1338,
+          "underprediction_percentage": 4.35,
+          "near_exact_count": 0,
+          "near_exact_percentage": 0.0
+        }
+      },
+      "xgboost": {
+        "count": 30774,
+        "mean_error": 4.552,
+        "median_error": 5.6089,
+        "std_error": 4.1895,
+        "skewness": -2.6093,
+        "iqr": 1.6583,
+        "mean_absolute_error": 5.907,
+        "median_absolute_error": 5.6089,
+        "max_absolute_error": 10.8911,
+        "percentiles": {
+          "min": -10.8911,
+          "p5": -4.6911,
+          "p10": 0.2506,
+          "p25": 5.2506,
+          "p50_median": 5.6089,
+          "p75": 6.9089,
+          "p90": 7.4089,
+          "p95": 7.4506,
+          "max": 7.5089
+        },
+        "directional_breakdown": {
+          "overprediction_count": 28098,
+          "overprediction_percentage": 91.3,
+          "underprediction_count": 2676,
+          "underprediction_percentage": 8.7,
+          "near_exact_count": 0,
+          "near_exact_percentage": 0.0
+        }
+      }
+    },
+    "pune_test_operational_risks": {
+      "block_forecast": {
+        "missed_rain_events_count": 0,
+        "missed_rain_rate_pct": 0.0,
+        "false_rain_events_count": 2676,
+        "false_rain_rate_pct": 8.7,
+        "heavy_rain_events_total": 0,
+        "heavy_rain_underpredicted_count": 0,
+        "heavy_rain_underpredicted_pct": 0.0,
+        "heavy_rain_severely_missed_count": 0,
+        "false_heavy_alarm_count": 0
+      },
+      "linear_baseline": {
+        "missed_rain_events_count": 0,
+        "missed_rain_rate_pct": 0.0,
+        "false_rain_events_count": 2676,
+        "false_rain_rate_pct": 8.7,
+        "heavy_rain_events_total": 0,
+        "heavy_rain_underpredicted_count": 0,
+        "heavy_rain_underpredicted_pct": 0.0,
+        "heavy_rain_severely_missed_count": 0,
+        "false_heavy_alarm_count": 0
+      },
+      "random_forest": {
+        "missed_rain_events_count": 0,
+        "missed_rain_rate_pct": 0.0,
+        "false_rain_events_count": 2676,
+        "false_rain_rate_pct": 8.7,
+        "heavy_rain_events_total": 0,
+        "heavy_rain_underpredicted_count": 0,
+        "heavy_rain_underpredicted_pct": 0.0,
+        "heavy_rain_severely_missed_count": 0,
+        "false_heavy_alarm_count": 0
+      },
+      "xgboost": {
+        "missed_rain_events_count": 0,
+        "missed_rain_rate_pct": 0.0,
+        "false_rain_events_count": 2676,
+        "false_rain_rate_pct": 8.7,
+        "heavy_rain_events_total": 0,
+        "heavy_rain_underpredicted_count": 0,
+        "heavy_rain_underpredicted_pct": 0.0,
+        "heavy_rain_severely_missed_count": 0,
+        "false_heavy_alarm_count": 0
+      }
+    }
+  },
+  "baseline_comparison": {
+    "pune_test_deltas": {
+      "random_forest": {
+        "vs_block_forecast": {
+          "mae_delta_mm": 9.0994,
+          "mae_improvement_pct": -198.75,
+          "rmse_delta_mm": 9.1133,
+          "rmse_improvement_pct": -180.43,
+          "bias_delta_mm": 10.581
+        },
+        "vs_linear_baseline": {
+          "mae_delta_mm": -10.2252,
+          "mae_improvement_pct": 42.78,
+          "rmse_delta_mm": -10.0055,
+          "rmse_improvement_pct": 41.4,
+          "bias_delta_mm": -10.448
+        }
+      },
+      "xgboost": {
+        "vs_block_forecast": {
+          "mae_delta_mm": 1.3287,
+          "mae_improvement_pct": -29.02,
+          "rmse_delta_mm": 1.1357,
+          "rmse_improvement_pct": -22.49,
+          "bias_delta_mm": 1.6781
+        },
+        "vs_linear_baseline": {
+          "mae_delta_mm": -17.9959,
+          "mae_improvement_pct": 75.29,
+          "rmse_delta_mm": -17.9831,
+          "rmse_improvement_pct": 74.4,
+          "bias_delta_mm": -19.3509
+        }
+      }
+    }
+  },
+  "random_forest_vs_xgboost": {
+    "test_sample_count": 30774,
+    "xgboost_mae": 5.907,
+    "random_forest_mae": 13.6777,
+    "paired_mae_difference_mm": -7.7707,
+    "xgboost_error_reduction_pct": 56.81,
+    "paired_rmse_difference_mm": -7.9776,
+    "instance_level_win_rates": {
+      "xgboost_better_count": 28098,
+      "xgboost_better_pct": 91.3,
+      "random_forest_better_count": 2676,
+      "random_forest_better_pct": 8.7,
+      "tied_count": 0,
+      "tied_pct": 0.0
+    },
+    "paired_t_test": {
+      "t_statistic": -330.0274,
+      "p_value": 0.0,
+      "statistically_significant_at_0_01": true
+    }
+  },
+  "uncertainty_analysis": {
+    "method": "Paired non-parametric bootstrap resampling",
+    "n_bootstraps": 1000,
+    "confidence_level": 0.95,
+    "seed": 42,
+    "comparisons": {
+      "xgboost_vs_random_forest": {
+        "model_a": "xgboost",
+        "model_b": "random_forest",
+        "n_bootstraps": 1000,
+        "sample_size": 30774,
+        "point_estimate_mae_a": 5.907,
+        "point_estimate_mae_b": 13.6777,
+        "point_estimate_mae_delta": -7.7707,
+        "mae_a_95_ci": [
+          5.8866,
+          5.9277
+        ],
+        "mae_b_95_ci": [
+          13.6395,
+          13.7176
+        ],
+        "mae_delta_95_ci": [
+          -7.8147,
+          -7.7251
+        ],
+        "rmse_delta_95_ci": [
+          -8.0167,
+          -7.941
+        ],
+        "is_statistically_significant_0_05": true
+      },
+      "xgboost_vs_block_forecast": {
+        "model_a": "xgboost",
+        "model_b": "block_forecast",
+        "n_bootstraps": 1000,
+        "sample_size": 30774,
+        "point_estimate_mae_a": 5.907,
+        "point_estimate_mae_b": 4.5783,
+        "point_estimate_mae_delta": 1.3287,
+        "mae_a_95_ci": [
+          5.8866,
+          5.9277
+        ],
+        "mae_b_95_ci": [
+          4.5532,
+          4.6021
+        ],
+        "mae_delta_95_ci": [
+          1.3134,
+          1.3441
+        ],
+        "rmse_delta_95_ci": [
+          1.1175,
+          1.1547
+        ],
+        "is_statistically_significant_0_05": true
+      },
+      "random_forest_vs_block_forecast": {
+        "model_a": "random_forest",
+        "model_b": "block_forecast",
+        "n_bootstraps": 1000,
+        "sample_size": 30774,
+        "point_estimate_mae_a": 13.6777,
+        "point_estimate_mae_b": 4.5783,
+        "point_estimate_mae_delta": 9.0994,
+        "mae_a_95_ci": [
+          13.6395,
+          13.7176
+        ],
+        "mae_b_95_ci": [
+          4.5532,
+          4.6021
+        ],
+        "mae_delta_95_ci": [
+          9.0457,
+          9.1549
+        ],
+        "rmse_delta_95_ci": [
+          9.0623,
+          9.165
+        ],
+        "is_statistically_significant_0_05": true
+      }
+    }
+  },
+  "geographic_generalization": {
+    "spatial_holdout_check": {
+      "pune_spatial_holdout": false,
+      "pune_panchayat_overlap_pct": 100.0,
+      "nashik_spatial_holdout": true,
+      "nashik_panchayat_overlap_pct": 0.0,
+      "interpretation": "Pune test evaluates temporal forecast generalization across seen Panchayats; Nashik snapshot evaluates zero-shot geographic transfer to 1,388 unseen Panchayats."
+    }
+  },
+  "leakage_audit": {
+    "audit_script": "scripts/audit_ml_leakage.py",
+    "status": "PASSED",
+    "temporal_ordering": "Train (Apr-Jul 2026) < Val (Aug 2026) < Test (Sep 2026)",
+    "target_excluded": true,
+    "preprocessors_isolated": true,
+    "zero_partition_overlap": true,
+    "test_set_lock_enforced": true
+  },
+  "duplicate_analysis": {
+    "pune_exact_duplicates": 0,
+    "pune_observation_key_duplicates": 0,
+    "status": "PASSED"
+  },
+  "reproducibility": {
+    "seed": 42,
+    "xgboost_deterministic": true,
+    "random_forest_deterministic": true,
+    "max_discrepancy_xgb": 0.0,
+    "max_discrepancy_rf": 7.105427357601002e-15,
+    "status": "PASSED"
+  },
+  "final_comparison_table": [
+    {
+      "model_order": 1,
+      "model_name": "1. Raw Block Forecast Baseline",
+      "dataset_partition": "Pune (Locked Test, Sep 2026)",
+      "district": "Pune",
+      "split": "Locked",
+      "sample_count": 30774,
+      "mae": 4.5783,
+      "rmse": 5.0508,
+      "bias": 2.8739,
+      "r2": -0.4537,
+      "pearson_r": 0.161,
+      "rain_occurrence_f1": 0.9545,
+      "rain_occurrence_accuracy": 0.913,
+      "nonzero_rainfall_mae": 4.4667,
+      "heavy_rainfall_mae": null
+    },
+    {
+      "model_order": 2,
+      "model_name": "2. Simple Statistical Baseline (Ridge)",
+      "dataset_partition": "Pune (Locked Test, Sep 2026)",
+      "district": "Pune",
+      "split": "Locked",
+      "sample_count": 30774,
+      "mae": 23.9029,
+      "rmse": 24.1696,
+      "bias": 23.9029,
+      "r2": -32.2889,
+      "pearson_r": 0.5437,
+      "rain_occurrence_f1": 0.9545,
+      "rain_occurrence_accuracy": 0.913,
+      "nonzero_rainfall_mae": 23.6445,
+      "heavy_rainfall_mae": null
+    },
+    {
+      "model_order": 3,
+      "model_name": "3. Random Forest Downscaler (Phase 2.4)",
+      "dataset_partition": "Pune (Locked Test, Sep 2026)",
+      "district": "Pune",
+      "split": "Locked",
+      "sample_count": 30774,
+      "mae": 13.6777,
+      "rmse": 14.1641,
+      "bias": 13.4549,
+      "r2": -10.4324,
+      "pearson_r": -0.078,
+      "rain_occurrence_f1": 0.9545,
+      "rain_occurrence_accuracy": 0.913,
+      "nonzero_rainfall_mae": 13.4795,
+      "heavy_rainfall_mae": null
+    },
+    {
+      "model_order": 4,
+      "model_name": "4. XGBoost Downscaler (Phase 2.5)",
+      "dataset_partition": "Pune (Locked Test, Sep 2026)",
+      "district": "Pune",
+      "split": "Locked",
+      "sample_count": 30774,
+      "mae": 5.907,
+      "rmse": 6.1865,
+      "bias": 4.552,
+      "r2": -1.1809,
+      "pearson_r": 0.0002,
+      "rain_occurrence_f1": 0.9545,
+      "rain_occurrence_accuracy": 0.913,
+      "nonzero_rainfall_mae": 5.7572,
+      "heavy_rainfall_mae": null
+    },
+    {
+      "model_order": 1,
+      "model_name": "1. Raw Block Forecast Baseline",
+      "dataset_partition": "Pune (Validation, Aug 2026)",
+      "district": "Pune",
+      "split": "Validation",
+      "sample_count": 37464,
+      "mae": 5.7464,
+      "rmse": 7.1634,
+      "bias": 2.6893,
+      "r2": 0.0333,
+      "pearson_r": 0.4256,
+      "rain_occurrence_f1": 1.0,
+      "rain_occurrence_accuracy": 1.0,
+      "nonzero_rainfall_mae": 5.7464,
+      "heavy_rainfall_mae": 24.5
+    },
+    {
+      "model_order": 2,
+      "model_name": "2. Simple Statistical Baseline (Ridge)",
+      "dataset_partition": "Pune (Validation, Aug 2026)",
+      "district": "Pune",
+      "split": "Validation",
+      "sample_count": 37464,
+      "mae": 18.3443,
+      "rmse": 18.88,
+      "bias": 17.6295,
+      "r2": -5.7153,
+      "pearson_r": 0.3827,
+      "rain_occurrence_f1": 1.0,
+      "rain_occurrence_accuracy": 1.0,
+      "nonzero_rainfall_mae": 18.3443,
+      "heavy_rainfall_mae": 10.0067
+    },
+    {
+      "model_order": 3,
+      "model_name": "3. Random Forest Downscaler (Phase 2.4)",
+      "dataset_partition": "Pune (Validation, Aug 2026)",
+      "district": "Pune",
+      "split": "Validation",
+      "sample_count": 37464,
+      "mae": 13.5058,
+      "rmse": 14.2457,
+      "bias": 12.3407,
+      "r2": -2.8232,
+      "pearson_r": 0.261,
+      "rain_occurrence_f1": 1.0,
+      "rain_occurrence_accuracy": 1.0,
+      "nonzero_rainfall_mae": 13.5058,
+      "heavy_rainfall_mae": 11.4976
+    },
+    {
+      "model_order": 4,
+      "model_name": "4. XGBoost Downscaler (Phase 2.5)",
+      "dataset_partition": "Pune (Validation, Aug 2026)",
+      "district": "Pune",
+      "split": "Validation",
+      "sample_count": 37464,
+      "mae": 5.4047,
+      "rmse": 7.3652,
+      "bias": 1.6128,
+      "r2": -0.0219,
+      "pearson_r": 0.4857,
+      "rain_occurrence_f1": 1.0,
+      "rain_occurrence_accuracy": 1.0,
+      "nonzero_rainfall_mae": 5.4047,
+      "heavy_rainfall_mae": 27.6395
+    },
+    {
+      "model_order": 1,
+      "model_name": "1. Raw Block Forecast Baseline",
+      "dataset_partition": "Pune (Train, Apr-Jul 2026)",
+      "district": "Pune",
+      "split": "Train",
+      "sample_count": 119082,
+      "mae": 6.7427,
+      "rmse": 16.6103,
+      "bias": -2.3876,
+      "r2": 0.1292,
+      "pearson_r": 0.4235,
+      "rain_occurrence_f1": 0.6452,
+      "rain_occurrence_accuracy": 0.5056,
+      "nonzero_rainfall_mae": 12.185,
+      "heavy_rainfall_mae": 76.2
+    },
+    {
+      "model_order": 2,
+      "model_name": "2. Simple Statistical Baseline (Ridge)",
+      "dataset_partition": "Pune (Train, Apr-Jul 2026)",
+      "district": "Pune",
+      "split": "Train",
+      "sample_count": 119082,
+      "mae": 7.0675,
+      "rmse": 15.5762,
+      "bias": 0.5551,
+      "r2": 0.2342,
+      "pearson_r": 0.4864,
+      "rain_occurrence_f1": 0.7273,
+      "rain_occurrence_accuracy": 0.6966,
+      "nonzero_rainfall_mae": 11.4284,
+      "heavy_rainfall_mae": 68.1782
+    },
+    {
+      "model_order": 3,
+      "model_name": "3. Random Forest Downscaler (Phase 2.4)",
+      "dataset_partition": "Pune (Train, Apr-Jul 2026)",
+      "district": "Pune",
+      "split": "Train",
+      "sample_count": 119082,
+      "mae": 0.7327,
+      "rmse": 1.2105,
+      "bias": -0.0021,
+      "r2": 0.9954,
+      "pearson_r": 0.998,
+      "rain_occurrence_f1": 0.6201,
+      "rain_occurrence_accuracy": 0.4494,
+      "nonzero_rainfall_mae": 1.1767,
+      "heavy_rainfall_mae": 2.1523
+    },
+    {
+      "model_order": 4,
+      "model_name": "4. XGBoost Downscaler (Phase 2.5)",
+      "dataset_partition": "Pune (Train, Apr-Jul 2026)",
+      "district": "Pune",
+      "split": "Train",
+      "sample_count": 119082,
+      "mae": 9.4738,
+      "rmse": 16.7578,
+      "bias": -0.001,
+      "r2": 0.1136,
+      "pearson_r": 0.9984,
+      "rain_occurrence_f1": 0.6201,
+      "rain_occurrence_accuracy": 0.4494,
+      "nonzero_rainfall_mae": 12.8951,
+      "heavy_rainfall_mae": 73.2631
+    },
+    {
+      "model_order": 1,
+      "model_name": "1. Raw Block Forecast Baseline",
+      "dataset_partition": "Nashik (Spatial Transfer Snapshot)",
+      "district": "Nashik",
+      "split": "Snapshot",
+      "sample_count": 1388,
+      "mae": 4.3651,
+      "rmse": 5.5919,
+      "bias": 2.298,
+      "r2": 0.7038,
+      "pearson_r": 0.8777,
+      "rain_occurrence_f1": 1.0,
+      "rain_occurrence_accuracy": 1.0,
+      "nonzero_rainfall_mae": 4.3651,
+      "heavy_rainfall_mae": 5.958
+    },
+    {
+      "model_order": 2,
+      "model_name": "2. Simple Statistical Baseline (Ridge)",
+      "dataset_partition": "Nashik (Spatial Transfer Snapshot)",
+      "district": "Nashik",
+      "split": "Snapshot",
+      "sample_count": 1388,
+      "mae": 12.8658,
+      "rmse": 16.3088,
+      "bias": 11.0291,
+      "r2": -1.5198,
+      "pearson_r": 0.2813,
+      "rain_occurrence_f1": 1.0,
+      "rain_occurrence_accuracy": 1.0,
+      "nonzero_rainfall_mae": 12.8658,
+      "heavy_rainfall_mae": 7.3522
+    },
+    {
+      "model_order": 3,
+      "model_name": "3. Random Forest Downscaler (Phase 2.4)",
+      "dataset_partition": "Nashik (Spatial Transfer Snapshot)",
+      "district": "Nashik",
+      "split": "Snapshot",
+      "sample_count": 1388,
+      "mae": 7.8966,
+      "rmse": 11.4317,
+      "bias": -2.0812,
+      "r2": -0.2381,
+      "pearson_r": 0.1046,
+      "rain_occurrence_f1": 1.0,
+      "rain_occurrence_accuracy": 1.0,
+      "nonzero_rainfall_mae": 7.8966,
+      "heavy_rainfall_mae": 32.8848
+    },
+    {
+      "model_order": 4,
+      "model_name": "4. XGBoost Downscaler (Phase 2.5)",
+      "dataset_partition": "Nashik (Spatial Transfer Snapshot)",
+      "district": "Nashik",
+      "split": "Snapshot",
+      "sample_count": 1388,
+      "mae": 7.1062,
+      "rmse": 10.5818,
+      "bias": -2.5801,
+      "r2": -0.0608,
+      "pearson_r": 0.0543,
+      "rain_occurrence_f1": 1.0,
+      "rain_occurrence_accuracy": 1.0,
+      "nonzero_rainfall_mae": 7.1062,
+      "heavy_rainfall_mae": 40.8127
+    }
+  ],
+  "limitations": [
+    "Lack of multi-year historical depth (all observations span 2026)",
+    "Absence of calibrated prediction intervals / probabilistic distributions in point-estimate models",
+    "Trade-off between broad seasonal error minimization (XGBoost) vs extreme storm cloudburst capture (Random Forest)",
+    "Spatial transferability in Nashik measured on single snapshot dates rather than full multi-month continuous series"
+  ],
+  "phase_2_7_evidence": {
+    "primary_recommendation": "XGBoost Downscaler provides the lowest broad-season MAE (5.91 mm Test, 5.40 mm Val) and lowest bias (+1.61 mm Val), while Random Forest preserves the lowest heavy rainfall MAE (11.50 mm vs 27.64 mm on >=35.5 mm events).",
+    "artifact_readiness": {
+      "xgboost": {
+        "path": "ml/models/xgboost/best_model.joblib",
+        "size_kb": 52.4,
+        "ready_for_packaging": true
+      },
+      "random_forest": {
+        "path": "ml/models/random_forest/best_model.joblib",
+        "size_kb": 533.3,
+        "ready_for_packaging": true
+      }
+    }
+  }
+}
