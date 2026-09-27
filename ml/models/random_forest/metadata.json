@@ -1,0 +1,103 @@
+{
+  "model_name": "GramSevak Random Forest Downscaler",
+  "model_version": "2.4.0",
+  "phase": "2.4",
+  "model_type": "RandomForestRegressor",
+  "framework": "scikit-learn",
+  "scikit_learn_version": "2.3.3",
+  "created_at_utc": "2026-09-27T16:35:00.781466+00:00",
+  "random_seed": 42,
+  "target": "actual_rainfall_mm",
+  "feature_registry_version": "1.0.0",
+  "feature_count": 20,
+  "features": [
+    "block_forecast_rainfall_mm",
+    "log1p_block_forecast_rainfall_mm",
+    "panchayat_latitude",
+    "panchayat_longitude",
+    "elevation_m",
+    "station_distance_km",
+    "station_latitude",
+    "station_longitude",
+    "lead_days",
+    "target_month",
+    "target_day_of_year",
+    "target_day_of_year_sin",
+    "target_day_of_year_cos",
+    "historical_rainfall_prior_1d_mm",
+    "historical_rainfall_prior_2d_mm",
+    "historical_rainfall_prior_3d_mean_mm",
+    "historical_rainfall_prior_3d_sum_mm",
+    "historical_rainfall_prior_7d_mean_mm",
+    "historical_rainfall_prior_7d_sum_mm",
+    "has_historical_rainfall_context"
+  ],
+  "hyperparameters": {
+    "id": "candidate_1_conservative_regularized",
+    "name": "Conservative Regularized RF",
+    "n_estimators": 100,
+    "max_depth": 6,
+    "min_samples_split": 10,
+    "min_samples_leaf": 100,
+    "max_features": 0.2,
+    "description": "Shallow depth with high leaf regularisation and 20% feature subsampling to prevent monsoon peak memorization."
+  },
+  "training_dataset": {
+    "source_parquet": "data/ml/features/pune/rainfall_features.parquet",
+    "split_name": "train",
+    "period": "2026-04-13 to 2026-07-31",
+    "row_count": 119082,
+    "training_duration_seconds": 2.36
+  },
+  "validation_dataset": {
+    "split_name": "validation",
+    "period": "2026-08-01 to 2026-08-31",
+    "row_count": 37464
+  },
+  "test_dataset": {
+    "split_name": "test",
+    "period": "2026-09-01 to 2026-09-23",
+    "row_count": 30774,
+    "locked": true
+  },
+  "validation_metrics": {
+    "count": 37464,
+    "mae": 13.5058,
+    "rmse": 14.2457,
+    "bias": 12.3407,
+    "median_abs_error": 14.2792,
+    "pearson_r": 0.261,
+    "r2": -2.8232,
+    "error_quantiles": {
+      "min": -11.7783,
+      "p25": 11.4443,
+      "p50_median_error": 14.2792,
+      "p75": 15.9425,
+      "p90": 19.7972,
+      "max": 21.2268
+    }
+  },
+  "locked_test_metrics": {
+    "count": 30774,
+    "mae": 13.6777,
+    "rmse": 14.1641,
+    "bias": 13.4549,
+    "median_abs_error": 14.2953,
+    "pearson_r": -0.078,
+    "r2": -10.4324,
+    "error_quantiles": {
+      "min": -2.6182,
+      "p25": 13.9961,
+      "p50_median_error": 14.2953,
+      "p75": 15.6553,
+      "p90": 15.8573,
+      "max": 18.9563
+    }
+  },
+  "artifacts": {
+    "model_path": "ml/models/random_forest/best_model.joblib",
+    "preprocessor_path": "ml/models/random_forest/preprocessor.joblib",
+    "config_path": "ml/models/random_forest/config.json",
+    "metadata_path": "ml/models/random_forest/metadata.json"
+  }
+}
