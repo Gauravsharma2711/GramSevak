@@ -99,23 +99,39 @@ class PanchayatPagination(BaseModel):
     )
 
 
-class DistrictItem(BaseModel):
+class DistrictResponse(BaseModel):
     """Schema representing an administrative District."""
     model_config = ConfigDict(from_attributes=True)
     id: int = Field(..., description="Unique District identifier", examples=[1])
     name: str = Field(..., description="District Name", examples=["Nashik", "Pune"])
+    code: Optional[str] = Field(None, description="Administrative District code", examples=["NSK", "PUN"])
     state: str = Field("Maharashtra", description="State", examples=["Maharashtra"])
 
+DistrictItem = DistrictResponse
 
-class BlockItem(BaseModel):
+
+class DistrictListResponse(BaseModel):
+    """Collection envelope for administrative districts."""
+    items: List[DistrictResponse] = Field(..., description="List of administrative districts")
+
+
+class BlockResponse(BaseModel):
     """Schema representing an administrative Block / Tehsil."""
     model_config = ConfigDict(from_attributes=True)
     id: int = Field(..., description="Unique Block identifier", examples=[1])
     district_id: int = Field(..., description="Parent District identifier", examples=[1])
     name: str = Field(..., description="Block Name", examples=["Baglan", "Haveli"])
+    code: Optional[str] = Field(None, description="Administrative Block code", examples=["BAG", "HAV"])
+
+BlockItem = BlockResponse
 
 
-class BlockPanchayatItem(BaseModel):
+class BlockListResponse(BaseModel):
+    """Collection envelope for administrative blocks."""
+    items: List[BlockResponse] = Field(..., description="List of administrative blocks")
+
+
+class PanchayatResponse(BaseModel):
     """
     Canonical hierarchical Panchayat item representing a single Gram Panchayat
     belonging to an administrative Block and District.
@@ -123,7 +139,7 @@ class BlockPanchayatItem(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int = Field(..., description="Unique Panchayat identifier", examples=[1001])
-    lgd_code: int = Field(..., description="Official Local Government Directory (LGD) Panchayat Code", examples=[182597])
+    lgd_code: Optional[int] = Field(None, description="Official Local Government Directory (LGD) Panchayat Code", examples=[182597])
     name: str = Field(..., description="Name of the Gram Panchayat", examples=["Ajmer Saundane"])
     block_id: int = Field(..., description="Administrative Block identifier", examples=[1])
     district_id: int = Field(..., description="Administrative District identifier", examples=[1])
@@ -135,14 +151,18 @@ class BlockPanchayatItem(BaseModel):
     panchayat_id: Optional[int] = Field(None, description="Legacy alias for id")
     panchayat_name: Optional[str] = Field(None, description="Legacy alias for name")
 
+BlockPanchayatItem = PanchayatResponse
 
-class BlockPanchayatPagination(BaseModel):
+
+class PanchayatListResponse(BaseModel):
     """
-    Paginated envelope for hierarchical Block Panchayats retrieval.
+    Paginated collection envelope for hierarchical Block Panchayats retrieval.
     """
     total: int = Field(..., description="Total number of Panchayats matching the criteria", examples=[1388])
     page: int = Field(..., description="Current page number (1-indexed)", examples=[1])
     page_size: int = Field(..., description="Number of items per page", examples=[50])
     total_pages: int = Field(..., description="Total number of available pages", examples=[28])
-    items: List[BlockPanchayatItem] = Field(..., description="List of Panchayats for the current page")
+    items: List[PanchayatResponse] = Field(..., description="List of Panchayats for the current page")
+
+BlockPanchayatPagination = PanchayatListResponse
 

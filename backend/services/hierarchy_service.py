@@ -12,7 +12,7 @@ Key Invariants:
 """
 
 import logging
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any, List, Tuple
 from sqlalchemy.orm import Session
 
 from backend.app.core.database import SessionLocal
@@ -26,6 +26,16 @@ logger = logging.getLogger(__name__)
 
 class HierarchyServiceError(Exception):
     """Base exception for Hierarchy domain service errors."""
+    pass
+
+
+class DistrictNotFoundError(HierarchyServiceError):
+    """Raised when the requested District ID cannot be resolved in the database."""
+    pass
+
+
+class BlockNotFoundError(HierarchyServiceError):
+    """Raised when the requested Block ID cannot be resolved in the database."""
     pass
 
 
@@ -46,6 +56,103 @@ class HierarchyService:
 
     def __init__(self, repository: Optional[HierarchyRepository] = None):
         self.repo = repository or HierarchyRepository()
+
+    def list_districts(self, db: Optional[Session] = None) -> List[District]:
+        """
+        Retrieve all configured administrative districts, ordered deterministically by name.
+        """
+        local_db = False
+        if db is None:
+            db = SessionLocal()
+            local_db = True
+        try:
+            return self.repo.get_districts(db)
+        finally:
+            if local_db:
+                db.close()
+
+    def get_district_by_id(self, district_id: int, db: Optional[Session] = None) -> Optional[District]:
+        """
+        Retrieve a single district by its ID.
+        """
+        local_db = False
+        if db is None:
+            db = SessionLocal()
+            local_db = True
+        try:
+            return self.repo.get_district_by_id(db, district_id)
+        finally:
+            if local_db:
+                db.close()
+
+    def list_blocks_by_district(self, district_id: int, db: Optional[Session] = None) -> List[Block]:
+        """
+        Retrieve all blocks belonging to a specific district ID.
+        Raises DistrictNotFoundError if the district does not exist.
+        """
+        local_db = False
+        if db is None:
+            db = SessionLocal()
+            local_db = True
+        try:
+            dist = self.repo.get_district_by_id(db, district_id)
+            if not dist:
+                raise DistrictNotFoundError(f"District with ID {district_id} not found.")
+            return self.repo.get_blocks_by_district(db, district_id)
+        finally:
+            if local_db:
+                db.close()
+
+    def list_panchayats_by_block(
+        self,
+        block_id: int,
+        page: int = 1,
+        page_size: int = 50,
+        search: Optional[str] = None,
+        db: Optional[Session] = None,
+    ) -> Tuple[List[Panchayat], int]:
+        """
+        Retrieve paginated, searchable panchayats scoped strictly by block ID.
+        Raises BlockNotFoundError if the block does not exist.
+        Returns (items, total_count).
+        """
+        local_db = False
+        if db is None:
+            db = SessionLocal()
+            local_db = True
+        try:
+            block = self.repo.get_block_by_id(db, block_id)
+            if not block:
+                raise BlockNotFoundError(f"Block with ID {block_id} not found.")
+            offset = max(0, (page - 1) * page_size)
+            return self.repo.get_panchayats_by_block(
+                db=db,
+                block_id=block_id,
+                offset=offset,
+                limit=page_size,
+                search=search,
+            )
+        finally:
+            if local_db:
+                db.close()
+
+    def get_panchayat_detail(self, panchayat_id: int, db: Optional[Session] = None) -> Panchayat:
+        """
+        Retrieve a single panchayat by ID with eager loading of block and district.
+        Raises PanchayatNotFoundError if the panchayat is not found.
+        """
+        local_db = False
+        if db is None:
+            db = SessionLocal()
+            local_db = True
+        try:
+            panchayat = self.repo.get_panchayat_by_id(db, panchayat_id, eager_load_parents=True)
+            if not panchayat:
+                raise PanchayatNotFoundError(f"Panchayat with ID {panchayat_id} not found.")
+            return panchayat
+        finally:
+            if local_db:
+                db.close()
 
     def resolve_panchayat_spatial_context(
         self,
