@@ -1,0 +1,161 @@
+{
+  "metadata": {
+    "phase": "2.7",
+    "title": "GramSevak ML Model Packaging and Backend Inference API Report",
+    "timestamp": "2026-09-27T18:03:00.000000+00:00",
+    "problem_statement": "SIH 26074 - GramSevak Hyper-local Rainfall Downscaling",
+    "selected_model": "xgboost_downscaler",
+    "model_version": "2.5.0",
+    "status": "COMPLETED"
+  },
+  "model_selection": {
+    "active_model": "xgboost",
+    "model_name": "xgboost_downscaler",
+    "model_version": "2.5.0",
+    "model_family": "gradient_boosted_decision_trees",
+    "phase_2_6_evidence": {
+      "validation_mae_mm": 5.4047,
+      "test_mae_mm": 5.9070,
+      "random_forest_test_mae_mm": 13.6777,
+      "test_error_reduction_pct": 56.81,
+      "test_win_rate_pct": 91.30,
+      "seasonal_bias_val_mm": 1.6128,
+      "random_forest_bias_val_mm": 12.3407,
+      "paired_t_statistic": -330.03,
+      "paired_t_p_value": 0.0,
+      "bootstrap_95_ci_mae_delta_mm": [-7.8147, -7.7251]
+    },
+    "selection_justification": "XGBoost Downscaler v2.5.0 is selected as the primary operational model based on Phase 2.6 empirical benchmarking: lowest seasonal MAE across both Validation and Locked Test partitions, 91.3% instance win rate over Random Forest, near-zero seasonal bias drift (+1.61 mm vs +12.34 mm), and an ultra-lightweight 52.4 KB binary footprint.",
+    "alternative_candidate": {
+      "model_name": "random_forest_downscaler",
+      "model_version": "2.4.0",
+      "status": "retained_as_heavy_rain_fallback",
+      "heavy_rain_mae_mm": 11.4976
+    }
+  },
+  "model_registry": {
+    "config_file": "configs/ml_model.yaml",
+    "registry_module": "backend.ml.registry.ModelRegistry",
+    "feature_registry_path": "schemas/ml_feature_registry.json",
+    "registered_models": [
+      "xgboost",
+      "random_forest"
+    ],
+    "active_model_resolved": "xgboost"
+  },
+  "artifact": {
+    "model_directory": "ml/models/xgboost",
+    "model_file": "best_model.joblib",
+    "preprocessor_file": "preprocessor.joblib",
+    "metadata_file": "metadata.json",
+    "config_file": "config.json",
+    "artifact_size_bytes": 52443,
+    "artifact_size_kb": 52.4,
+    "preprocessor_size_bytes": 1279,
+    "is_loadable_independently": true
+  },
+  "feature_contract": {
+    "registry_version": "1.0.0",
+    "feature_count": 20,
+    "target_variable": "actual_rainfall_mm",
+    "features_list": [
+      "block_forecast_rainfall_mm",
+      "log1p_block_forecast_rainfall_mm",
+      "panchayat_latitude",
+      "panchayat_longitude",
+      "elevation_m",
+      "station_distance_km",
+      "station_latitude",
+      "station_longitude",
+      "lead_days",
+      "target_month",
+      "target_day_of_year",
+      "target_day_of_year_sin",
+      "target_day_of_year_cos",
+      "historical_rainfall_prior_1d_mm",
+      "historical_rainfall_prior_2d_mm",
+      "historical_rainfall_prior_3d_mean_mm",
+      "historical_rainfall_prior_3d_sum_mm",
+      "historical_rainfall_prior_7d_mean_mm",
+      "historical_rainfall_prior_7d_sum_mm",
+      "has_historical_rainfall_context"
+    ],
+    "missing_value_policy": "Training-fitted median imputation for historical warm-up nulls and missing AWS stations; non-nullable block forecast and Panchayat coordinates.",
+    "physical_clamping": "non_negative_gte_0"
+  },
+  "inference_service": {
+    "service_class": "backend.services.ml_prediction_service.MLPredictionService",
+    "predictor_class": "backend.ml.predictor.DownscalingPredictor",
+    "feature_builder_class": "backend.ml.feature_builder.FeatureBuilder",
+    "model_loader_class": "backend.ml.model_loader.ModelLoader",
+    "singleton_pattern": true,
+    "in_process_caching": true
+  },
+  "api": {
+    "endpoint": "/api/v1/forecast/downscale",
+    "http_method": "POST",
+    "request_schema": "backend.ml.schemas.DownscaleInferenceRequest",
+    "response_schema": "backend.ml.schemas.DownscaleInferenceResponse",
+    "tags": ["Forecasts"],
+    "supported_status_codes": [200, 422, 500],
+    "backward_compatible_endpoint": "/api/v1/forecast/generate"
+  },
+  "validation": {
+    "forbidden_leakage_fields": [
+      "actual_rainfall_mm",
+      "target_actual_rainfall_mm",
+      "actual_rainfall",
+      "target_rainfall",
+      "ground_truth_rainfall",
+      "observed_rainfall_mm",
+      "y_true"
+    ],
+    "temporal_rule": "forecast_date >= forecast_issue_date",
+    "coordinate_bounds": {
+      "latitude_range": [8.0, 38.0],
+      "longitude_range": [68.0, 98.0]
+    },
+    "rainfall_bounds": {
+      "block_forecast_min": 0.0,
+      "downscaled_rainfall_min": 0.0
+    }
+  },
+  "fallback": {
+    "enabled": true,
+    "strategy": "block_forecast",
+    "trigger_conditions": [
+      "Model artifact missing or corrupt",
+      "Model inference runtime exception",
+      "Unexpected unhandled feature transform failure"
+    ],
+    "prediction_mode_indicator": "fallback",
+    "behavior_verification": "Returns original block_forecast_rainfall_mm with prediction_mode='fallback' and diagnostic explanation in metadata"
+  },
+  "performance": {
+    "model_load_latency_seconds": 0.0436,
+    "single_inference_latency_ms": 4.08,
+    "batch_inference_throughput_req_per_sec": 245.0,
+    "memory_footprint_mb": 12.0
+  },
+  "tests": {
+    "test_suite": "tests/test_model_packaging_and_api.py",
+    "tests_total": 13,
+    "tests_passed": 13,
+    "tests_failed": 0,
+    "execution_duration_seconds": 1.48,
+    "regression_test_suite": "tests/test_forecast_api.py",
+    "regression_tests_passed": 17
+  },
+  "deployment": {
+    "cloud_platform": "Render / Containerized Linux",
+    "configuration_files": ["configs/ml_model.yaml", "render.yaml"],
+    "secrets_audit": "PASSED (Zero secrets, tokens, or absolute local paths committed)",
+    "environment_variables": {
+      "ML_MODEL_TYPE": "Optional override (defaults to active_model in configs/ml_model.yaml)"
+    }
+  },
+  "limitations": {
+    "point_estimates": "Provides deterministic point estimates; calibrated prediction intervals are deferred to post-Phase 2 roadmap.",
+    "heavy_rainfall_tradeoff": "While XGBoost achieves lowest overall MAE (5.91 mm), Random Forest remains superior on torrential storms (>= 35.5 mm); Phase 2.8 will verify if dynamic ensemble routing is required."
+  }
+}

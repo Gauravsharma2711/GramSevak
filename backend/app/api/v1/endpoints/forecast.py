@@ -39,6 +39,8 @@ from src.validation.forecast_validation import (
     validate_forecast_output,
     InvalidForecastOutputError,
 )
+from backend.ml.schemas import DownscaleInferenceRequest, DownscaleInferenceResponse
+from backend.services.ml_prediction_service import MLPredictionService
 
 logger = logging.getLogger(__name__)
 
@@ -396,3 +398,41 @@ def get_panchayat_forecast(
         status_code=status.HTTP_404_NOT_FOUND,
         detail=f"No stored downscaled forecast found for Panchayat {panchayat_id}{date_msg}.",
     )
+
+
+@router.post(
+    "/forecast/downscale",
+    response_model=DownscaleInferenceResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Micro-Level Rainfall Downscaling Inference (Phase 2.7)",
+    description=(
+        "Executes Panchayat-level rainfall downscaling using the validated Phase 2 ML model "
+        "(default: XGBoost Downscaler v2.5.0) adhering strictly to Phase 2.2 Feature Registry v1.0.0. "
+        "Guarantees prediction-time boundary compliance, output physical non-negativity (>= 0.0 mm), "
+        "and deterministic fallback behavior without fabricating confidence scores."
+    ),
+    tags=["Forecasts"],
+)
+def downscale_panchayat_forecast(
+    payload: DownscaleInferenceRequest,
+    model_name: Optional[str] = Query(None, description="Optional override of active model ('xgboost', 'random_forest')"),
+) -> DownscaleInferenceResponse:
+    """
+    Generate high-resolution micro-level rainfall forecast for Gram Panchayat:
+    1. Validates strictly prediction-time information boundary (forecast_date >= forecast_issue_date).
+    2. Rejects any ground truth target leakage variables.
+    3. Transforms inputs into 20 approved model features via FeatureBuilder.
+    4. Executes inference using cached model (XGBoost / Random Forest).
+    5. Enforces physical precipitation non-negativity constraint (>= 0.0 mm).
+    6. Falls back deterministically to raw block forecast if model is unavailable.
+    """
+    service = MLPredictionService.get_instance()
+    try:
+        return service.predict_rainfall(payload, model_name=model_name)
+    except Exception as e:
+        logger.error(f"Downscale inference endpoint error: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Inference execution failed: {str(e)}",
+        )
+
