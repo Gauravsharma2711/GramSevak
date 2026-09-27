@@ -1,0 +1,169 @@
+{
+  "phase": "3.2",
+  "report_title": "GramSevak Administrative Hierarchy Database & Backend Foundation Report",
+  "timestamp": "2026-09-28T00:03:00Z",
+  "status": "PASS",
+  "database": {
+    "engine": "PostgreSQL 15+ (Supabase)",
+    "orm": "SQLAlchemy 2.x",
+    "tables": [
+      "districts",
+      "blocks",
+      "panchayats",
+      "weather_observations",
+      "downscaled_forecasts"
+    ],
+    "schema_status": "NORMALIZED_RELATIONAL"
+  },
+  "districts": {
+    "count": 2,
+    "items": [
+      { "id": 1, "name": "Nashik", "state": "Maharashtra", "blocks_count": 15, "panchayats_count": 1388 },
+      { "id": 4, "name": "Pune", "state": "Maharashtra", "blocks_count": 13, "panchayats_count": 1338 }
+    ],
+    "primary_key": "id",
+    "unique_key": "name"
+  },
+  "blocks": {
+    "total_count": 28,
+    "nashik_blocks_count": 15,
+    "pune_blocks_count": 13,
+    "primary_key": "id",
+    "foreign_key": "district_id -> districts.id",
+    "unique_constraint": "uq_blocks_district_name (district_id, name)"
+  },
+  "panchayats": {
+    "total_count": 2726,
+    "nashik_panchayats_count": 1388,
+    "pune_panchayats_count": 1338,
+    "primary_key": "id",
+    "foreign_keys": [
+      "block_id -> blocks.id",
+      "district_id -> districts.id"
+    ],
+    "coordinates_checked": true,
+    "elevation_checked": true
+  },
+  "identifiers": {
+    "primary_key_type": "BIGINT",
+    "nashik_id_range": "1001-2388 (legacy sequential surrogate)",
+    "pune_id_range": "185262-299397 (MoPR LGD integer codes)",
+    "disjoint_ranges": true,
+    "lgd_code_indexed": true
+  },
+  "constraints": {
+    "uq_blocks_district_name": "ENFORCED",
+    "uq_panchayats_id": "ENFORCED",
+    "chk_panchayats_latitude": "[-90.0, 90.0] ENFORCED",
+    "chk_panchayats_longitude": "[-180.0, 180.0] ENFORCED",
+    "chk_panchayats_elevation": "[0.0, 3000.0] ENFORCED"
+  },
+  "indexes": {
+    "districts": ["idx_districts_name"],
+    "blocks": ["idx_blocks_district_id", "idx_blocks_name"],
+    "panchayats": [
+      "idx_panchayats_district_id",
+      "idx_panchayats_block_id",
+      "idx_panchayats_lgd_code",
+      "idx_panchayats_name"
+    ]
+  },
+  "migration": {
+    "strategy": "Additive, zero-downtime, zero data drop",
+    "applied_schema_file": "database/migrations/20260927000001_scalable_weather_schema.sql",
+    "destructive_operations_count": 0
+  },
+  "backfill": {
+    "script": "scripts/backfill_administrative_hierarchy.py",
+    "modes_supported": ["--dry-run", "--real-run"],
+    "source_datasets": [
+      "data/processed/canonical_nashik.parquet",
+      "data/processed/canonical_pune.parquet"
+    ],
+    "idempotency_verified": true
+  },
+  "data_quality": {
+    "nashik_valid": true,
+    "pune_valid": true,
+    "coordinate_anomalies": 0,
+    "elevation_anomalies": 0,
+    "duplicate_blocks": 0,
+    "duplicate_panchayats": 0
+  },
+  "orphans": {
+    "orphan_blocks": 0,
+    "orphan_panchayats_block": 0,
+    "orphan_panchayats_district": 0,
+    "orphan_weather_panchayat": 0,
+    "is_clean": true
+  },
+  "backend_models": {
+    "District": "backend/app/models/district.py",
+    "Block": "backend/app/models/block.py",
+    "Panchayat": "backend/app/models/panchayat.py"
+  },
+  "repositories": {
+    "HierarchyRepository": "backend/app/repositories/hierarchy_repository.py",
+    "methods": [
+      "get_districts",
+      "get_district_by_id",
+      "get_district_by_name",
+      "get_blocks_by_district",
+      "get_block_by_id",
+      "get_block_by_name",
+      "get_panchayats_by_block",
+      "get_panchayat_by_id",
+      "get_panchayat_by_lgd",
+      "get_panchayats_count",
+      "detect_orphans",
+      "upsert_district",
+      "upsert_block",
+      "upsert_panchayat"
+    ]
+  },
+  "services": {
+    "HierarchyService": "backend/services/hierarchy_service.py",
+    "singleton_accessor": "get_hierarchy_service",
+    "methods": [
+      "resolve_panchayat_spatial_context",
+      "validate_hierarchy_parentage",
+      "get_hierarchy_summary"
+    ]
+  },
+  "weather_compatibility": {
+    "total_weather_rows": 188708,
+    "foreign_key_panchayat_id_valid": true,
+    "unlinked_weather_records": 0
+  },
+  "forecast_compatibility": {
+    "downscaled_forecasts_foreign_key_valid": true,
+    "spatial_resolution_dynamic": true
+  },
+  "ml_compatibility": {
+    "inference_service": "MLPredictionService",
+    "inference_request_schema": "DownscaleInferenceRequest",
+    "model": "XGBoost Downscaler v2.5.0",
+    "verified_inference": true
+  },
+  "security": {
+    "row_level_security": "Enabled on all hierarchy tables",
+    "public_read_policies": true,
+    "secrets_in_code": 0,
+    "sql_injection_protection": "100% Parameterized queries"
+  },
+  "performance": {
+    "eager_loading": "joinedload used to eliminate N+1 queries",
+    "indexed_foreign_keys": true,
+    "bounded_pagination": true
+  },
+  "tests": {
+    "suite": "tests/test_hierarchy_foundation.py",
+    "tests_passed": 18,
+    "tests_failed": 0,
+    "regression_tests_passed": 23
+  },
+  "phase_3_3_readiness": {
+    "status": "READY",
+    "comments": "The database foundation, models, repository, and service layer are operational and verified. Phase 3.3 can proceed to implement the public REST hierarchy endpoints."
+  }
+}
