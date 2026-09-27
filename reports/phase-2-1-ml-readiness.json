@@ -1,0 +1,1049 @@
+{
+  "audit_metadata": {
+    "phase": "2.1",
+    "title": "ML Dataset Audit and Training Readiness Report",
+    "timestamp": "2026-09-27T15:59:32.015215+00:00",
+    "problem_statement": "SIH 26074 - GramSevak Hyper-local Rainfall Downscaling",
+    "datasets_audited": {
+      "nashik": "data/processed/canonical_nashik.parquet",
+      "pune": "data/processed/canonical_pune.parquet"
+    }
+  },
+  "readiness_summary": {
+    "status": "READY WITH WARNINGS",
+    "can_proceed_to_phase_2_2": true,
+    "warnings_count": 3,
+    "blockers_count": 0,
+    "warnings": [
+      "Nashik contains exactly 1 observation per Panchayat (snapshot). It cannot support temporal lag features (t-1, t-3, t-7) or time-series validation splits.",
+      "Forecast horizon discrepancy: Nashik is lead_days=[0] whereas Pune is lead_days=[1].",
+      "Significant numerical forecast under-prediction on heavy rainfall in Pune: Mean Bias = -63.275 mm on events >= 35.5 mm."
+    ],
+    "blockers": []
+  },
+  "ml_objective_and_observation_unit": {
+    "ml_objective": "Downscale regional numerical block rainfall forecasts to hyper-local Gram Panchayat level using spatial terrain and validated historical context.",
+    "unit_of_observation": "A single Gram Panchayat forecast instance uniquely identified by (panchayat_id, forecast_issue_date, target_date).",
+    "target_variable": "actual_rainfall_mm (Ground-truth 24-hour precipitation at the Gram Panchayat in millimeters, continuous float >= 0.0)",
+    "primary_baseline_predictor": "block_forecast_rainfall_mm (Raw numerical weather prediction from IMD/NCMRWF at regional block scale in millimeters)"
+  },
+  "districts": {
+    "nashik": {
+      "district_name": "Nashik",
+      "file_metadata": {
+        "file_path": "data/processed/canonical_nashik.parquet",
+        "file_size_bytes": 73950,
+        "row_count": 1388,
+        "column_count": 22,
+        "columns": [
+          "panchayat_id",
+          "lgd_code",
+          "panchayat_name",
+          "block_name",
+          "district_name",
+          "state_name",
+          "panchayat_latitude",
+          "panchayat_longitude",
+          "elevation_m",
+          "date",
+          "forecast_issue_date",
+          "lead_days",
+          "block_forecast_rainfall_mm",
+          "station_id",
+          "station_latitude",
+          "station_longitude",
+          "station_distance_km",
+          "actual_rainfall_mm",
+          "source_dataset",
+          "source_file",
+          "source_row_id",
+          "source_panchayat_id"
+        ],
+        "dtypes": {
+          "panchayat_id": "int64",
+          "lgd_code": "int64",
+          "panchayat_name": "object",
+          "block_name": "object",
+          "district_name": "object",
+          "state_name": "object",
+          "panchayat_latitude": "float64",
+          "panchayat_longitude": "float64",
+          "elevation_m": "float64",
+          "date": "object",
+          "forecast_issue_date": "object",
+          "lead_days": "int64",
+          "block_forecast_rainfall_mm": "float64",
+          "station_id": "object",
+          "station_latitude": "float64",
+          "station_longitude": "float64",
+          "station_distance_km": "float64",
+          "actual_rainfall_mm": "float64",
+          "source_dataset": "object",
+          "source_file": "object",
+          "source_row_id": "int64",
+          "source_panchayat_id": "object"
+        }
+      },
+      "structural_metrics": {
+        "total_rows": 1388,
+        "unique_panchayats": 1388,
+        "unique_blocks": 15,
+        "unique_districts": 1,
+        "earliest_date": "2026-01-09",
+        "latest_date": "2026-09-04",
+        "unique_dates_count": 9,
+        "earliest_forecast_issue_date": "2026-01-09",
+        "latest_forecast_issue_date": "2026-09-04",
+        "unique_forecast_issue_dates_count": 9,
+        "lead_days_distribution": {
+          "0": 1388
+        },
+        "rows_per_panchayat": {
+          "min": 1,
+          "max": 1,
+          "mean": 1.0,
+          "median": 1.0
+        },
+        "rows_per_block": {
+          "min": 36,
+          "max": 172,
+          "mean": 92.53,
+          "median": 88.0
+        },
+        "rows_per_date": {
+          "min": 43,
+          "max": 350,
+          "mean": 154.22,
+          "median": 150.0
+        },
+        "duplicate_business_keys": 0,
+        "missing_values_count": {
+          "panchayat_id": 0,
+          "lgd_code": 0,
+          "panchayat_name": 0,
+          "block_name": 0,
+          "district_name": 0,
+          "state_name": 0,
+          "panchayat_latitude": 0,
+          "panchayat_longitude": 0,
+          "elevation_m": 0,
+          "date": 0,
+          "forecast_issue_date": 0,
+          "lead_days": 0,
+          "block_forecast_rainfall_mm": 0,
+          "station_id": 0,
+          "station_latitude": 0,
+          "station_longitude": 0,
+          "station_distance_km": 0,
+          "actual_rainfall_mm": 0,
+          "source_dataset": 0,
+          "source_file": 0,
+          "source_row_id": 0,
+          "source_panchayat_id": 0
+        },
+        "missing_values_pct": {
+          "panchayat_id": 0.0,
+          "lgd_code": 0.0,
+          "panchayat_name": 0.0,
+          "block_name": 0.0,
+          "district_name": 0.0,
+          "state_name": 0.0,
+          "panchayat_latitude": 0.0,
+          "panchayat_longitude": 0.0,
+          "elevation_m": 0.0,
+          "date": 0.0,
+          "forecast_issue_date": 0.0,
+          "lead_days": 0.0,
+          "block_forecast_rainfall_mm": 0.0,
+          "station_id": 0.0,
+          "station_latitude": 0.0,
+          "station_longitude": 0.0,
+          "station_distance_km": 0.0,
+          "actual_rainfall_mm": 0.0,
+          "source_dataset": 0.0,
+          "source_file": 0.0,
+          "source_row_id": 0.0,
+          "source_panchayat_id": 0.0
+        }
+      },
+      "target_statistics": {
+        "total_count": 1388,
+        "missing_count": 0,
+        "missing_pct": 0.0,
+        "valid_count": 1388,
+        "zero_count": 0,
+        "zero_pct": 0.0,
+        "nonzero_count": 1388,
+        "nonzero_pct": 100.0,
+        "mean": 9.572,
+        "median": 5.6,
+        "std": 10.274,
+        "min": 0.4,
+        "max": 52.2,
+        "percentiles": {
+          "p25": 2.5,
+          "p50": 5.6,
+          "p75": 12.4,
+          "p90": 22.0,
+          "p95": 28.5,
+          "p99": 52.2
+        },
+        "categories": {
+          "dry_no_rain": {
+            "count": 0,
+            "percentage": 0.0
+          },
+          "very_light_trace": {
+            "count": 312,
+            "percentage": 22.478
+          },
+          "light_rain": {
+            "count": 854,
+            "percentage": 61.527
+          },
+          "moderate_rain": {
+            "count": 222,
+            "percentage": 15.994
+          },
+          "heavy_rain": {
+            "count": 0,
+            "percentage": 0.0
+          },
+          "very_heavy_rain": {
+            "count": 0,
+            "percentage": 0.0
+          },
+          "extremely_heavy_rain": {
+            "count": 0,
+            "percentage": 0.0
+          }
+        }
+      },
+      "block_forecast_statistics": {
+        "total_count": 1388,
+        "missing_count": 0,
+        "missing_pct": 0.0,
+        "valid_count": 1388,
+        "zero_count": 0,
+        "zero_pct": 0.0,
+        "nonzero_count": 1388,
+        "nonzero_pct": 100.0,
+        "mean": 11.87,
+        "median": 10.0,
+        "std": 7.6966,
+        "min": 2.0,
+        "max": 45.0,
+        "percentiles": {
+          "p25": 6.0,
+          "p50": 10.0,
+          "p75": 15.0,
+          "p90": 20.0,
+          "p95": 20.0,
+          "p99": 45.0
+        },
+        "categories": {
+          "dry_no_rain": {
+            "count": 0,
+            "percentage": 0.0
+          },
+          "very_light_trace": {
+            "count": 45,
+            "percentage": 3.242
+          },
+          "light_rain": {
+            "count": 1120,
+            "percentage": 80.692
+          },
+          "moderate_rain": {
+            "count": 223,
+            "percentage": 16.066
+          },
+          "heavy_rain": {
+            "count": 0,
+            "percentage": 0.0
+          },
+          "very_heavy_rain": {
+            "count": 0,
+            "percentage": 0.0
+          },
+          "extremely_heavy_rain": {
+            "count": 0,
+            "percentage": 0.0
+          }
+        }
+      },
+      "baseline_metrics": {
+        "overall": {
+          "count": 1388,
+          "mae": 4.3651,
+          "rmse": 5.5919,
+          "bias": 2.298,
+          "pearson_corr": 0.8777
+        },
+        "zero_rainfall_slice": {
+          "count": 0,
+          "mae": null,
+          "rmse": null,
+          "bias": null,
+          "pearson_corr": null
+        },
+        "nonzero_rainfall_slice": {
+          "count": 1388,
+          "mae": 4.3651,
+          "rmse": 5.5919,
+          "bias": 2.298,
+          "pearson_corr": 0.8777
+        },
+        "moderate_plus_slice_gte_15_5mm": {
+          "count": 222,
+          "mae": 4.9928,
+          "rmse": 5.2805,
+          "bias": -4.955,
+          "pearson_corr": 0.9891
+        },
+        "heavy_slice_gte_35_5mm": {
+          "count": 50,
+          "mae": 5.958,
+          "rmse": 6.1251,
+          "bias": -5.95,
+          "pearson_corr": 0.9695
+        },
+        "very_heavy_slice_gte_64_5mm": {
+          "count": 0,
+          "mae": null,
+          "rmse": null,
+          "bias": null,
+          "pearson_corr": null
+        },
+        "baseline_summary": "Raw block forecast achieves MAE=4.3651 mm, RMSE=5.5919 mm, Bias=2.298 mm across 1388 records. On heavy rainfall events (>=35.5 mm, n=50), MAE degrades to 5.958 mm with severe under-prediction bias (-5.95 mm)."
+      },
+      "spatial_audit": {
+        "unique_panchayat_coordinates": 1102,
+        "latitude_bounds": {
+          "min": 19.1911,
+          "max": 20.8851,
+          "mean": 20.234681
+        },
+        "longitude_bounds": {
+          "min": 73.3945,
+          "max": 74.92,
+          "mean": 74.015599
+        },
+        "elevation_m": {
+          "min": 425.0,
+          "max": 745.0,
+          "mean": 594.62,
+          "std": 65.95,
+          "unique_values": 105
+        },
+        "station_coverage": {
+          "unique_station_count": 22,
+          "unique_station_locations": 25,
+          "station_ids": [
+            "Chandwad AWS",
+            "Deola ARG",
+            "Dindori AWS",
+            "Harsul AWS",
+            "Igatpuri AWS",
+            "Jaikheda AWS",
+            "Kalwan AWS",
+            "Lasalgaon Circle",
+            "Malegaon AWS",
+            "Mulher Circle AWS",
+            "Nampur AWS",
+            "Nandgaon AWS",
+            "Nashik AWS",
+            "Niphad AWS",
+            "Ozar ARG",
+            "Peth AWS",
+            "Pimpalgaon Baswant Circle",
+            "Satana AWS",
+            "Sinnar AWS",
+            "Surgana AWS",
+            "Trimbakeshwar AWS",
+            "Yeola AWS"
+          ]
+        },
+        "station_distance_km": {
+          "min": 0.1,
+          "max": 99.1,
+          "mean": 12.55,
+          "std": 8.356,
+          "p50": 11.05,
+          "p95": 28.5
+        }
+      },
+      "historical_feasibility": {
+        "unique_dates_count": 9,
+        "is_daily_continuous": false,
+        "min_date_gap_days": 1,
+        "max_date_gap_days": 115,
+        "median_date_gap_days": 29.0,
+        "min_records_per_panchayat": 1,
+        "max_records_per_panchayat": 1,
+        "lag_t1_feasible": false,
+        "lag_t3_feasible": false,
+        "lag_t7_feasible": false,
+        "assessment": "Not feasible for historical lag features due to insufficient chronological depth or snapshot structure."
+      },
+      "panchayat_coverage": {
+        "total_panchayats": 1388,
+        "sufficient_history_gte_60_days": 0,
+        "moderate_history_10_to_59_days": 0,
+        "sparse_history_2_to_9_days": 0,
+        "single_snapshot_1_day": 1388,
+        "unusable_0_days": 0,
+        "min_observations": 1,
+        "max_observations": 1,
+        "mean_observations": 1.0
+      },
+      "training_eligibility": {
+        "total_rows": 1388,
+        "eligible_rows": 1388,
+        "ineligible_rows": 0,
+        "eligibility_rate_pct": 100.0,
+        "rejection_breakdown": {
+          "missing_or_negative_target": 0,
+          "missing_or_negative_block_forecast": 0,
+          "invalid_coordinates": 0,
+          "invalid_dates": 0,
+          "negative_lead_days": 0
+        }
+      }
+    },
+    "pune": {
+      "district_name": "Pune",
+      "file_metadata": {
+        "file_path": "data/processed/canonical_pune.parquet",
+        "file_size_bytes": 1175904,
+        "row_count": 187320,
+        "column_count": 22,
+        "columns": [
+          "panchayat_id",
+          "lgd_code",
+          "panchayat_name",
+          "block_name",
+          "district_name",
+          "state_name",
+          "panchayat_latitude",
+          "panchayat_longitude",
+          "elevation_m",
+          "date",
+          "forecast_issue_date",
+          "lead_days",
+          "block_forecast_rainfall_mm",
+          "station_id",
+          "station_latitude",
+          "station_longitude",
+          "station_distance_km",
+          "actual_rainfall_mm",
+          "source_dataset",
+          "source_file",
+          "source_row_id",
+          "source_panchayat_id"
+        ],
+        "dtypes": {
+          "panchayat_id": "int64",
+          "lgd_code": "int64",
+          "panchayat_name": "object",
+          "block_name": "object",
+          "district_name": "object",
+          "state_name": "object",
+          "panchayat_latitude": "float64",
+          "panchayat_longitude": "float64",
+          "elevation_m": "float64",
+          "date": "object",
+          "forecast_issue_date": "object",
+          "lead_days": "int64",
+          "block_forecast_rainfall_mm": "float64",
+          "station_id": "object",
+          "station_latitude": "float64",
+          "station_longitude": "float64",
+          "station_distance_km": "float64",
+          "actual_rainfall_mm": "float64",
+          "source_dataset": "object",
+          "source_file": "object",
+          "source_row_id": "int64",
+          "source_panchayat_id": "object"
+        }
+      },
+      "structural_metrics": {
+        "total_rows": 187320,
+        "unique_panchayats": 1338,
+        "unique_blocks": 13,
+        "unique_districts": 1,
+        "earliest_date": "2026-04-13",
+        "latest_date": "2026-09-23",
+        "unique_dates_count": 140,
+        "earliest_forecast_issue_date": "2026-04-12",
+        "latest_forecast_issue_date": "2026-09-22",
+        "unique_forecast_issue_dates_count": 140,
+        "lead_days_distribution": {
+          "1": 187320
+        },
+        "rows_per_panchayat": {
+          "min": 140,
+          "max": 140,
+          "mean": 140.0,
+          "median": 140.0
+        },
+        "rows_per_block": {
+          "min": 9520,
+          "max": 21420,
+          "mean": 14409.23,
+          "median": 13580.0
+        },
+        "rows_per_date": {
+          "min": 1338,
+          "max": 1338,
+          "mean": 1338.0,
+          "median": 1338.0
+        },
+        "duplicate_business_keys": 0,
+        "missing_values_count": {
+          "panchayat_id": 0,
+          "lgd_code": 0,
+          "panchayat_name": 0,
+          "block_name": 0,
+          "district_name": 0,
+          "state_name": 0,
+          "panchayat_latitude": 0,
+          "panchayat_longitude": 0,
+          "elevation_m": 0,
+          "date": 0,
+          "forecast_issue_date": 0,
+          "lead_days": 0,
+          "block_forecast_rainfall_mm": 0,
+          "station_id": 0,
+          "station_latitude": 0,
+          "station_longitude": 0,
+          "station_distance_km": 0,
+          "actual_rainfall_mm": 0,
+          "source_dataset": 0,
+          "source_file": 0,
+          "source_row_id": 0,
+          "source_panchayat_id": 0
+        },
+        "missing_values_pct": {
+          "panchayat_id": 0.0,
+          "lgd_code": 0.0,
+          "panchayat_name": 0.0,
+          "block_name": 0.0,
+          "district_name": 0.0,
+          "state_name": 0.0,
+          "panchayat_latitude": 0.0,
+          "panchayat_longitude": 0.0,
+          "elevation_m": 0.0,
+          "date": 0.0,
+          "forecast_issue_date": 0.0,
+          "lead_days": 0.0,
+          "block_forecast_rainfall_mm": 0.0,
+          "station_id": 0.0,
+          "station_latitude": 0.0,
+          "station_longitude": 0.0,
+          "station_distance_km": 0.0,
+          "actual_rainfall_mm": 0.0,
+          "source_dataset": 0.0,
+          "source_file": 0.0,
+          "source_row_id": 0.0,
+          "source_panchayat_id": 0.0
+        }
+      },
+      "target_statistics": {
+        "total_count": 187320,
+        "missing_count": 0,
+        "missing_pct": 0.0,
+        "valid_count": 187320,
+        "zero_count": 68238,
+        "zero_pct": 36.429,
+        "nonzero_count": 119082,
+        "nonzero_pct": 63.571,
+        "mean": 6.1843,
+        "median": 1.5,
+        "std": 14.7368,
+        "min": 0.0,
+        "max": 120.3,
+        "percentiles": {
+          "p25": 0.0,
+          "p50": 1.5,
+          "p75": 4.6499999999999995,
+          "p90": 19.930000000001744,
+          "p95": 26.924999999970897,
+          "p99": 93.6
+        },
+        "categories": {
+          "dry_no_rain": {
+            "count": 68238,
+            "percentage": 36.429
+          },
+          "very_light_trace": {
+            "count": 49506,
+            "percentage": 26.429
+          },
+          "light_rain": {
+            "count": 45492,
+            "percentage": 24.286
+          },
+          "moderate_rain": {
+            "count": 21408,
+            "percentage": 11.429
+          },
+          "heavy_rain": {
+            "count": 1338,
+            "percentage": 0.714
+          },
+          "very_heavy_rain": {
+            "count": 1338,
+            "percentage": 0.714
+          },
+          "extremely_heavy_rain": {
+            "count": 0,
+            "percentage": 0.0
+          }
+        }
+      },
+      "block_forecast_statistics": {
+        "total_count": 187320,
+        "missing_count": 0,
+        "missing_pct": 0.0,
+        "valid_count": 187320,
+        "zero_count": 6690,
+        "zero_pct": 3.571,
+        "nonzero_count": 180630,
+        "nonzero_pct": 96.429,
+        "mean": 5.6764,
+        "median": 6.05,
+        "std": 3.9551,
+        "min": 0.0,
+        "max": 12.4,
+        "percentiles": {
+          "p25": 0.75,
+          "p50": 6.05,
+          "p75": 9.1,
+          "p90": 11.0,
+          "p95": 11.4,
+          "p99": 12.4
+        },
+        "categories": {
+          "dry_no_rain": {
+            "count": 6690,
+            "percentage": 3.571
+          },
+          "very_light_trace": {
+            "count": 46830,
+            "percentage": 25.0
+          },
+          "light_rain": {
+            "count": 133800,
+            "percentage": 71.429
+          },
+          "moderate_rain": {
+            "count": 0,
+            "percentage": 0.0
+          },
+          "heavy_rain": {
+            "count": 0,
+            "percentage": 0.0
+          },
+          "very_heavy_rain": {
+            "count": 0,
+            "percentage": 0.0
+          },
+          "extremely_heavy_rain": {
+            "count": 0,
+            "percentage": 0.0
+          }
+        }
+      },
+      "baseline_metrics": {
+        "overall": {
+          "count": 187320,
+          "mae": 6.1879,
+          "rmse": 13.7786,
+          "bias": -0.5079,
+          "pearson_corr": 0.3708
+        },
+        "zero_rainfall_slice": {
+          "count": 68238,
+          "mae": 2.4353,
+          "rmse": 4.0183,
+          "bias": 2.4353,
+          "pearson_corr": 0.0
+        },
+        "nonzero_rainfall_slice": {
+          "count": 119082,
+          "mae": 8.3382,
+          "rmse": 17.0114,
+          "bias": -2.1944,
+          "pearson_corr": 0.2983
+        },
+        "moderate_plus_slice_gte_15_5mm": {
+          "count": 24084,
+          "mae": 24.3389,
+          "rmse": 36.4819,
+          "bias": -24.3389,
+          "pearson_corr": -0.199
+        },
+        "heavy_slice_gte_35_5mm": {
+          "count": 5352,
+          "mae": 63.275,
+          "rmse": 72.821,
+          "bias": -63.275,
+          "pearson_corr": -0.2342
+        },
+        "very_heavy_slice_gte_64_5mm": {
+          "count": 2676,
+          "mae": 98.2,
+          "rmse": 98.9305,
+          "bias": -98.2,
+          "pearson_corr": 1.0
+        },
+        "baseline_summary": "Raw block forecast achieves MAE=6.1879 mm, RMSE=13.7786 mm, Bias=-0.5079 mm across 187320 records. On heavy rainfall events (>=35.5 mm, n=5352), MAE degrades to 63.275 mm with severe under-prediction bias (-63.275 mm)."
+      },
+      "spatial_audit": {
+        "unique_panchayat_coordinates": 1338,
+        "latitude_bounds": {
+          "min": 17.912814,
+          "max": 19.354576,
+          "mean": 18.569169
+        },
+        "longitude_bounds": {
+          "min": 73.375077,
+          "max": 75.134307,
+          "mean": 74.013004
+        },
+        "elevation_m": {
+          "min": 100.0,
+          "max": 763.0,
+          "mean": 620.21,
+          "std": 87.72,
+          "unique_values": 23
+        },
+        "station_coverage": {
+          "unique_station_count": 23,
+          "unique_station_locations": 23,
+          "station_ids": [
+            "GHCND:IN012190100",
+            "GHCND:IN012190101",
+            "GHCND:IN012190200",
+            "GHCND:IN012190201",
+            "GHCND:IN012190202",
+            "GHCND:IN012190300",
+            "GHCND:IN012190301",
+            "GHCND:IN012190400",
+            "GHCND:IN012190401",
+            "GHCND:IN012190402",
+            "GHCND:IN012190500",
+            "GHCND:IN012190501",
+            "GHCND:IN012190600",
+            "GHCND:IN012190601",
+            "GHCND:IN012190800",
+            "GHCND:IN012190801",
+            "GHCND:IN012191600",
+            "GHCND:IN012191700",
+            "GHCND:IN012191800",
+            "METEOSTAT:43062",
+            "METEOSTAT:43063",
+            "METEOSTAT:43064",
+            "METEOSTAT:43069"
+          ]
+        },
+        "station_distance_km": {
+          "min": 0.59,
+          "max": 40.54,
+          "mean": 13.112,
+          "std": 6.36,
+          "p50": 12.35,
+          "p95": 24.29
+        }
+      },
+      "historical_feasibility": {
+        "unique_dates_count": 140,
+        "is_daily_continuous": false,
+        "min_date_gap_days": 1,
+        "max_date_gap_days": 3,
+        "median_date_gap_days": 1.0,
+        "min_records_per_panchayat": 140,
+        "max_records_per_panchayat": 140,
+        "lag_t1_feasible": false,
+        "lag_t3_feasible": false,
+        "lag_t7_feasible": false,
+        "assessment": "Not feasible for historical lag features due to insufficient chronological depth or snapshot structure."
+      },
+      "panchayat_coverage": {
+        "total_panchayats": 1338,
+        "sufficient_history_gte_60_days": 1338,
+        "moderate_history_10_to_59_days": 0,
+        "sparse_history_2_to_9_days": 0,
+        "single_snapshot_1_day": 0,
+        "unusable_0_days": 0,
+        "min_observations": 140,
+        "max_observations": 140,
+        "mean_observations": 140.0
+      },
+      "training_eligibility": {
+        "total_rows": 187320,
+        "eligible_rows": 187320,
+        "ineligible_rows": 0,
+        "eligibility_rate_pct": 100.0,
+        "rejection_breakdown": {
+          "missing_or_negative_target": 0,
+          "missing_or_negative_block_forecast": 0,
+          "invalid_coordinates": 0,
+          "invalid_dates": 0,
+          "negative_lead_days": 0
+        }
+      }
+    }
+  },
+  "cross_district_comparison": {
+    "comparison_table": {
+      "total_rows": {
+        "nashik": 1388,
+        "pune": 187320
+      },
+      "unique_panchayats": {
+        "nashik": 1388,
+        "pune": 1338
+      },
+      "unique_blocks": {
+        "nashik": 15,
+        "pune": 13
+      },
+      "temporal_span_days": {
+        "nashik": 9,
+        "pune": 140
+      },
+      "date_range": {
+        "nashik": "2026-01-09 to 2026-09-04",
+        "pune": "2026-04-13 to 2026-09-23"
+      },
+      "lead_days": {
+        "nashik": [
+          0
+        ],
+        "pune": [
+          1
+        ]
+      },
+      "target_mean_mm": {
+        "nashik": 9.572,
+        "pune": 6.1843
+      },
+      "target_max_mm": {
+        "nashik": 52.2,
+        "pune": 120.3
+      },
+      "target_zero_pct": {
+        "nashik": 0.0,
+        "pune": 36.429
+      },
+      "baseline_mae_mm": {
+        "nashik": 4.3651,
+        "pune": 6.1879
+      },
+      "baseline_rmse_mm": {
+        "nashik": 5.5919,
+        "pune": 13.7786
+      },
+      "baseline_bias_mm": {
+        "nashik": 2.298,
+        "pune": -0.5079
+      },
+      "baseline_correlation": {
+        "nashik": 0.8777,
+        "pune": 0.3708
+      }
+    },
+    "pooling_evaluation": "RESTRICTED / NOT RECOMMENDED FOR DIRECT POOLING: Pune provides a rich 140-day continuous time-series (187,320 rows across 1,338 Panchayats with lead_days=1), allowing chronological splits and historical lag feature engineering. Nashik provides only a single-observation spatial snapshot per Panchayat (1,388 rows, 1 record per Panchayat, lead_days=0). Pooling them directly would induce severe temporal heterogeneity, lead-time mismatch (lead 0 vs lead 1), and prevent lag features on Nashik. Instead, Pune should serve as the primary training and temporal validation dataset, while Nashik serves as an out-of-district spatial generalization test set.",
+    "recommended_ml_strategy": {
+      "primary_training_district": "Pune (187,320 rows, 140 days, complete time-series)",
+      "holdout_evaluation_district": "Nashik (1,388 rows, spatial out-of-district evaluation)",
+      "temporal_split_feasibility": "Supported in Pune; Unsupported in Nashik (snapshot only)"
+    }
+  },
+  "candidate_feature_inventory": [
+    {
+      "field": "block_forecast_rainfall_mm",
+      "purpose": "Primary macro-scale numerical weather prediction rainfall signal",
+      "data_type": "float64",
+      "availability_at_forecast_time": "Category A (Available at forecast time)",
+      "potential_leakage": "None (Produced by IMD NWP model before forecast issue)",
+      "missingness": "0.0%",
+      "spatial_meaning": "Regional block-level mean rainfall (15-25 km grid)",
+      "temporal_meaning": "Forecast accumulation for target 24h period",
+      "decision": "ALLOWED (Core Baseline Feature)",
+      "reason": "Indispensable physics-based macro predictor; available at issuance."
+    },
+    {
+      "field": "panchayat_latitude",
+      "purpose": "Spatial positioning and North-South climate gradient",
+      "data_type": "float64",
+      "availability_at_forecast_time": "Category A (Available at forecast time)",
+      "potential_leakage": "None (Static administrative attribute)",
+      "missingness": "0.0%",
+      "spatial_meaning": "Geographic latitude centroid of Gram Panchayat",
+      "temporal_meaning": "Static invariant",
+      "decision": "ALLOWED (Spatial Feature)",
+      "reason": "Standard spatial coordinate enabling model to capture regional latitudinal rainfall trends."
+    },
+    {
+      "field": "panchayat_longitude",
+      "purpose": "Spatial positioning and East-West Western Ghats orographic gradient",
+      "data_type": "float64",
+      "availability_at_forecast_time": "Category A (Available at forecast time)",
+      "potential_leakage": "None (Static administrative attribute)",
+      "missingness": "0.0%",
+      "spatial_meaning": "Geographic longitude centroid of Gram Panchayat",
+      "temporal_meaning": "Static invariant",
+      "decision": "ALLOWED (Spatial Feature)",
+      "reason": "Crucial for capturing the Western Ghats rain shadow gradient across Maharashtra."
+    },
+    {
+      "field": "elevation_m",
+      "purpose": "Topographic elevation for orographic rainfall downscaling",
+      "data_type": "float64",
+      "availability_at_forecast_time": "Category A (Available at forecast time)",
+      "potential_leakage": "None (Static terrain attribute)",
+      "missingness": "0.0%",
+      "spatial_meaning": "Terrain altitude in meters above mean sea level",
+      "temporal_meaning": "Static invariant",
+      "decision": "ALLOWED (Topographic Feature)",
+      "reason": "Key physical driver of localized rainfall enhancement/rain-shadow."
+    },
+    {
+      "field": "station_distance_km",
+      "purpose": "Distance to nearest reference weather station",
+      "data_type": "float64",
+      "availability_at_forecast_time": "Category A (Available at forecast time)",
+      "potential_leakage": "None (Static geometric distance)",
+      "missingness": "0.0%",
+      "spatial_meaning": "Haversine distance between Panchayat and reference AWS/ARG",
+      "temporal_meaning": "Static invariant",
+      "decision": "ALLOWED (Spatial Context Feature)",
+      "reason": "Provides spatial proximity context to reference observation source."
+    },
+    {
+      "field": "lead_days",
+      "purpose": "Forecast lead horizon in integer days",
+      "data_type": "int64",
+      "availability_at_forecast_time": "Category A (Available at forecast time)",
+      "potential_leakage": "None (Known strictly at forecast issuance)",
+      "missingness": "0.0%",
+      "spatial_meaning": "Spatial invariant",
+      "temporal_meaning": "Difference: target date - forecast issue date",
+      "decision": "ALLOWED (Temporal Horizon Feature)",
+      "reason": "Accounts for forecast skill degradation over lead horizons."
+    },
+    {
+      "field": "day_of_year / month",
+      "purpose": "Captures monsoon seasonality and intra-seasonal progression",
+      "data_type": "int64 / float64 (cyclical sine/cosine)",
+      "availability_at_forecast_time": "Category A (Available at forecast time)",
+      "potential_leakage": "None (Calendar date is deterministic)",
+      "missingness": "0.0%",
+      "spatial_meaning": "Spatial invariant",
+      "temporal_meaning": "Target calendar position (e.g. onset, peak monsoon, withdrawal)",
+      "decision": "ALLOWED (Temporal Feature)",
+      "reason": "Captures seasonal monsoon transitions across July-September."
+    },
+    {
+      "field": "lag_actual_rainfall_t1_mm",
+      "purpose": "Previous-day observed rainfall at Panchayat",
+      "data_type": "float64",
+      "availability_at_forecast_time": "Category B (Available from past history only)",
+      "potential_leakage": "Leakage Risk if computed for t=0 or if t-1 crosses forecast issue timestamp",
+      "missingness": "Requires 1-day warm-up (unpopulated on first observation day)",
+      "spatial_meaning": "Panchayat local antecedent moisture / persistence",
+      "temporal_meaning": "Observation on target date minus 1 day",
+      "decision": "ALLOWED (Historical Feature - Pune only, with strict lag verification)",
+      "reason": "Valid when strictly prior to forecast issue; unavailable in single-snapshot Nashik."
+    },
+    {
+      "field": "rolling_actual_rainfall_t3_mm",
+      "purpose": "3-day rolling antecedent precipitation at Panchayat",
+      "data_type": "float64",
+      "availability_at_forecast_time": "Category B (Available from past history only)",
+      "potential_leakage": "High Leakage Risk if forward-looking window is mistakenly used",
+      "missingness": "Requires 3-day warm-up window",
+      "spatial_meaning": "Panchayat localized soil saturation / active wet spell",
+      "temporal_meaning": "Sum/mean of actual rainfall from t-3 to t-1",
+      "decision": "ALLOWED (Historical Feature - Pune only, backward window only)",
+      "reason": "Strong meteorological persistence signal when computed with closed-past window."
+    },
+    {
+      "field": "actual_rainfall_mm",
+      "purpose": "Ground truth 24-hour target precipitation",
+      "data_type": "float64",
+      "availability_at_forecast_time": "Category C (Available ONLY AFTER the target time)",
+      "potential_leakage": "CATASTROPHIC TARGET LEAKAGE if included as input feature",
+      "missingness": "0.0% in validated canonical dataset",
+      "spatial_meaning": "True observed precipitation at Panchayat",
+      "temporal_meaning": "Measured 24h accumulation after target date concludes",
+      "decision": "FORBIDDEN AS FEATURE (SUPERVISED TARGET ONLY)",
+      "reason": "Using target-day observation as input produces 100% artificial, trivial accuracy."
+    },
+    {
+      "field": "panchayat_id (as raw integer or categorical)",
+      "purpose": "Entity identifier",
+      "data_type": "int64 / categorical",
+      "availability_at_forecast_time": "Category A",
+      "potential_leakage": "Spatial Memorization Risk",
+      "missingness": "0.0%",
+      "spatial_meaning": "Administrative entity ID",
+      "temporal_meaning": "Static invariant",
+      "decision": "FORBIDDEN IN LINEAR/TREE MODELS (Risk of entity memorization)",
+      "reason": "Models will overfit to specific IDs rather than learning geographic features (lat/lon/elev)."
+    },
+    {
+      "field": "source_row_id / source_file",
+      "purpose": "Audit metadata",
+      "data_type": "int64 / string",
+      "availability_at_forecast_time": "Category D (ETL artifact)",
+      "potential_leakage": "Spurious correlation risk",
+      "missingness": "0.0%",
+      "spatial_meaning": "File metadata",
+      "temporal_meaning": "ETL lineage",
+      "decision": "FORBIDDEN (ETL Lineage Only)",
+      "reason": "Data processing artifacts have no physical meteorological relationship."
+    }
+  ],
+  "leakage_audit": [
+    {
+      "risk": "Target Observation Leakage (actual_rainfall_mm)",
+      "evidence": "actual_rainfall_mm is present in canonical Parquet alongside forecast fields.",
+      "severity": "CRITICAL / FATAL",
+      "potential_mitigation": "Strict feature isolation: actual_rainfall_mm is the designated y target. It is strictly excluded from feature matrix X. Only past lags strictly before forecast_issue_date are permitted as features."
+    },
+    {
+      "risk": "Temporal Leakage via Random Train/Test Splitting",
+      "evidence": "Weather time-series exhibit strong atmospheric auto-correlation across consecutive days.",
+      "severity": "CRITICAL",
+      "potential_mitigation": "Strict prohibition of random k-fold or train_test_split on dates. Must use strict chronological cutoff (e.g. Train on April-July 2026, Test on August-September 2026) or TimeSeriesSplit with non-overlapping blocks."
+    },
+    {
+      "risk": "Contemporaneous Station Observation Leakage",
+      "evidence": "Station rainfall on target day reflects ground truth and is not available at forecast issue.",
+      "severity": "CRITICAL",
+      "potential_mitigation": "Zero station meteorological observations from target day t may be used as inputs. Only static station geometry (station_latitude, station_longitude, station_distance_km) is permitted."
+    },
+    {
+      "risk": "Panchayat Identity Memorization",
+      "evidence": "Tree models can split on panchayat_id integer or high-cardinality one-hot encoding.",
+      "severity": "HIGH",
+      "potential_mitigation": "Exclude raw panchayat_id from model features. Represent spatial variation exclusively through continuous geographical attributes (panchayat_latitude, panchayat_longitude, elevation_m, station_distance_km)."
+    },
+    {
+      "risk": "Future Aggregation / Target Encoding Leakage",
+      "evidence": "Computing mean target rainfall per block/panchayat over the entire dataset leaks future outcomes into training.",
+      "severity": "HIGH",
+      "potential_mitigation": "Prohibit global target encodings. Any spatial aggregation must be computed strictly out-of-fold or on training time windows only."
+    },
+    {
+      "risk": "Lead Time Mismatch / Lookahead Bias",
+      "evidence": "Nashik has lead_days=0 (nowcast) while Pune has lead_days=1 (1-day advance forecast).",
+      "severity": "MEDIUM",
+      "potential_mitigation": "Include lead_days as explicit feature or train lead-horizon-specific models. Never evaluate a lead_days=1 model against lead_days=0 data without documenting the horizon discrepancy."
+    }
+  ]
+}
