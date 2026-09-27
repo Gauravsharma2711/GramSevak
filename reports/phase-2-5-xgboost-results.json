@@ -1,0 +1,1225 @@
+{
+  "metadata": {
+    "phase": "2.5",
+    "title": "XGBoost Downscaling Model Training & Evaluation Report",
+    "timestamp": "2026-09-27T17:43:25.486460+00:00",
+    "problem_statement": "SIH 26074 - GramSevak Hyper-local Rainfall Downscaling",
+    "contract_authority": "docs/phase-2-1-ml-data-contract.md",
+    "feature_registry_authority": "schemas/ml_feature_registry.json",
+    "split_authority": "configs/ml_split.yaml",
+    "pipeline_runtime_seconds": 6.1
+  },
+  "dataset": {
+    "pune_features_parquet": "data/ml/features/pune/rainfall_features.parquet",
+    "nashik_features_parquet": "data/ml/features/nashik/rainfall_features.parquet",
+    "pune_total_rows": 187320,
+    "nashik_total_rows": 1388,
+    "approved_features_count": 20,
+    "target_variable": "actual_rainfall_mm"
+  },
+  "target": {
+    "name": "actual_rainfall_mm",
+    "type": "float64",
+    "unit": "mm",
+    "clamping_constraint": "y_pred >= 0.0 mm"
+  },
+  "features": {
+    "count": 20,
+    "names": [
+      "block_forecast_rainfall_mm",
+      "log1p_block_forecast_rainfall_mm",
+      "panchayat_latitude",
+      "panchayat_longitude",
+      "elevation_m",
+      "station_distance_km",
+      "station_latitude",
+      "station_longitude",
+      "lead_days",
+      "target_month",
+      "target_day_of_year",
+      "target_day_of_year_sin",
+      "target_day_of_year_cos",
+      "historical_rainfall_prior_1d_mm",
+      "historical_rainfall_prior_2d_mm",
+      "historical_rainfall_prior_3d_mean_mm",
+      "historical_rainfall_prior_3d_sum_mm",
+      "historical_rainfall_prior_7d_mean_mm",
+      "historical_rainfall_prior_7d_sum_mm",
+      "has_historical_rainfall_context"
+    ],
+    "registry_version": "1.0.0"
+  },
+  "split": {
+    "split_key": "date",
+    "issue_key": "forecast_issue_date",
+    "total_input_rows": 187320,
+    "total_partitioned_rows": 187320,
+    "train": {
+      "start_date": "2026-04-13",
+      "end_date": "2026-07-31",
+      "unique_dates": 89,
+      "row_count": 119082,
+      "percentage": 63.57,
+      "panchayat_count": 1338
+    },
+    "validation": {
+      "start_date": "2026-08-01",
+      "end_date": "2026-08-31",
+      "unique_dates": 28,
+      "row_count": 37464,
+      "percentage": 20.0,
+      "panchayat_count": 1338
+    },
+    "test": {
+      "start_date": "2026-09-01",
+      "end_date": "2026-09-23",
+      "unique_dates": 23,
+      "row_count": 30774,
+      "percentage": 16.43,
+      "panchayat_count": 1338,
+      "locked": true
+    },
+    "panchayat_overlap": {
+      "total_unique_panchayats": 1338,
+      "shared_across_train_val_test": 1338,
+      "shared_percentage": 100.0,
+      "panchayats_only_in_train": 0,
+      "panchayats_only_in_test": 0
+    }
+  },
+  "training": {
+    "algorithm": "XGBRegressor",
+    "framework": "xgboost",
+    "version": "3.4.1",
+    "fitted_rows": 119082,
+    "feature_count": 20,
+    "random_seed": 42,
+    "training_duration_seconds": 0.7,
+    "best_iteration": 1,
+    "best_score": 5.404686502047947,
+    "in_sample_metrics": {
+      "count": 119082,
+      "mae": 9.4738,
+      "rmse": 16.7578,
+      "bias": -0.001,
+      "median_abs_error": 6.6748,
+      "pearson_r": 0.9984,
+      "r2": 0.1136,
+      "error_quantiles": {
+        "min": -106.5491,
+        "p25": 1.4727,
+        "p50_median_error": 6.6735,
+        "p75": 6.6748,
+        "p90": 6.6832,
+        "max": 6.7425
+      }
+    }
+  },
+  "hyperparameters": {
+    "search_strategy": "Controlled Validation Grid Search with Early Stopping",
+    "selection_metric": "validation_mae",
+    "selection_justification": "Validation MAE was explicitly established as the primary downscaling metric in Phase 2.3. Minimizing MAE directly minimizes expected hyper-local absolute prediction errors for advisory services.",
+    "candidates_evaluated_count": 6,
+    "selected_candidate": {
+      "id": "candidate_1_deep_regularized_early_stopping",
+      "name": "Deep Regularized XGBoost (Early Stopping)",
+      "n_estimators": 200,
+      "max_depth": 6,
+      "learning_rate": 0.03,
+      "subsample": 0.8,
+      "colsample_bytree": 0.7,
+      "reg_alpha": 1.0,
+      "reg_lambda": 5.0,
+      "min_child_weight": 20.0,
+      "early_stopping_rounds": 15,
+      "description": "Deep expressive trees with L1/L2 regularization and early stopping on validation MAE."
+    },
+    "candidate_results": [
+      {
+        "candidate_id": "candidate_1_deep_regularized_early_stopping",
+        "name": "Deep Regularized XGBoost (Early Stopping)",
+        "parameters": {
+          "n_estimators": 200,
+          "max_depth": 6,
+          "learning_rate": 0.03,
+          "subsample": 0.8,
+          "colsample_bytree": 0.7,
+          "reg_alpha": 1.0,
+          "reg_lambda": 5.0,
+          "min_child_weight": 20.0,
+          "early_stopping_rounds": 15,
+          "random_state": 42
+        },
+        "fit_time_seconds": 0.42,
+        "best_iteration": 1,
+        "best_validation_score": 5.404686502047947,
+        "train_mae": 9.4738,
+        "train_rmse": 16.7578,
+        "validation_mae": 5.4047,
+        "validation_rmse": 7.3652,
+        "validation_bias": 1.6128,
+        "validation_pearson_r": 0.4857,
+        "validation_r2": -0.0219,
+        "selected": true
+      },
+      {
+        "candidate_id": "candidate_2_conservative_shallow_early_stopping",
+        "name": "Conservative Shallow XGBoost (Early Stopping)",
+        "parameters": {
+          "n_estimators": 200,
+          "max_depth": 4,
+          "learning_rate": 0.03,
+          "subsample": 0.8,
+          "colsample_bytree": 0.6,
+          "reg_alpha": 2.0,
+          "reg_lambda": 10.0,
+          "min_child_weight": 30.0,
+          "early_stopping_rounds": 15,
+          "random_state": 42
+        },
+        "fit_time_seconds": 0.44,
+        "best_iteration": 0,
+        "best_validation_score": 5.688666641712189,
+        "train_mae": 9.7783,
+        "train_rmse": 17.2799,
+        "validation_mae": 5.6887,
+        "validation_rmse": 7.6218,
+        "validation_bias": 1.8222,
+        "validation_pearson_r": -0.3044,
+        "validation_r2": -0.0944,
+        "selected": false
+      },
+      {
+        "candidate_id": "candidate_3_medium_depth_early_stopping",
+        "name": "Medium Depth Regularized XGBoost (Early Stopping)",
+        "parameters": {
+          "n_estimators": 200,
+          "max_depth": 5,
+          "learning_rate": 0.03,
+          "subsample": 0.7,
+          "colsample_bytree": 0.6,
+          "reg_alpha": 5.0,
+          "reg_lambda": 15.0,
+          "min_child_weight": 50.0,
+          "early_stopping_rounds": 15,
+          "random_state": 42
+        },
+        "fit_time_seconds": 0.48,
+        "best_iteration": 1,
+        "best_validation_score": 5.621181343282972,
+        "train_mae": 9.4954,
+        "train_rmse": 16.7761,
+        "validation_mae": 5.6212,
+        "validation_rmse": 7.5268,
+        "validation_bias": 1.8138,
+        "validation_pearson_r": -0.0618,
+        "validation_r2": -0.0673,
+        "selected": false
+      },
+      {
+        "candidate_id": "candidate_4_shallow_fast_stopping",
+        "name": "Shallow Fast-Stopping XGBoost",
+        "parameters": {
+          "n_estimators": 150,
+          "max_depth": 3,
+          "learning_rate": 0.05,
+          "subsample": 0.8,
+          "colsample_bytree": 0.5,
+          "reg_alpha": 1.0,
+          "reg_lambda": 5.0,
+          "min_child_weight": 50.0,
+          "early_stopping_rounds": 15,
+          "random_state": 42
+        },
+        "fit_time_seconds": 0.41,
+        "best_iteration": 1,
+        "best_validation_score": 5.755771594388144,
+        "train_mae": 9.3038,
+        "train_rmse": 16.4584,
+        "validation_mae": 5.7558,
+        "validation_rmse": 7.4485,
+        "validation_bias": 2.1098,
+        "validation_pearson_r": 0.4718,
+        "validation_r2": -0.0452,
+        "selected": false
+      },
+      {
+        "candidate_id": "candidate_5_high_l1_sparsity",
+        "name": "High L1 Sparsity XGBoost",
+        "parameters": {
+          "n_estimators": 200,
+          "max_depth": 4,
+          "learning_rate": 0.03,
+          "subsample": 0.8,
+          "colsample_bytree": 0.5,
+          "reg_alpha": 10.0,
+          "reg_lambda": 10.0,
+          "min_child_weight": 50.0,
+          "early_stopping_rounds": 15,
+          "random_state": 42
+        },
+        "fit_time_seconds": 0.38,
+        "best_iteration": 0,
+        "best_validation_score": 5.6885389515331815,
+        "train_mae": 9.7784,
+        "train_rmse": 17.28,
+        "validation_mae": 5.6885,
+        "validation_rmse": 7.6218,
+        "validation_bias": 1.822,
+        "validation_pearson_r": -0.3043,
+        "validation_r2": -0.0944,
+        "selected": false
+      },
+      {
+        "candidate_id": "candidate_6_fixed_rounds_regularized",
+        "name": "Fixed Rounds Regularized XGBoost",
+        "parameters": {
+          "n_estimators": 25,
+          "max_depth": 4,
+          "learning_rate": 0.02,
+          "subsample": 0.8,
+          "colsample_bytree": 0.6,
+          "reg_alpha": 5.0,
+          "reg_lambda": 20.0,
+          "min_child_weight": 50.0,
+          "early_stopping_rounds": null,
+          "random_state": 42
+        },
+        "fit_time_seconds": 0.4,
+        "best_iteration": 25,
+        "best_validation_score": null,
+        "train_mae": 6.6242,
+        "train_rmse": 11.2232,
+        "validation_mae": 9.0486,
+        "validation_rmse": 9.6534,
+        "validation_bias": 6.3506,
+        "validation_pearson_r": 0.0919,
+        "validation_r2": -0.7556,
+        "selected": false
+      }
+    ]
+  },
+  "validation_metrics": {
+    "overall": {
+      "count": 37464,
+      "mae": 5.4047,
+      "rmse": 7.3652,
+      "bias": 1.6128,
+      "median_abs_error": 4.1752,
+      "pearson_r": 0.4857,
+      "r2": -0.0219,
+      "error_quantiles": {
+        "min": -27.6395,
+        "p25": 1.8211,
+        "p50_median_error": 4.0671,
+        "p75": 4.738,
+        "p90": 6.0089,
+        "max": 6.9089
+      }
+    },
+    "occurrence": {
+      "threshold_mm": 0.001,
+      "true_rain_events": 37464,
+      "predicted_rain_events": 37464,
+      "confusion_matrix": {
+        "tp": 37464,
+        "fp": 0,
+        "fn": 0,
+        "tn": 0
+      },
+      "accuracy": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "zero_rainfall_slice": {
+      "count": 0,
+      "mae": null,
+      "rmse": null,
+      "bias": null,
+      "median_abs_error": null,
+      "pearson_r": null,
+      "r2": null,
+      "error_quantiles": {}
+    },
+    "nonzero_rainfall_slice": {
+      "count": 37464,
+      "mae": 5.4047,
+      "rmse": 7.3652,
+      "bias": 1.6128,
+      "median_abs_error": 4.1752,
+      "pearson_r": 0.4857,
+      "r2": -0.0219,
+      "error_quantiles": {
+        "min": -27.6395,
+        "p25": 1.8211,
+        "p50_median_error": 4.0671,
+        "p75": 4.738,
+        "p90": 6.0089,
+        "max": 6.9089
+      }
+    },
+    "moderate_plus_slice_gte_15_5mm": {
+      "count": 4014,
+      "mae": 17.3395,
+      "rmse": 18.8074,
+      "bias": -17.3395,
+      "median_abs_error": 12.3395,
+      "pearson_r": 0.0,
+      "r2": -5.6664,
+      "error_quantiles": {
+        "min": -27.6395,
+        "p25": -27.6395,
+        "p50_median_error": -12.3395,
+        "p75": -12.0395,
+        "p90": -12.0395,
+        "max": -12.0395
+      }
+    },
+    "heavy_slice_gte_35_5mm": {
+      "count": 1338,
+      "mae": 27.6395,
+      "rmse": 27.6395,
+      "bias": -27.6395,
+      "median_abs_error": 27.6395,
+      "pearson_r": 0.0,
+      "r2": 0.0,
+      "error_quantiles": {
+        "min": -27.6395,
+        "p25": -27.6395,
+        "p50_median_error": -27.6395,
+        "p75": -27.6395,
+        "p90": -27.6395,
+        "max": -27.6395
+      }
+    },
+    "very_heavy_slice_gte_64_5mm": {
+      "count": 0,
+      "mae": null,
+      "rmse": null,
+      "bias": null,
+      "median_abs_error": null,
+      "pearson_r": null,
+      "r2": null,
+      "error_quantiles": {}
+    }
+  },
+  "test_metrics": {
+    "overall": {
+      "count": 30774,
+      "mae": 5.907,
+      "rmse": 6.1865,
+      "bias": 4.552,
+      "median_abs_error": 5.6089,
+      "pearson_r": 0.0002,
+      "r2": -1.1809,
+      "error_quantiles": {
+        "min": -10.8911,
+        "p25": 5.2506,
+        "p50_median_error": 5.6089,
+        "p75": 6.9089,
+        "p90": 7.4089,
+        "max": 7.5089
+      }
+    },
+    "occurrence": {
+      "threshold_mm": 0.001,
+      "true_rain_events": 28098,
+      "predicted_rain_events": 30774,
+      "confusion_matrix": {
+        "tp": 28098,
+        "fp": 2676,
+        "fn": 0,
+        "tn": 0
+      },
+      "accuracy": 0.913,
+      "precision": 0.913,
+      "recall": 1.0,
+      "f1": 0.9545
+    },
+    "zero_rainfall_slice": {
+      "count": 2676,
+      "mae": 7.4797,
+      "rmse": 7.4798,
+      "bias": 7.4797,
+      "median_abs_error": 7.4797,
+      "pearson_r": 0.0,
+      "r2": 0.0,
+      "error_quantiles": {
+        "min": 7.4506,
+        "p25": 7.4506,
+        "p50_median_error": 7.4797,
+        "p75": 7.5089,
+        "p90": 7.5089,
+        "max": 7.5089
+      }
+    },
+    "nonzero_rainfall_slice": {
+      "count": 28098,
+      "mae": 5.7572,
+      "rmse": 6.0489,
+      "bias": 4.2732,
+      "median_abs_error": 5.6089,
+      "pearson_r": -0.0192,
+      "r2": -0.9976,
+      "error_quantiles": {
+        "min": -10.8911,
+        "p25": 5.2506,
+        "p50_median_error": 5.6089,
+        "p75": 6.0089,
+        "p90": 7.1089,
+        "max": 7.4089
+      }
+    },
+    "moderate_plus_slice_gte_15_5mm": {
+      "count": 1338,
+      "mae": 10.8911,
+      "rmse": 10.8911,
+      "bias": -10.8911,
+      "median_abs_error": 10.8911,
+      "pearson_r": 0.0,
+      "r2": 0.0,
+      "error_quantiles": {
+        "min": -10.8911,
+        "p25": -10.8911,
+        "p50_median_error": -10.8911,
+        "p75": -10.8911,
+        "p90": -10.8911,
+        "max": -10.8911
+      }
+    },
+    "heavy_slice_gte_35_5mm": {
+      "count": 0,
+      "mae": null,
+      "rmse": null,
+      "bias": null,
+      "median_abs_error": null,
+      "pearson_r": null,
+      "r2": null,
+      "error_quantiles": {}
+    },
+    "very_heavy_slice_gte_64_5mm": {
+      "count": 0,
+      "mae": null,
+      "rmse": null,
+      "bias": null,
+      "median_abs_error": null,
+      "pearson_r": null,
+      "r2": null,
+      "error_quantiles": {}
+    }
+  },
+  "baseline_comparison": {
+    "pune_validation": {
+      "metrics_summary": {
+        "block_forecast": {
+          "mae": 5.7464,
+          "rmse": 7.1634,
+          "bias": 2.6893,
+          "pearson_r": 0.4256
+        },
+        "linear_regression": {
+          "mae": 18.3521,
+          "rmse": 18.8882,
+          "bias": 17.6377,
+          "pearson_r": 0.382
+        },
+        "random_forest": {
+          "mae": 13.5058,
+          "rmse": 14.2457,
+          "bias": 12.3407,
+          "pearson_r": 0.261
+        },
+        "xgboost": {
+          "mae": 5.4047,
+          "rmse": 7.3652,
+          "bias": 1.6128,
+          "pearson_r": 0.4857
+        }
+      },
+      "xgb_vs_block_comparison": {
+        "mae_delta_mm": -0.3417,
+        "mae_improvement_pct": 5.95,
+        "rmse_delta_mm": 0.2018,
+        "rmse_improvement_pct": -2.82,
+        "bias_reduction_mm": 1.0765
+      },
+      "xgb_vs_linear_improvement": {
+        "mae_delta_mm": -12.9474,
+        "mae_improvement_pct": 70.55,
+        "rmse_delta_mm": -11.523,
+        "rmse_improvement_pct": 61.01,
+        "bias_reduction_mm": 16.0249
+      },
+      "xgb_vs_random_forest_comparison": {
+        "mae_delta_mm": -8.1011,
+        "mae_improvement_pct": 59.98,
+        "rmse_delta_mm": -6.8805,
+        "rmse_improvement_pct": 48.3,
+        "bias_delta_mm": -10.7279
+      }
+    },
+    "pune_test_locked": {
+      "metrics_summary": {
+        "block_forecast": {
+          "mae": 4.5783,
+          "rmse": 5.0508,
+          "bias": 2.8739,
+          "pearson_r": 0.161
+        },
+        "linear_regression": {
+          "mae": 23.9176,
+          "rmse": 24.1842,
+          "bias": 23.9176,
+          "pearson_r": 0.5437
+        },
+        "random_forest": {
+          "mae": 13.6777,
+          "rmse": 14.1641,
+          "bias": 13.4549,
+          "pearson_r": -0.078
+        },
+        "xgboost": {
+          "mae": 5.907,
+          "rmse": 6.1865,
+          "bias": 4.552,
+          "pearson_r": 0.0002
+        }
+      },
+      "xgb_vs_block_comparison": {
+        "mae_delta_mm": 1.3287,
+        "mae_improvement_pct": -29.02,
+        "rmse_delta_mm": 1.1357,
+        "rmse_improvement_pct": -22.49,
+        "bias_reduction_mm": -1.6781
+      },
+      "xgb_vs_linear_improvement": {
+        "mae_delta_mm": -18.0106,
+        "mae_improvement_pct": 75.3,
+        "rmse_delta_mm": -17.9977,
+        "rmse_improvement_pct": 74.42,
+        "bias_reduction_mm": 19.3656
+      },
+      "xgb_vs_random_forest_comparison": {
+        "mae_delta_mm": -7.7707,
+        "mae_improvement_pct": 56.81,
+        "rmse_delta_mm": -7.9776,
+        "rmse_improvement_pct": 56.32,
+        "bias_delta_mm": -8.9029
+      }
+    },
+    "nashik_out_of_district": {
+      "metrics_summary": {
+        "block_forecast": {
+          "mae": 4.3651,
+          "rmse": 5.5919,
+          "bias": 2.298,
+          "pearson_r": 0.8777
+        },
+        "linear_regression": {
+          "mae": 12.8697,
+          "rmse": 16.3147,
+          "bias": 11.0297,
+          "pearson_r": 0.2806
+        },
+        "random_forest": {
+          "mae": 7.8966,
+          "rmse": 11.4317,
+          "bias": -2.0812,
+          "pearson_r": 0.1046
+        },
+        "xgboost": {
+          "mae": 7.1062,
+          "rmse": 10.5818,
+          "bias": -2.5801,
+          "pearson_r": 0.0543
+        }
+      },
+      "xgb_vs_block_comparison": {
+        "mae_delta_mm": 2.7411,
+        "mae_improvement_pct": -62.8,
+        "rmse_delta_mm": 4.9899,
+        "rmse_improvement_pct": -89.23,
+        "bias_reduction_mm": -0.2821
+      },
+      "xgb_vs_linear_improvement": {
+        "mae_delta_mm": -5.7635,
+        "mae_improvement_pct": 44.78,
+        "rmse_delta_mm": -5.7329,
+        "rmse_improvement_pct": 35.14,
+        "bias_reduction_mm": 8.4496
+      },
+      "xgb_vs_random_forest_comparison": {
+        "mae_delta_mm": -0.7904,
+        "mae_improvement_pct": 10.01,
+        "rmse_delta_mm": -0.8499,
+        "rmse_improvement_pct": 7.43,
+        "bias_delta_mm": -0.4989
+      }
+    },
+    "heavy_rainfall_analysis": {
+      "heavy_rain_events_count": 1338,
+      "block_forecast_heavy_mae": 24.5,
+      "linear_regression_heavy_mae": 10.0026,
+      "random_forest_heavy_mae": 11.4976,
+      "xgboost_heavy_mae": 27.6395
+    }
+  },
+  "random_forest_comparison": {
+    "note": "Descriptive comparison only. Final multi-model evaluation and selection belongs to Phase 2.6.",
+    "pune_validation_mae": {
+      "random_forest": 13.5058,
+      "xgboost": 5.4047,
+      "delta_mm": -8.1011,
+      "xgb_improvement_pct": 59.98
+    },
+    "pune_test_locked_mae": {
+      "random_forest": 13.6777,
+      "xgboost": 5.907,
+      "delta_mm": -7.7707,
+      "xgb_improvement_pct": 56.81
+    }
+  },
+  "feature_importance": {
+    "primary_method": "gain",
+    "rankings_gain": [
+      {
+        "rank": 1,
+        "feature": "historical_rainfall_prior_2d_mm",
+        "importance": 0.371681,
+        "cumulative_importance": 0.371681,
+        "raw_score": 2618318.0,
+        "importance_type": "gain"
+      },
+      {
+        "rank": 2,
+        "feature": "target_day_of_year",
+        "importance": 0.139273,
+        "cumulative_importance": 0.510953,
+        "raw_score": 981110.625,
+        "importance_type": "gain"
+      },
+      {
+        "rank": 3,
+        "feature": "target_day_of_year_cos",
+        "importance": 0.135294,
+        "cumulative_importance": 0.646247,
+        "raw_score": 953080.4375,
+        "importance_type": "gain"
+      },
+      {
+        "rank": 4,
+        "feature": "target_day_of_year_sin",
+        "importance": 0.119443,
+        "cumulative_importance": 0.765689,
+        "raw_score": 841417.375,
+        "importance_type": "gain"
+      },
+      {
+        "rank": 5,
+        "feature": "historical_rainfall_prior_7d_sum_mm",
+        "importance": 0.054599,
+        "cumulative_importance": 0.820288,
+        "raw_score": 384622.6562,
+        "importance_type": "gain"
+      },
+      {
+        "rank": 6,
+        "feature": "block_forecast_rainfall_mm",
+        "importance": 0.040181,
+        "cumulative_importance": 0.860469,
+        "raw_score": 283055.3125,
+        "importance_type": "gain"
+      },
+      {
+        "rank": 7,
+        "feature": "log1p_block_forecast_rainfall_mm",
+        "importance": 0.039522,
+        "cumulative_importance": 0.899991,
+        "raw_score": 278413.5625,
+        "importance_type": "gain"
+      },
+      {
+        "rank": 8,
+        "feature": "historical_rainfall_prior_7d_mean_mm",
+        "importance": 0.028849,
+        "cumulative_importance": 0.928839,
+        "raw_score": 203224.5625,
+        "importance_type": "gain"
+      },
+      {
+        "rank": 9,
+        "feature": "historical_rainfall_prior_3d_sum_mm",
+        "importance": 0.028507,
+        "cumulative_importance": 0.957347,
+        "raw_score": 200819.9688,
+        "importance_type": "gain"
+      },
+      {
+        "rank": 10,
+        "feature": "target_month",
+        "importance": 0.018601,
+        "cumulative_importance": 0.975948,
+        "raw_score": 131038.375,
+        "importance_type": "gain"
+      },
+      {
+        "rank": 11,
+        "feature": "historical_rainfall_prior_1d_mm",
+        "importance": 0.016286,
+        "cumulative_importance": 0.992234,
+        "raw_score": 114724.4922,
+        "importance_type": "gain"
+      },
+      {
+        "rank": 12,
+        "feature": "historical_rainfall_prior_3d_mean_mm",
+        "importance": 0.004406,
+        "cumulative_importance": 0.99664,
+        "raw_score": 31039.125,
+        "importance_type": "gain"
+      },
+      {
+        "rank": 13,
+        "feature": "has_historical_rainfall_context",
+        "importance": 0.00336,
+        "cumulative_importance": 1.0,
+        "raw_score": 23671.7246,
+        "importance_type": "gain"
+      },
+      {
+        "rank": 14,
+        "feature": "panchayat_latitude",
+        "importance": 0.0,
+        "cumulative_importance": 1.0,
+        "raw_score": 0.0,
+        "importance_type": "gain"
+      },
+      {
+        "rank": 15,
+        "feature": "panchayat_longitude",
+        "importance": 0.0,
+        "cumulative_importance": 1.0,
+        "raw_score": 0.0,
+        "importance_type": "gain"
+      },
+      {
+        "rank": 16,
+        "feature": "elevation_m",
+        "importance": 0.0,
+        "cumulative_importance": 1.0,
+        "raw_score": 0.0,
+        "importance_type": "gain"
+      },
+      {
+        "rank": 17,
+        "feature": "station_distance_km",
+        "importance": 0.0,
+        "cumulative_importance": 1.0,
+        "raw_score": 0.0,
+        "importance_type": "gain"
+      },
+      {
+        "rank": 18,
+        "feature": "station_latitude",
+        "importance": 0.0,
+        "cumulative_importance": 1.0,
+        "raw_score": 0.0,
+        "importance_type": "gain"
+      },
+      {
+        "rank": 19,
+        "feature": "station_longitude",
+        "importance": 0.0,
+        "cumulative_importance": 1.0,
+        "raw_score": 0.0,
+        "importance_type": "gain"
+      },
+      {
+        "rank": 20,
+        "feature": "lead_days",
+        "importance": 0.0,
+        "cumulative_importance": 1.0,
+        "raw_score": 0.0,
+        "importance_type": "gain"
+      }
+    ],
+    "rankings_weight": [
+      {
+        "rank": 1,
+        "feature": "block_forecast_rainfall_mm",
+        "importance": 0.257271,
+        "cumulative_importance": 0.257271,
+        "raw_score": 115.0,
+        "importance_type": "weight"
+      },
+      {
+        "rank": 2,
+        "feature": "target_day_of_year",
+        "importance": 0.223714,
+        "cumulative_importance": 0.480984,
+        "raw_score": 100.0,
+        "importance_type": "weight"
+      },
+      {
+        "rank": 3,
+        "feature": "target_day_of_year_sin",
+        "importance": 0.134228,
+        "cumulative_importance": 0.615213,
+        "raw_score": 60.0,
+        "importance_type": "weight"
+      },
+      {
+        "rank": 4,
+        "feature": "log1p_block_forecast_rainfall_mm",
+        "importance": 0.114094,
+        "cumulative_importance": 0.729306,
+        "raw_score": 51.0,
+        "importance_type": "weight"
+      },
+      {
+        "rank": 5,
+        "feature": "target_day_of_year_cos",
+        "importance": 0.080537,
+        "cumulative_importance": 0.809843,
+        "raw_score": 36.0,
+        "importance_type": "weight"
+      },
+      {
+        "rank": 6,
+        "feature": "historical_rainfall_prior_2d_mm",
+        "importance": 0.076063,
+        "cumulative_importance": 0.885906,
+        "raw_score": 34.0,
+        "importance_type": "weight"
+      },
+      {
+        "rank": 7,
+        "feature": "historical_rainfall_prior_7d_mean_mm",
+        "importance": 0.044743,
+        "cumulative_importance": 0.930649,
+        "raw_score": 20.0,
+        "importance_type": "weight"
+      },
+      {
+        "rank": 8,
+        "feature": "has_historical_rainfall_context",
+        "importance": 0.022371,
+        "cumulative_importance": 0.95302,
+        "raw_score": 10.0,
+        "importance_type": "weight"
+      },
+      {
+        "rank": 9,
+        "feature": "historical_rainfall_prior_1d_mm",
+        "importance": 0.01566,
+        "cumulative_importance": 0.96868,
+        "raw_score": 7.0,
+        "importance_type": "weight"
+      },
+      {
+        "rank": 10,
+        "feature": "target_month",
+        "importance": 0.013423,
+        "cumulative_importance": 0.982103,
+        "raw_score": 6.0,
+        "importance_type": "weight"
+      },
+      {
+        "rank": 11,
+        "feature": "historical_rainfall_prior_3d_sum_mm",
+        "importance": 0.008949,
+        "cumulative_importance": 0.991051,
+        "raw_score": 4.0,
+        "importance_type": "weight"
+      },
+      {
+        "rank": 12,
+        "feature": "historical_rainfall_prior_7d_sum_mm",
+        "importance": 0.006711,
+        "cumulative_importance": 0.997763,
+        "raw_score": 3.0,
+        "importance_type": "weight"
+      },
+      {
+        "rank": 13,
+        "feature": "historical_rainfall_prior_3d_mean_mm",
+        "importance": 0.002237,
+        "cumulative_importance": 1.0,
+        "raw_score": 1.0,
+        "importance_type": "weight"
+      },
+      {
+        "rank": 14,
+        "feature": "panchayat_latitude",
+        "importance": 0.0,
+        "cumulative_importance": 1.0,
+        "raw_score": 0.0,
+        "importance_type": "weight"
+      },
+      {
+        "rank": 15,
+        "feature": "panchayat_longitude",
+        "importance": 0.0,
+        "cumulative_importance": 1.0,
+        "raw_score": 0.0,
+        "importance_type": "weight"
+      },
+      {
+        "rank": 16,
+        "feature": "elevation_m",
+        "importance": 0.0,
+        "cumulative_importance": 1.0,
+        "raw_score": 0.0,
+        "importance_type": "weight"
+      },
+      {
+        "rank": 17,
+        "feature": "station_distance_km",
+        "importance": 0.0,
+        "cumulative_importance": 1.0,
+        "raw_score": 0.0,
+        "importance_type": "weight"
+      },
+      {
+        "rank": 18,
+        "feature": "station_latitude",
+        "importance": 0.0,
+        "cumulative_importance": 1.0,
+        "raw_score": 0.0,
+        "importance_type": "weight"
+      },
+      {
+        "rank": 19,
+        "feature": "station_longitude",
+        "importance": 0.0,
+        "cumulative_importance": 1.0,
+        "raw_score": 0.0,
+        "importance_type": "weight"
+      },
+      {
+        "rank": 20,
+        "feature": "lead_days",
+        "importance": 0.0,
+        "cumulative_importance": 1.0,
+        "raw_score": 0.0,
+        "importance_type": "weight"
+      }
+    ],
+    "top_5_gain": [
+      {
+        "rank": 1,
+        "feature": "historical_rainfall_prior_2d_mm",
+        "importance": 0.371681,
+        "cumulative_importance": 0.371681,
+        "raw_score": 2618318.0,
+        "importance_type": "gain"
+      },
+      {
+        "rank": 2,
+        "feature": "target_day_of_year",
+        "importance": 0.139273,
+        "cumulative_importance": 0.510953,
+        "raw_score": 981110.625,
+        "importance_type": "gain"
+      },
+      {
+        "rank": 3,
+        "feature": "target_day_of_year_cos",
+        "importance": 0.135294,
+        "cumulative_importance": 0.646247,
+        "raw_score": 953080.4375,
+        "importance_type": "gain"
+      },
+      {
+        "rank": 4,
+        "feature": "target_day_of_year_sin",
+        "importance": 0.119443,
+        "cumulative_importance": 0.765689,
+        "raw_score": 841417.375,
+        "importance_type": "gain"
+      },
+      {
+        "rank": 5,
+        "feature": "historical_rainfall_prior_7d_sum_mm",
+        "importance": 0.054599,
+        "cumulative_importance": 0.820288,
+        "raw_score": 384622.6562,
+        "importance_type": "gain"
+      }
+    ]
+  },
+  "leakage_checks": {
+    "status": "PASSED",
+    "temporal_ordering_verified": true,
+    "max_train_date": "2026-07-31",
+    "min_val_date": "2026-08-01",
+    "max_val_date": "2026-08-31",
+    "min_test_date": "2026-09-01",
+    "target_variable_excluded_from_features": true,
+    "imputer_fitted_strictly_on_train": true,
+    "imputer_learned_statistics_count": 20,
+    "index_overlap_counts": {
+      "train_val": 0,
+      "val_test": 0,
+      "train_test": 0
+    },
+    "date_overlap_counts": {
+      "train_val": 0,
+      "val_test": 0,
+      "train_test": 0
+    },
+    "test_set_lock_enforced": true
+  },
+  "artifact": {
+    "model_path": "ml/models/xgboost/model.joblib",
+    "best_model_path": "ml/models/xgboost/best_model.joblib",
+    "preprocessor_path": "ml/models/xgboost/preprocessor.joblib",
+    "metadata_path": "ml/models/xgboost/metadata.json",
+    "config_path": "ml/models/xgboost/config.json",
+    "report_path": "reports/phase-2-5-xgboost-results.json"
+  },
+  "reproducibility": {
+    "script": "scripts/train_xgboost.py",
+    "seed": 42,
+    "deterministic": true,
+    "xgboost_version": "3.4.1",
+    "python_version": "3.12.7 | packaged by Anaconda, Inc. | (main, Oct  4 2024, 13:17:27) [MSC v.1929 64 bit (AMD64)]"
+  },
+  "spatial_and_temporal_diagnostics": {
+    "panchayat_spatial_val": {
+      "panchayats_evaluated": 1338,
+      "min_mae": 5.4047,
+      "p25_mae": 5.4047,
+      "median_mae": 5.4047,
+      "p75_mae": 5.4047,
+      "max_mae": 5.4047,
+      "mean_mae": 5.4047,
+      "std_mae": 0.0
+    },
+    "panchayat_spatial_test": {
+      "panchayats_evaluated": 1338,
+      "min_mae": 5.907,
+      "p25_mae": 5.907,
+      "median_mae": 5.907,
+      "p75_mae": 5.907,
+      "max_mae": 5.907,
+      "mean_mae": 5.907,
+      "std_mae": 0.0
+    },
+    "panchayat_spatial_nashik": {
+      "panchayats_evaluated": 1388,
+      "min_mae": 0.2044,
+      "p25_mae": 3.7294,
+      "median_mae": 5.4505,
+      "p75_mae": 6.3252,
+      "max_mae": 45.2505,
+      "mean_mae": 7.1062,
+      "std_mae": 7.8406
+    },
+    "monthly_breakdown_pune": {
+      "4": {
+        "count": 20070,
+        "mae": 6.6412,
+        "rmse": 6.642,
+        "bias": 6.6412,
+        "median_abs_error": 6.6748,
+        "pearson_r": 0.1648,
+        "r2": -4314.6955,
+        "error_quantiles": {
+          "min": 6.2748,
+          "p25": 6.6735,
+          "p50_median_error": 6.6748,
+          "p75": 6.6748,
+          "p90": 6.6748,
+          "max": 6.6748
+        }
+      },
+      "5": {
+        "count": 33450,
+        "mae": 6.6649,
+        "rmse": 6.6688,
+        "bias": 6.0694,
+        "median_abs_error": 6.6748,
+        "pearson_r": 0.9969,
+        "r2": -4.1635,
+        "error_quantiles": {
+          "min": -7.4437,
+          "p25": 6.6735,
+          "p50_median_error": 6.6748,
+          "p75": 6.6748,
+          "p90": 6.6789,
+          "max": 6.7084
+        }
+      },
+      "6": {
+        "count": 30774,
+        "mae": 6.3756,
+        "rmse": 7.5525,
+        "bias": 3.2875,
+        "median_abs_error": 6.6789,
+        "pearson_r": 0.9881,
+        "r2": -0.1,
+        "error_quantiles": {
+          "min": -20.9025,
+          "p25": 2.3445,
+          "p50_median_error": 6.5832,
+          "p75": 6.6832,
+          "p90": 6.7084,
+          "max": 6.7425
+        }
+      },
+      "7": {
+        "count": 34788,
+        "mae": 16.5495,
+        "rmse": 29.0278,
+        "bias": -12.579,
+        "median_abs_error": 6.6732,
+        "pearson_r": 0.9985,
+        "r2": -0.091,
+        "error_quantiles": {
+          "min": -106.5491,
+          "p25": -16.8967,
+          "p50_median_error": -4.5342,
+          "p75": 5.0768,
+          "p90": 6.6724,
+          "max": 6.6739
+        }
+      },
+      "8": {
+        "count": 37464,
+        "mae": 5.4047,
+        "rmse": 7.3652,
+        "bias": 1.6128,
+        "median_abs_error": 4.1752,
+        "pearson_r": 0.4857,
+        "r2": -0.0219,
+        "error_quantiles": {
+          "min": -27.6395,
+          "p25": 1.8211,
+          "p50_median_error": 4.0671,
+          "p75": 4.738,
+          "p90": 6.0089,
+          "max": 6.9089
+        }
+      },
+      "9": {
+        "count": 30774,
+        "mae": 5.907,
+        "rmse": 6.1865,
+        "bias": 4.552,
+        "median_abs_error": 5.6089,
+        "pearson_r": 0.0002,
+        "r2": -1.1809,
+        "error_quantiles": {
+          "min": -10.8911,
+          "p25": 5.2506,
+          "p50_median_error": 5.6089,
+          "p75": 6.9089,
+          "p90": 7.4089,
+          "max": 7.5089
+        }
+      }
+    }
+  }
+}
