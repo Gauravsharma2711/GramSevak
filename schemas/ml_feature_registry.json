@@ -1,0 +1,296 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gramsevak.gov.in/schemas/ml_feature_registry.json",
+  "title": "GramSevakMLFeatureRegistry",
+  "description": "Authoritative registry of model-ready input features for Panchayat-level rainfall downscaling under the Phase 2.1 ML Data Contract.",
+  "version": "1.0.0",
+  "phase": "2.2",
+  "target_definition": {
+    "name": "actual_rainfall_mm",
+    "type": "float64",
+    "unit": "mm",
+    "description": "Ground truth 24-hour observed precipitation at Gram Panchayat. Strictly isolated as prediction target y and forbidden from feature matrix X.",
+    "physical_range": [0.0, 1000.0]
+  },
+  "metadata_identifiers": [
+    "panchayat_id",
+    "lgd_code",
+    "panchayat_name",
+    "block_name",
+    "district_name",
+    "date",
+    "forecast_issue_date"
+  ],
+  "features": [
+    {
+      "name": "block_forecast_rainfall_mm",
+      "source_fields": ["block_forecast_rainfall_mm"],
+      "category": "A. Block Forecast",
+      "type": "float64",
+      "unit": "mm",
+      "available_at_prediction": true,
+      "lookback_days": 0,
+      "leakage_risk": "none",
+      "missing_policy": "Forbidden to be null; records with null block forecast are ineligible for ML.",
+      "description": "Primary regional numerical weather prediction (NWP) 24-hour precipitation forecast issued by IMD/NCMRWF at block scale."
+    },
+    {
+      "name": "log1p_block_forecast_rainfall_mm",
+      "source_fields": ["block_forecast_rainfall_mm"],
+      "category": "A. Block Forecast Transformation",
+      "type": "float64",
+      "unit": "log(1 + mm)",
+      "available_at_prediction": true,
+      "lookback_days": 0,
+      "leakage_risk": "none",
+      "missing_policy": "Derived from block_forecast_rainfall_mm via log1p. Handles zeros smoothly and normalizes skewed precipitation distribution.",
+      "description": "Natural logarithm of (1 + block_forecast_rainfall_mm) to compress severe right-skewness while preserving 0 mm dry-day identity."
+    },
+    {
+      "name": "panchayat_latitude",
+      "source_fields": ["panchayat_latitude"],
+      "category": "B. Geographic Coordinates",
+      "type": "float64",
+      "unit": "decimal degrees",
+      "available_at_prediction": true,
+      "lookback_days": 0,
+      "leakage_risk": "none",
+      "missing_policy": "Forbidden to be null; static administrative centroid coordinate.",
+      "description": "Centroid latitude (WGS84) of the Gram Panchayat, capturing the North-South climatic precipitation gradient."
+    },
+    {
+      "name": "panchayat_longitude",
+      "source_fields": ["panchayat_longitude"],
+      "category": "B. Geographic Coordinates",
+      "type": "float64",
+      "unit": "decimal degrees",
+      "available_at_prediction": true,
+      "lookback_days": 0,
+      "leakage_risk": "none",
+      "missing_policy": "Forbidden to be null; static administrative centroid coordinate.",
+      "description": "Centroid longitude (WGS84) of the Gram Panchayat, capturing the orographic distance from the Western Ghats ridgeline."
+    },
+    {
+      "name": "elevation_m",
+      "source_fields": ["elevation_m"],
+      "category": "C. Topography",
+      "type": "float64",
+      "unit": "meters",
+      "available_at_prediction": true,
+      "lookback_days": 0,
+      "leakage_risk": "none",
+      "missing_policy": "Static terrain altitude above mean sea level. Non-null float.",
+      "description": "Terrain elevation in meters, acting as the primary physical driver of localized orographic precipitation enhancement."
+    },
+    {
+      "name": "station_distance_km",
+      "source_fields": ["station_distance_km"],
+      "category": "D. Station Spatial Context",
+      "type": "float64",
+      "unit": "km",
+      "available_at_prediction": true,
+      "lookback_days": 0,
+      "leakage_risk": "none",
+      "missing_policy": "Great-circle Haversine distance between Panchayat centroid and reference weather station. Non-null float.",
+      "description": "Geometric proximity in kilometers to the nearest reference Automatic Weather Station (AWS) / Rain Gauge."
+    },
+    {
+      "name": "station_latitude",
+      "source_fields": ["station_latitude"],
+      "category": "D. Station Spatial Context",
+      "type": "float64",
+      "unit": "decimal degrees",
+      "available_at_prediction": true,
+      "lookback_days": 0,
+      "leakage_risk": "none",
+      "missing_policy": "Latitude of reference weather station (WGS84). Non-null float.",
+      "description": "Geographical latitude of the reference Automatic Weather Station."
+    },
+    {
+      "name": "station_longitude",
+      "source_fields": ["station_longitude"],
+      "category": "D. Station Spatial Context",
+      "type": "float64",
+      "unit": "decimal degrees",
+      "available_at_prediction": true,
+      "lookback_days": 0,
+      "leakage_risk": "none",
+      "missing_policy": "Longitude of reference weather station (WGS84). Non-null float.",
+      "description": "Geographical longitude of the reference Automatic Weather Station."
+    },
+    {
+      "name": "lead_days",
+      "source_fields": ["date", "forecast_issue_date"],
+      "category": "E. Forecast Horizon",
+      "type": "int64",
+      "unit": "days",
+      "available_at_prediction": true,
+      "lookback_days": 0,
+      "leakage_risk": "none",
+      "missing_policy": "Computed as (date - forecast_issue_date). Must be an integer >= 0.",
+      "description": "Forecast lead horizon in integer days, accounting for temporal decay of numerical weather model predictive skill."
+    },
+    {
+      "name": "target_month",
+      "source_fields": ["date"],
+      "category": "F. Calendar / Seasonality",
+      "type": "int64",
+      "unit": "month (1-12)",
+      "available_at_prediction": true,
+      "lookback_days": 0,
+      "leakage_risk": "none",
+      "missing_policy": "Extracted deterministically from target date. Non-null integer.",
+      "description": "Calendar month of the forecast target date, identifying pre-monsoon, peak monsoon, and post-monsoon phases."
+    },
+    {
+      "name": "target_day_of_year",
+      "source_fields": ["date"],
+      "category": "F. Calendar / Seasonality",
+      "type": "int64",
+      "unit": "day of year (1-366)",
+      "available_at_prediction": true,
+      "lookback_days": 0,
+      "leakage_risk": "none",
+      "missing_policy": "Extracted deterministically from target date. Non-null integer.",
+      "description": "Sequential day of the year (1 to 366) of the forecast target date."
+    },
+    {
+      "name": "target_day_of_year_sin",
+      "source_fields": ["date"],
+      "category": "F. Calendar / Seasonality",
+      "type": "float64",
+      "unit": "dimensionless (-1.0 to 1.0)",
+      "available_at_prediction": true,
+      "lookback_days": 0,
+      "leakage_risk": "none",
+      "missing_policy": "sin(2 * pi * day_of_year / 365.25). Non-null float.",
+      "description": "Sine cyclical transformation of day of year to preserve annual continuity across calendar boundary."
+    },
+    {
+      "name": "target_day_of_year_cos",
+      "source_fields": ["date"],
+      "category": "F. Calendar / Seasonality",
+      "type": "float64",
+      "unit": "dimensionless (-1.0 to 1.0)",
+      "available_at_prediction": true,
+      "lookback_days": 0,
+      "leakage_risk": "none",
+      "missing_policy": "cos(2 * pi * day_of_year / 365.25). Non-null float.",
+      "description": "Cosine cyclical transformation of day of year to preserve annual continuity across calendar boundary."
+    },
+    {
+      "name": "historical_rainfall_prior_1d_mm",
+      "source_fields": ["actual_rainfall_mm", "forecast_issue_date"],
+      "category": "G. Historical Rainfall Context",
+      "type": "float64",
+      "unit": "mm",
+      "available_at_prediction": true,
+      "lookback_days": 1,
+      "leakage_risk": "low (strictly prior to forecast issuance date)",
+      "missing_policy": "NaN when prior day observation is not available in historical record (e.g. warm-up window or snapshot datasets). Never filled with 0 unless actually observed.",
+      "description": "Observed 24-hour rainfall at Panchayat on the day strictly prior to forecast issuance (forecast_issue_date - 1 day)."
+    },
+    {
+      "name": "historical_rainfall_prior_2d_mm",
+      "source_fields": ["actual_rainfall_mm", "forecast_issue_date"],
+      "category": "G. Historical Rainfall Context",
+      "type": "float64",
+      "unit": "mm",
+      "available_at_prediction": true,
+      "lookback_days": 2,
+      "leakage_risk": "low (strictly prior to forecast issuance date)",
+      "missing_policy": "NaN when observation on (forecast_issue_date - 2 days) is missing. Never filled with 0 unless actually observed.",
+      "description": "Observed 24-hour rainfall at Panchayat two days prior to forecast issuance (forecast_issue_date - 2 days)."
+    },
+    {
+      "name": "historical_rainfall_prior_3d_mean_mm",
+      "source_fields": ["actual_rainfall_mm", "forecast_issue_date"],
+      "category": "G. Historical Rainfall Context",
+      "type": "float64",
+      "unit": "mm",
+      "available_at_prediction": true,
+      "lookback_days": 3,
+      "leakage_risk": "low (strictly backward rolling window prior to forecast issuance)",
+      "missing_policy": "NaN if fewer than 2 valid observations are available in the 3-day backward window [issue - 3d, issue - 1d].",
+      "description": "Mean daily precipitation over the 3-day window strictly prior to forecast issuance, indicating short-term antecedent soil moisture."
+    },
+    {
+      "name": "historical_rainfall_prior_3d_sum_mm",
+      "source_fields": ["actual_rainfall_mm", "forecast_issue_date"],
+      "category": "G. Historical Rainfall Context",
+      "type": "float64",
+      "unit": "mm",
+      "available_at_prediction": true,
+      "lookback_days": 3,
+      "leakage_risk": "low (strictly backward rolling window prior to forecast issuance)",
+      "missing_policy": "NaN if fewer than 2 valid observations are available in the 3-day backward window [issue - 3d, issue - 1d].",
+      "description": "Total accumulated precipitation over the 3-day window strictly prior to forecast issuance."
+    },
+    {
+      "name": "historical_rainfall_prior_7d_mean_mm",
+      "source_fields": ["actual_rainfall_mm", "forecast_issue_date"],
+      "category": "G. Historical Rainfall Context",
+      "type": "float64",
+      "unit": "mm",
+      "available_at_prediction": true,
+      "lookback_days": 7,
+      "leakage_risk": "low (strictly backward rolling window prior to forecast issuance)",
+      "missing_policy": "NaN if fewer than 4 valid observations are available in the 7-day backward window [issue - 7d, issue - 1d].",
+      "description": "Mean daily precipitation over the 7-day window strictly prior to forecast issuance, capturing active monsoon wet/dry spell status."
+    },
+    {
+      "name": "historical_rainfall_prior_7d_sum_mm",
+      "source_fields": ["actual_rainfall_mm", "forecast_issue_date"],
+      "category": "G. Historical Rainfall Context",
+      "type": "float64",
+      "unit": "mm",
+      "available_at_prediction": true,
+      "lookback_days": 7,
+      "leakage_risk": "low (strictly backward rolling window prior to forecast issuance)",
+      "missing_policy": "NaN if fewer than 4 valid observations are available in the 7-day backward window [issue - 7d, issue - 1d].",
+      "description": "Total 7-day accumulated precipitation strictly prior to forecast issuance."
+    },
+    {
+      "name": "has_historical_rainfall_context",
+      "source_fields": ["historical_rainfall_prior_1d_mm", "historical_rainfall_prior_3d_mean_mm"],
+      "category": "G. Historical Rainfall Context",
+      "type": "float64",
+      "unit": "binary flag (0.0 or 1.0)",
+      "available_at_prediction": true,
+      "lookback_days": 0,
+      "leakage_risk": "none",
+      "missing_policy": "Always non-null (1.0 if historical features are present, 0.0 if in warm-up period or snapshot dataset).",
+      "description": "Explicit indicator flag denoting whether valid antecedent historical observations were available at forecast issuance time."
+    }
+  ],
+  "excluded_features": [
+    {
+      "name": "actual_rainfall_mm",
+      "reason": "Target variable y. Including actual rainfall as an input feature causes catastrophic 100% target leakage."
+    },
+    {
+      "name": "panchayat_id",
+      "reason": "Raw administrative integer identifier. Causes tree-based models to memorize specific Panchayats rather than learning generalizable geographic relationships."
+    },
+    {
+      "name": "panchayat_name",
+      "reason": "High-cardinality text categorical identifier with 1,300+ classes. Risk of severe overfitting on training entities."
+    },
+    {
+      "name": "station_id",
+      "reason": "Categorical station identifier prone to memorizing station-specific calibration artifacts. Replaced by continuous station geometric features."
+    },
+    {
+      "name": "source_row_id",
+      "reason": "ETL pipeline sequence number; no meteorological or spatial physical relevance."
+    },
+    {
+      "name": "source_file",
+      "reason": "ETL pipeline file path; no physical relevance."
+    },
+    {
+      "name": "source_dataset",
+      "reason": "District jurisdiction string; models should generalize across geographic coordinates rather than memorizing dataset labels."
+    }
+  ]
+}
