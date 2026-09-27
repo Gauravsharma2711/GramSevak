@@ -1,0 +1,160 @@
+{
+  "phase": "1.5",
+  "title": "Validated Canonical Parquet Weather Pipeline Report",
+  "timestamp": "2026-09-26T23:51:00+05:30",
+  "districts": {
+    "nashik": {
+      "district": "nashik",
+      "input_path": "data/processed/normalized_nashik.csv",
+      "output_path": "data/processed/canonical_nashik.parquet",
+      "dry_run": false,
+      "input_rows": 1388,
+      "canonical_columns_count": 22,
+      "pre_validation": {
+        "status": "PASS",
+        "errors": [],
+        "warnings": []
+      },
+      "write_metadata": {
+        "output_path": "data/processed/canonical_nashik.parquet",
+        "row_count": 1388,
+        "column_count": 22,
+        "file_size_bytes": 73950,
+        "compression": "snappy",
+        "write_elapsed_seconds": 0.049
+      },
+      "post_validation": {
+        "status": "PASS",
+        "parquet_path": "data/processed/canonical_nashik.parquet",
+        "file_size_bytes": 73950,
+        "arrow_rows": 1388,
+        "arrow_columns": 22,
+        "errors_count": 0,
+        "warnings_count": 0,
+        "errors": [],
+        "warnings": [],
+        "logical_fingerprint": {
+          "key_hash": "5b70ad4de1f75675c9c35156936820a6215dcad943a14660bb260804beb36b0a",
+          "null_counts": {
+            "panchayat_id": 0,
+            "lgd_code": 0,
+            "panchayat_name": 0,
+            "block_name": 0,
+            "district_name": 0,
+            "state_name": 0,
+            "panchayat_latitude": 0,
+            "panchayat_longitude": 0,
+            "elevation_m": 0,
+            "date": 0,
+            "forecast_issue_date": 0,
+            "lead_days": 0,
+            "block_forecast_rainfall_mm": 0,
+            "station_id": 0,
+            "station_latitude": 0,
+            "station_longitude": 0,
+            "station_distance_km": 0,
+            "actual_rainfall_mm": 0,
+            "source_dataset": 0,
+            "source_file": 0,
+            "source_row_id": 0,
+            "source_panchayat_id": 0
+          },
+          "aggregates": {
+            "block_forecast_sum": 16475.5,
+            "block_forecast_mean": 11.87,
+            "actual_rainfall_sum": 13285.9,
+            "actual_rainfall_mean": 9.572,
+            "elevation_mean": 594.6174,
+            "unique_panchayats": 1388,
+            "unique_blocks": 15,
+            "min_date": "2026-01-09",
+            "max_date": "2026-09-04"
+          }
+        }
+      },
+      "overall_status": "PASS",
+      "total_elapsed_seconds": 0.1472
+    },
+    "pune": {
+      "district": "pune",
+      "input_path": "data/processed/normalized_pune.csv",
+      "output_path": "data/processed/canonical_pune.parquet",
+      "dry_run": false,
+      "input_rows": 187320,
+      "canonical_columns_count": 22,
+      "pre_validation": {
+        "status": "PASS",
+        "errors": [],
+        "warnings": []
+      },
+      "write_metadata": {
+        "output_path": "data/processed/canonical_pune.parquet",
+        "row_count": 187320,
+        "column_count": 22,
+        "file_size_bytes": 1175904,
+        "compression": "snappy",
+        "write_elapsed_seconds": 0.3476
+      },
+      "post_validation": {
+        "status": "PASS",
+        "parquet_path": "data/processed/canonical_pune.parquet",
+        "file_size_bytes": 1175904,
+        "arrow_rows": 187320,
+        "arrow_columns": 22,
+        "errors_count": 0,
+        "warnings_count": 0,
+        "errors": [],
+        "warnings": [],
+        "logical_fingerprint": {
+          "key_hash": "2965f425b4d1775b4512ec81bd5e257ab9c54781204835bb056d41913b2881cd",
+          "null_counts": {
+            "panchayat_id": 0,
+            "lgd_code": 0,
+            "panchayat_name": 0,
+            "block_name": 0,
+            "district_name": 0,
+            "state_name": 0,
+            "panchayat_latitude": 0,
+            "panchayat_longitude": 0,
+            "elevation_m": 0,
+            "date": 0,
+            "forecast_issue_date": 0,
+            "lead_days": 0,
+            "block_forecast_rainfall_mm": 0,
+            "station_id": 0,
+            "station_latitude": 0,
+            "station_longitude": 0,
+            "station_distance_km": 0,
+            "actual_rainfall_mm": 0,
+            "source_dataset": 0,
+            "source_file": 0,
+            "source_row_id": 0,
+            "source_panchayat_id": 0
+          },
+          "aggregates": {
+            "block_forecast_sum": 1063308.6,
+            "block_forecast_mean": 5.6764,
+            "actual_rainfall_sum": 1158440.4,
+            "actual_rainfall_mean": 6.1843,
+            "elevation_mean": 620.2063,
+            "unique_panchayats": 1338,
+            "unique_blocks": 13,
+            "min_date": "2026-04-13",
+            "max_date": "2026-09-23"
+          }
+        }
+      },
+      "overall_status": "PASS",
+      "total_elapsed_seconds": 2.5096
+    }
+  },
+  "summary": {
+    "total_input_rows": 188708,
+    "total_parquet_rows": 188708,
+    "nashik_file_size_bytes": 73950,
+    "pune_file_size_bytes": 1175904,
+    "total_file_size_bytes": 1249854,
+    "compression": "snappy",
+    "overall_status": "PASS"
+  }
+}

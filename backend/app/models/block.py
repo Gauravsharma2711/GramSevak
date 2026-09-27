@@ -12,7 +12,9 @@ class Block(Base):
     id = Column(BigInteger, primary_key=True, autoincrement=True, index=True)
     district_id = Column(BigInteger, ForeignKey("districts.id", ondelete="RESTRICT"), nullable=False, index=True)
     name = Column(Text, nullable=False, index=True)
+    code = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
     district = relationship("District", back_populates="blocks")
     panchayats = relationship("Panchayat", back_populates="block")

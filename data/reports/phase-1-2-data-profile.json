@@ -1,0 +1,1491 @@
+{
+  "generated_at": "2026-09-26T23:19:17.831295",
+  "nashik": {
+    "metadata": {
+      "file_path": "data/raw/nashik/nashik_panchayat_weather_raw.csv",
+      "filename": "nashik_panchayat_weather_raw.csv",
+      "file_format": "CSV",
+      "file_size_bytes": 161215,
+      "file_size_mb": 0.15,
+      "row_count": 1388,
+      "column_count": 17,
+      "encoding": "latin1",
+      "detected_lat_col": "latitude",
+      "detected_lon_col": "longitude"
+    },
+    "schema": {
+      "panchayat_id": {
+        "name": "panchayat_id",
+        "inferred_dtype": "int64",
+        "non_null_count": 1388,
+        "null_count": 0,
+        "null_percentage": 0.0,
+        "unique_count": 1388,
+        "example_values": [
+          "1001",
+          "1002",
+          "1003"
+        ],
+        "min": 1001.0,
+        "max": 2388.0,
+        "mean": 1694.5,
+        "median": 1694.5,
+        "std": 400.8254
+      },
+      "lgd_code": {
+        "name": "lgd_code",
+        "inferred_dtype": "int64",
+        "non_null_count": 1388,
+        "null_count": 0,
+        "null_percentage": 0.0,
+        "unique_count": 1283,
+        "example_values": [
+          "182597",
+          "182598",
+          "182599"
+        ],
+        "min": 182597.0,
+        "max": 301095.0,
+        "mean": 185697.0353,
+        "median": 183396.5,
+        "std": 13907.2527
+      },
+      "panchayat_name": {
+        "name": "panchayat_name",
+        "inferred_dtype": "object",
+        "non_null_count": 1388,
+        "null_count": 0,
+        "null_percentage": 0.0,
+        "unique_count": 1202,
+        "example_values": [
+          "Ajmer Saundane",
+          "Akhatwade",
+          "Aliyabad"
+        ],
+        "top_values": {
+          "Malegaon": 8,
+          "Shinde": 5,
+          "Kundewadi": 5,
+          "Talwade": 5,
+          "Dahegaon": 4
+        }
+      },
+      "block_name": {
+        "name": "block_name",
+        "inferred_dtype": "object",
+        "non_null_count": 1388,
+        "null_count": 0,
+        "null_percentage": 0.0,
+        "unique_count": 15,
+        "example_values": [
+          "Baglan",
+          "Chandwad",
+          "Deola"
+        ],
+        "top_values": {
+          "Trimbak": 172,
+          "Baglan": 132,
+          "Malegaon": 126,
+          "Niphad": 120,
+          "Sinnar": 114
+        }
+      },
+      "district_name": {
+        "name": "district_name",
+        "inferred_dtype": "object",
+        "non_null_count": 1388,
+        "null_count": 0,
+        "null_percentage": 0.0,
+        "unique_count": 1,
+        "example_values": [
+          "Nashik"
+        ],
+        "top_values": {
+          "Nashik": 1388
+        }
+      },
+      "latitude": {
+        "name": "latitude",
+        "inferred_dtype": "float64",
+        "non_null_count": 1388,
+        "null_count": 0,
+        "null_percentage": 0.0,
+        "unique_count": 582,
+        "example_values": [
+          "20.6385",
+          "20.6908",
+          "20.7734"
+        ],
+        "min": 19.1911,
+        "max": 20.8851,
+        "mean": 20.2347,
+        "median": 20.2411,
+        "std": 0.3025
+      },
+      "longitude": {
+        "name": "longitude",
+        "inferred_dtype": "float64",
+        "non_null_count": 1388,
+        "null_count": 0,
+        "null_percentage": 0.0,
+        "unique_count": 536,
+        "example_values": [
+          "74.1201",
+          "74.2045",
+          "73.9955"
+        ],
+        "min": 73.3945,
+        "max": 74.92,
+        "mean": 74.0156,
+        "median": 74.054,
+        "std": 0.3826
+      },
+      "elevation_m": {
+        "name": "elevation_m",
+        "inferred_dtype": "int64",
+        "non_null_count": 1388,
+        "null_count": 0,
+        "null_percentage": 0.0,
+        "unique_count": 105,
+        "example_values": [
+          "585",
+          "595",
+          "612"
+        ],
+        "min": 425.0,
+        "max": 745.0,
+        "mean": 594.6174,
+        "median": 612.0,
+        "std": 65.9494
+      },
+      "date": {
+        "name": "date",
+        "inferred_dtype": "object",
+        "non_null_count": 1388,
+        "null_count": 0,
+        "null_percentage": 0.0,
+        "unique_count": 9,
+        "example_values": [
+          "04-09-2026",
+          "03-09-2026",
+          "02-09-2026"
+        ],
+        "top_values": {
+          "09-04-2026": 350,
+          "09-03-2026": 250,
+          "09-02-2026": 238,
+          "09-05-2026": 200,
+          "09-01-2026": 150
+        }
+      },
+      "forecast_issue_date": {
+        "name": "forecast_issue_date",
+        "inferred_dtype": "object",
+        "non_null_count": 1388,
+        "null_count": 0,
+        "null_percentage": 0.0,
+        "unique_count": 9,
+        "example_values": [
+          "04-09-2026",
+          "03-09-2026",
+          "02-09-2026"
+        ],
+        "top_values": {
+          "09-04-2026": 350,
+          "09-03-2026": 250,
+          "09-02-2026": 238,
+          "09-05-2026": 200,
+          "09-01-2026": 150
+        }
+      },
+      "block_forecast_rainfall_mm": {
+        "name": "block_forecast_rainfall_mm",
+        "inferred_dtype": "float64",
+        "non_null_count": 1388,
+        "null_count": 0,
+        "null_percentage": 0.0,
+        "unique_count": 14,
+        "example_values": [
+          "5.0",
+          "2.0",
+          "8.0"
+        ],
+        "min": 2.0,
+        "max": 45.0,
+        "mean": 11.87,
+        "median": 10.0,
+        "std": 7.6993
+      },
+      "station_id": {
+        "name": "station_id",
+        "inferred_dtype": "object",
+        "non_null_count": 1388,
+        "null_count": 0,
+        "null_percentage": 0.0,
+        "unique_count": 24,
+        "example_values": [
+          "Satana AWS",
+          "Jaikheda AWS",
+          "Mulher Circle AWS"
+        ],
+        "top_values": {
+          "Trimbakeshwar\u00a0AWS": 160,
+          "Malegaon\u00a0AWS": 125,
+          "Sinnar\u00a0AWS": 116,
+          "Satana AWS": 97,
+          "Niphad\u00a0AWS": 96
+        }
+      },
+      "station_latitude": {
+        "name": "station_latitude",
+        "inferred_dtype": "float64",
+        "non_null_count": 1388,
+        "null_count": 0,
+        "null_percentage": 0.0,
+        "unique_count": 24,
+        "example_values": [
+          "20.59",
+          "20.79",
+          "20.78"
+        ],
+        "min": 19.698,
+        "max": 20.79,
+        "mean": 20.2065,
+        "median": 20.25,
+        "std": 0.2798
+      },
+      "station_longitude": {
+        "name": "station_longitude",
+        "inferred_dtype": "float64",
+        "non_null_count": 1388,
+        "null_count": 0,
+        "null_percentage": 0.0,
+        "unique_count": 22,
+        "example_values": [
+          "74.2",
+          "74.21",
+          "74.06"
+        ],
+        "min": 73.45,
+        "max": 74.65,
+        "mean": 74.0167,
+        "median": 73.98,
+        "std": 0.3734
+      },
+      "station_distance_km": {
+        "name": "station_distance_km",
+        "inferred_dtype": "float64",
+        "non_null_count": 1388,
+        "null_count": 0,
+        "null_percentage": 0.0,
+        "unique_count": 295,
+        "example_values": [
+          "10.3",
+          "11.2",
+          "29.8"
+        ],
+        "min": 0.1,
+        "max": 99.1,
+        "mean": 12.5501,
+        "median": 11.05,
+        "std": 8.3563
+      },
+      "actual_rainfall_mm": {
+        "name": "actual_rainfall_mm",
+        "inferred_dtype": "float64",
+        "non_null_count": 1388,
+        "null_count": 0,
+        "null_percentage": 0.0,
+        "unique_count": 36,
+        "example_values": [
+          "2.5",
+          "1.4",
+          "1.8"
+        ],
+        "min": 0.4,
+        "max": 52.2,
+        "mean": 9.572,
+        "median": 5.6,
+        "std": 10.2777
+      },
+      "Unnamed: 16": {
+        "name": "Unnamed: 16",
+        "inferred_dtype": "float64",
+        "non_null_count": 0,
+        "null_count": 1388,
+        "null_percentage": 100.0,
+        "unique_count": 0,
+        "example_values": []
+      }
+    },
+    "administrative_coverage": {
+      "district_count": 1,
+      "district_names": [
+        "Nashik"
+      ],
+      "block_count": 15,
+      "total_unique_panchayats": 1388,
+      "total_unique_lgd_codes": 1283,
+      "panchayats_per_block": {
+        "Trimbak": 172,
+        "Baglan": 132,
+        "Malegaon": 126,
+        "Niphad": 120,
+        "Sinnar": 114,
+        "Chandwad": 90,
+        "Yeola": 90,
+        "Nandgaon": 88,
+        "Kalwan": 86,
+        "Igatpuri": 82,
+        "Peth": 73,
+        "Surgana": 73,
+        "Nashik": 64,
+        "Deola": 42,
+        "Dindori": 36
+      },
+      "unusually_few_blocks": [],
+      "unusually_many_blocks": [
+        "Trimbak"
+      ],
+      "missing_district_count": 0,
+      "missing_block_count": 0,
+      "missing_panchayat_name_count": 0,
+      "missing_lgd_count": 0
+    },
+    "panchayat_uniqueness": {
+      "one_id_to_multiple_names_count": 0,
+      "one_id_to_multiple_names_examples": [],
+      "one_lgd_to_multiple_ids_count": 103,
+      "one_lgd_to_multiple_ids_examples": [
+        183181,
+        183478,
+        183774,
+        183775,
+        183776
+      ],
+      "one_name_to_multiple_ids_count": 155,
+      "one_name_to_multiple_ids_examples": [
+        "Adgaon\u00a0Chothava",
+        "Alwand",
+        "Ambai",
+        "Amboli",
+        "Anjaneri"
+      ],
+      "names_duplicated_across_blocks_count": 60,
+      "names_duplicated_across_blocks_examples": [
+        "Bhadane",
+        "Bhatgaon",
+        "Bhawade",
+        "Borale",
+        "Bordaivat"
+      ],
+      "unique_panchayat_ids": 1388,
+      "unique_lgd_codes": 1283,
+      "unique_name_plus_block": 1281,
+      "unique_name_block_district": 1281
+    },
+    "coordinates": {
+      "panchayat_lat_col": "latitude",
+      "panchayat_lon_col": "longitude",
+      "panchayat_coords_missing": 0,
+      "station_coords_missing": 0,
+      "panchayat_invalid_lat": 0,
+      "panchayat_invalid_lon": 0,
+      "panchayat_zero_coords": 0,
+      "panchayat_outside_maharashtra_box": 0,
+      "panchayat_lat_min": 19.1911,
+      "panchayat_lat_max": 20.8851,
+      "panchayat_lon_min": 73.3945,
+      "panchayat_lon_max": 74.92,
+      "station_lat_min": 19.698,
+      "station_lat_max": 20.79,
+      "station_lon_min": 73.45,
+      "station_lon_max": 74.65,
+      "duplicate_panchayat_coordinates_across_panchayats": 286,
+      "duplicate_station_coordinates_across_stations": 2
+    },
+    "elevation": {
+      "available": true,
+      "null_count": 0,
+      "null_percentage": 0.0,
+      "zero_count": 0,
+      "negative_count": 0,
+      "suspicious_high_count": 0,
+      "min": 425.0,
+      "max": 745.0,
+      "mean": 594.62,
+      "median": 612.0,
+      "std": 65.95
+    },
+    "dates": {
+      "available": true,
+      "date_unparsed_count": 0,
+      "issue_date_unparsed_count": 0,
+      "min_date": "2026-01-09",
+      "max_date": "2026-09-04",
+      "unique_dates_count": 9,
+      "min_issue_date": "2026-01-09",
+      "max_issue_date": "2026-09-04",
+      "unique_issue_dates_count": 9,
+      "lead_days_distribution": {
+        "0": 1388
+      },
+      "invalid_lead_days_negative_count": 0
+    },
+    "rainfall": {
+      "block_forecast_rainfall_mm": {
+        "available": true,
+        "null_count": 0,
+        "null_percentage": 0.0,
+        "zero_count": 0,
+        "zero_percentage": 0.0,
+        "negative_count": 0,
+        "sentinel_minus_999_count": 0,
+        "sentinel_minus_999_9_count": 0,
+        "sentinel_9999_count": 0,
+        "greater_than_100mm_count": 0,
+        "greater_than_200mm_count": 0,
+        "min": 2.0,
+        "max": 45.0,
+        "mean": 11.87,
+        "median": 10.0,
+        "std": 7.6993,
+        "percentiles": {
+          "p10": 5.0,
+          "p25": 6.0,
+          "p50": 10.0,
+          "p75": 15.0,
+          "p90": 20.0,
+          "p95": 20.0,
+          "p99": 45.0
+        }
+      },
+      "actual_rainfall_mm": {
+        "available": true,
+        "null_count": 0,
+        "null_percentage": 0.0,
+        "zero_count": 0,
+        "zero_percentage": 0.0,
+        "negative_count": 0,
+        "sentinel_minus_999_count": 0,
+        "sentinel_minus_999_9_count": 0,
+        "sentinel_9999_count": 0,
+        "greater_than_100mm_count": 0,
+        "greater_than_200mm_count": 0,
+        "min": 0.4,
+        "max": 52.2,
+        "mean": 9.572,
+        "median": 5.6,
+        "std": 10.2777,
+        "percentiles": {
+          "p10": 1.4,
+          "p25": 2.5,
+          "p50": 5.6,
+          "p75": 12.4,
+          "p90": 22.0,
+          "p95": 28.5,
+          "p99": 52.2
+        }
+      }
+    },
+    "forecast_vs_actual_coverage": {
+      "total_records": 1388,
+      "paired_records": 1388,
+      "paired_percentage": 100.0,
+      "forecast_only_records": 0,
+      "actual_only_records": 0,
+      "neither_records": 0,
+      "forecast_coverage_percentage": 100.0,
+      "actual_coverage_percentage": 100.0
+    },
+    "stations": {
+      "available": true,
+      "unique_stations_count": 24,
+      "records_per_station": {
+        "Trimbakeshwar\u00a0AWS": 160,
+        "Malegaon\u00a0AWS": 125,
+        "Sinnar\u00a0AWS": 116,
+        "Satana AWS": 97,
+        "Niphad\u00a0AWS": 96,
+        "Nandgaon\u00a0AWS": 90,
+        "Yeola\u00a0AWS": 90,
+        "Kalwan\u00a0AWS": 86,
+        "Igatpuri\u00a0AWS": 81,
+        "Peth\u00a0AWS": 75,
+        "Nashik\u00a0AWS": 73,
+        "Surgana\u00a0AWS": 72,
+        "Chandwad\u00a0AWS": 68,
+        "Deola ARG": 42,
+        "Dindori AWS": 35,
+        "Satana\u00a0AWS": 34,
+        "Chandwad AWS": 22,
+        "Harsul\u00a0AWS": 8,
+        "Lasalgaon\u00a0Circle": 7,
+        "Pimpalgaon\u00a0Baswant\u00a0Circle": 7,
+        "Jaikheda AWS": 1,
+        "Nampur AWS": 1,
+        "Ozar ARG": 1,
+        "Mulher Circle AWS": 1
+      },
+      "missing_station_id_count": 0,
+      "missing_station_coords_count": 0,
+      "missing_station_distance_count": 0,
+      "min_station_distance_km": 0.1,
+      "max_station_distance_km": 99.1,
+      "mean_station_distance_km": 12.55,
+      "median_station_distance_km": 11.05,
+      "suspicious_large_distance_gt_50km": 7,
+      "station_multiple_coordinate_anomalies": {
+        "stations_with_variable_latitude": [
+          "Malegaon\u00a0AWS",
+          "Nashik\u00a0AWS",
+          "Yeola\u00a0AWS"
+        ],
+        "stations_with_variable_longitude": [
+          "Yeola\u00a0AWS"
+        ]
+      }
+    },
+    "distance_recheck": {
+      "available": true,
+      "records_tested": 1388,
+      "mean_diff_km": 0.057,
+      "median_diff_km": 0.04,
+      "max_diff_km": 0.98,
+      "within_0_1km_count": 1197,
+      "within_0_1km_percentage": 86.24,
+      "within_1km_count": 1388,
+      "within_1km_percentage": 100.0,
+      "gt_5km_count": 0,
+      "gt_10km_count": 0
+    },
+    "duplicates": {
+      "total_rows": 1388,
+      "exact_duplicate_rows": 0,
+      "panchayat_id_and_date_duplicates": 0,
+      "lgd_code_and_date_duplicates": 104,
+      "panchayat_issue_and_target_date_duplicates": 0,
+      "panchayat_date_and_station_duplicates": 0
+    },
+    "panchayat_completeness": {
+      "total_panchayats": 1388,
+      "min_records_per_panchayat": 1,
+      "max_records_per_panchayat": 1,
+      "mean_records_per_panchayat": 1.0,
+      "median_records_per_panchayat": 1.0,
+      "panchayats_with_zero_actual_rainfall": 0,
+      "panchayats_with_zero_forecasts": 0,
+      "panchayats_with_fewer_than_5_records": 1388
+    },
+    "block_completeness": {
+      "Baglan": {
+        "panchayat_count": 132,
+        "total_records": 132,
+        "forecast_coverage_pct": 100.0,
+        "actual_coverage_pct": 100.0
+      },
+      "Chandwad": {
+        "panchayat_count": 90,
+        "total_records": 90,
+        "forecast_coverage_pct": 100.0,
+        "actual_coverage_pct": 100.0
+      },
+      "Deola": {
+        "panchayat_count": 42,
+        "total_records": 42,
+        "forecast_coverage_pct": 100.0,
+        "actual_coverage_pct": 100.0
+      },
+      "Dindori": {
+        "panchayat_count": 36,
+        "total_records": 36,
+        "forecast_coverage_pct": 100.0,
+        "actual_coverage_pct": 100.0
+      },
+      "Igatpuri": {
+        "panchayat_count": 82,
+        "total_records": 82,
+        "forecast_coverage_pct": 100.0,
+        "actual_coverage_pct": 100.0
+      },
+      "Kalwan": {
+        "panchayat_count": 86,
+        "total_records": 86,
+        "forecast_coverage_pct": 100.0,
+        "actual_coverage_pct": 100.0
+      },
+      "Malegaon": {
+        "panchayat_count": 126,
+        "total_records": 126,
+        "forecast_coverage_pct": 100.0,
+        "actual_coverage_pct": 100.0
+      },
+      "Nandgaon": {
+        "panchayat_count": 88,
+        "total_records": 88,
+        "forecast_coverage_pct": 100.0,
+        "actual_coverage_pct": 100.0
+      },
+      "Nashik": {
+        "panchayat_count": 64,
+        "total_records": 64,
+        "forecast_coverage_pct": 100.0,
+        "actual_coverage_pct": 100.0
+      },
+      "Niphad": {
+        "panchayat_count": 120,
+        "total_records": 120,
+        "forecast_coverage_pct": 100.0,
+        "actual_coverage_pct": 100.0
+      },
+      "Peth": {
+        "panchayat_count": 73,
+        "total_records": 73,
+        "forecast_coverage_pct": 100.0,
+        "actual_coverage_pct": 100.0
+      },
+      "Sinnar": {
+        "panchayat_count": 114,
+        "total_records": 114,
+        "forecast_coverage_pct": 100.0,
+        "actual_coverage_pct": 100.0
+      },
+      "Surgana": {
+        "panchayat_count": 73,
+        "total_records": 73,
+        "forecast_coverage_pct": 100.0,
+        "actual_coverage_pct": 100.0
+      },
+      "Trimbak": {
+        "panchayat_count": 172,
+        "total_records": 172,
+        "forecast_coverage_pct": 100.0,
+        "actual_coverage_pct": 100.0
+      },
+      "Yeola": {
+        "panchayat_count": 90,
+        "total_records": 90,
+        "forecast_coverage_pct": 100.0,
+        "actual_coverage_pct": 100.0
+      }
+    },
+    "ml_readiness": {
+      "total_records": 1388,
+      "complete_candidate_records": 1388,
+      "complete_candidate_percentage": 100.0,
+      "feature_missingness": {
+        "block_forecast_rainfall_mm": {
+          "missing_count": 0,
+          "missing_percentage": 0.0
+        },
+        "panchayat_latitude": {
+          "missing_count": 0,
+          "missing_percentage": 0.0
+        },
+        "panchayat_longitude": {
+          "missing_count": 0,
+          "missing_percentage": 0.0
+        },
+        "elevation_m": {
+          "missing_count": 0,
+          "missing_percentage": 0.0
+        },
+        "station_distance_km": {
+          "missing_count": 0,
+          "missing_percentage": 0.0
+        },
+        "date": {
+          "missing_count": 0,
+          "missing_percentage": 0.0
+        },
+        "forecast_issue_date": {
+          "missing_count": 0,
+          "missing_percentage": 0.0
+        },
+        "actual_rainfall_mm": {
+          "missing_count": 0,
+          "missing_percentage": 0.0
+        }
+      },
+      "target_available": true,
+      "usable_for_training": true
+    }
+  },
+  "pune": {
+    "metadata": {
+      "file_path": "data/raw/pune/pune_original.csv",
+      "filename": "pune_original.csv",
+      "file_format": "CSV",
+      "file_size_bytes": 26161031,
+      "file_size_mb": 24.95,
+      "row_count": 187320,
+      "column_count": 16,
+      "encoding": "utf-8",
+      "detected_lat_col": "panchayat_latitude",
+      "detected_lon_col": "panchayat_longitude"
+    },
+    "schema": {
+      "panchayat_id": {
+        "name": "panchayat_id",
+        "inferred_dtype": "object",
+        "non_null_count": 187320,
+        "null_count": 0,
+        "null_percentage": 0.0,
+        "unique_count": 1338,
+        "example_values": [
+          "MH_27_PUNE_185262",
+          "MH_27_PUNE_185263",
+          "MH_27_PUNE_185264"
+        ],
+        "top_values": {
+          "MH_27_PUNE_185262": 140,
+          "MH_27_PUNE_186220": 140,
+          "MH_27_PUNE_186218": 140,
+          "MH_27_PUNE_186217": 140,
+          "MH_27_PUNE_186216": 140
+        }
+      },
+      "lgd_code": {
+        "name": "lgd_code",
+        "inferred_dtype": "int64",
+        "non_null_count": 187320,
+        "null_count": 0,
+        "null_percentage": 0.0,
+        "unique_count": 1338,
+        "example_values": [
+          "185262",
+          "185263",
+          "185264"
+        ],
+        "min": 185262.0,
+        "max": 299397.0,
+        "mean": 187838.4283,
+        "median": 185980.5,
+        "std": 12387.5587
+      },
+      "panchayat_name": {
+        "name": "panchayat_name",
+        "inferred_dtype": "object",
+        "non_null_count": 187320,
+        "null_count": 0,
+        "null_percentage": 0.0,
+        "unique_count": 1252,
+        "example_values": [
+          "AHUPE",
+          "AMBEDARA",
+          "AMBEGAON GAVTHAN"
+        ],
+        "top_values": {
+          "NAYGAON": 560,
+          "SHINDEWADI": 560,
+          "JADHAVWADI": 560,
+          "KHANAPUR": 420,
+          "CHIKHALGAON": 420
+        }
+      },
+      "block_name": {
+        "name": "block_name",
+        "inferred_dtype": "object",
+        "non_null_count": 187320,
+        "null_count": 0,
+        "null_percentage": 0.0,
+        "unique_count": 13,
+        "example_values": [
+          "AMBEGAON",
+          "BARAMATI",
+          "BHOR"
+        ],
+        "top_values": {
+          "KHED": 21420,
+          "BHOR": 20580,
+          "JUNNAR": 18900,
+          "INDAPUR": 15540,
+          "AMBEGAON": 14000
+        }
+      },
+      "district_name": {
+        "name": "district_name",
+        "inferred_dtype": "object",
+        "non_null_count": 187320,
+        "null_count": 0,
+        "null_percentage": 0.0,
+        "unique_count": 1,
+        "example_values": [
+          "PUNE"
+        ],
+        "top_values": {
+          "PUNE": 187320
+        }
+      },
+      "panchayat_latitude": {
+        "name": "panchayat_latitude",
+        "inferred_dtype": "float64",
+        "non_null_count": 187320,
+        "null_count": 0,
+        "null_percentage": 0.0,
+        "unique_count": 1336,
+        "example_values": [
+          "19.16726799",
+          "19.0355686",
+          "19.11485329"
+        ],
+        "min": 17.9128,
+        "max": 19.3546,
+        "mean": 18.5692,
+        "median": 18.5249,
+        "std": 0.3647
+      },
+      "panchayat_longitude": {
+        "name": "panchayat_longitude",
+        "inferred_dtype": "float64",
+        "non_null_count": 187320,
+        "null_count": 0,
+        "null_percentage": 0.0,
+        "unique_count": 1338,
+        "example_values": [
+          "73.56356738",
+          "73.78706526",
+          "73.72956227"
+        ],
+        "min": 73.3751,
+        "max": 75.1343,
+        "mean": 74.013,
+        "median": 73.9127,
+        "std": 0.3929
+      },
+      "elevation_m": {
+        "name": "elevation_m",
+        "inferred_dtype": "int64",
+        "non_null_count": 187320,
+        "null_count": 0,
+        "null_percentage": 0.0,
+        "unique_count": 23,
+        "example_values": [
+          "683",
+          "613",
+          "727"
+        ],
+        "min": 100.0,
+        "max": 763.0,
+        "mean": 620.2063,
+        "median": 619.0,
+        "std": 87.7228
+      },
+      "date": {
+        "name": "date",
+        "inferred_dtype": "object",
+        "non_null_count": 187320,
+        "null_count": 0,
+        "null_percentage": 0.0,
+        "unique_count": 140,
+        "example_values": [
+          "13-04-2026",
+          "14-04-2026",
+          "15-04-2026"
+        ],
+        "top_values": {
+          "13-04-2026": 1338,
+          "09-08-2026": 1338,
+          "03-08-2026": 1338,
+          "04-08-2026": 1338,
+          "05-08-2026": 1338
+        }
+      },
+      "forecast_issue_date": {
+        "name": "forecast_issue_date",
+        "inferred_dtype": "object",
+        "non_null_count": 187320,
+        "null_count": 0,
+        "null_percentage": 0.0,
+        "unique_count": 140,
+        "example_values": [
+          "12-04-2026",
+          "13-04-2026",
+          "14-04-2026"
+        ],
+        "top_values": {
+          "12-04-2026": 1338,
+          "08-08-2026": 1338,
+          "02-08-2026": 1338,
+          "03-08-2026": 1338,
+          "04-08-2026": 1338
+        }
+      },
+      "block_forecast_rainfall_mm": {
+        "name": "block_forecast_rainfall_mm",
+        "inferred_dtype": "float64",
+        "non_null_count": 187320,
+        "null_count": 0,
+        "null_percentage": 0.0,
+        "unique_count": 67,
+        "example_values": [
+          "0.0",
+          "0.1",
+          "0.2"
+        ],
+        "min": 0.0,
+        "max": 12.4,
+        "mean": 5.6764,
+        "median": 6.05,
+        "std": 3.9551
+      },
+      "station_id": {
+        "name": "station_id",
+        "inferred_dtype": "object",
+        "non_null_count": 187320,
+        "null_count": 0,
+        "null_percentage": 0.0,
+        "unique_count": 23,
+        "example_values": [
+          "GHCND:IN012190101",
+          "GHCND:IN012190500",
+          "GHCND:IN012190402"
+        ],
+        "top_values": {
+          "GHCND:IN012190101": 18200,
+          "GHCND:IN012190801": 17500,
+          "GHCND:IN012190202": 16660,
+          "GHCND:IN012190402": 13300,
+          "GHCND:IN012191600": 13160
+        }
+      },
+      "station_latitude": {
+        "name": "station_latitude",
+        "inferred_dtype": "float64",
+        "non_null_count": 187320,
+        "null_count": 0,
+        "null_percentage": 0.0,
+        "unique_count": 22,
+        "example_values": [
+          "19.05",
+          "18.85",
+          "18.28"
+        ],
+        "min": 18.12,
+        "max": 19.22,
+        "mean": 18.5702,
+        "median": 18.53,
+        "std": 0.3547
+      },
+      "station_longitude": {
+        "name": "station_longitude",
+        "inferred_dtype": "float64",
+        "non_null_count": 187320,
+        "null_count": 0,
+        "null_percentage": 0.0,
+        "unique_count": 18,
+        "example_values": [
+          "73.83",
+          "73.9",
+          "74.17"
+        ],
+        "min": 73.367,
+        "max": 75.03,
+        "mean": 74.0111,
+        "median": 73.88,
+        "std": 0.3941
+      },
+      "station_distance_km": {
+        "name": "station_distance_km",
+        "inferred_dtype": "float64",
+        "non_null_count": 187320,
+        "null_count": 0,
+        "null_percentage": 0.0,
+        "unique_count": 1006,
+        "example_values": [
+          "30.86",
+          "4.79",
+          "12.77"
+        ],
+        "min": 0.59,
+        "max": 40.54,
+        "mean": 13.1118,
+        "median": 12.35,
+        "std": 6.3598
+      },
+      "actual_rainfall_mm": {
+        "name": "actual_rainfall_mm",
+        "inferred_dtype": "float64",
+        "non_null_count": 187320,
+        "null_count": 0,
+        "null_percentage": 0.0,
+        "unique_count": 65,
+        "example_values": [
+          "0.0",
+          "0.4",
+          "0.1"
+        ],
+        "min": 0.0,
+        "max": 120.3,
+        "mean": 6.1843,
+        "median": 1.5,
+        "std": 14.7368
+      }
+    },
+    "administrative_coverage": {
+      "district_count": 1,
+      "district_names": [
+        "PUNE"
+      ],
+      "block_count": 13,
+      "total_unique_panchayats": 1338,
+      "total_unique_lgd_codes": 1338,
+      "panchayats_per_block": {
+        "KHED": 153,
+        "BHOR": 147,
+        "JUNNAR": 135,
+        "INDAPUR": 111,
+        "AMBEGAON": 100,
+        "MAVAL": 100,
+        "BARAMATI": 97,
+        "PURANDAR": 92,
+        "MULSHI": 90,
+        "SHIRUR": 88,
+        "DAUND": 79,
+        "HAVELI": 78,
+        "VELHE": 68
+      },
+      "unusually_few_blocks": [],
+      "unusually_many_blocks": [
+        "KHED"
+      ],
+      "missing_district_count": 0,
+      "missing_block_count": 0,
+      "missing_panchayat_name_count": 0,
+      "missing_lgd_count": 0
+    },
+    "panchayat_uniqueness": {
+      "one_id_to_multiple_names_count": 0,
+      "one_id_to_multiple_names_examples": [],
+      "one_lgd_to_multiple_ids_count": 0,
+      "one_lgd_to_multiple_ids_examples": [],
+      "one_name_to_multiple_ids_count": 74,
+      "one_name_to_multiple_ids_examples": [
+        "AHIRE",
+        "AKOLE",
+        "AMBALE",
+        "AMBEGAON",
+        "AMBI"
+      ],
+      "names_duplicated_across_blocks_count": 74,
+      "names_duplicated_across_blocks_examples": [
+        "AHIRE",
+        "AKOLE",
+        "AMBALE",
+        "AMBEGAON",
+        "AMBI"
+      ],
+      "unique_panchayat_ids": 1338,
+      "unique_lgd_codes": 1338,
+      "unique_name_plus_block": 1338,
+      "unique_name_block_district": 1338
+    },
+    "coordinates": {
+      "panchayat_lat_col": "panchayat_latitude",
+      "panchayat_lon_col": "panchayat_longitude",
+      "panchayat_coords_missing": 0,
+      "station_coords_missing": 0,
+      "panchayat_invalid_lat": 0,
+      "panchayat_invalid_lon": 0,
+      "panchayat_zero_coords": 0,
+      "panchayat_outside_maharashtra_box": 0,
+      "panchayat_lat_min": 17.9128,
+      "panchayat_lat_max": 19.3546,
+      "panchayat_lon_min": 73.3751,
+      "panchayat_lon_max": 75.1343,
+      "station_lat_min": 18.12,
+      "station_lat_max": 19.22,
+      "station_lon_min": 73.367,
+      "station_lon_max": 75.03,
+      "duplicate_panchayat_coordinates_across_panchayats": 0,
+      "duplicate_station_coordinates_across_stations": 0
+    },
+    "elevation": {
+      "available": true,
+      "null_count": 0,
+      "null_percentage": 0.0,
+      "zero_count": 0,
+      "negative_count": 0,
+      "suspicious_high_count": 0,
+      "min": 100.0,
+      "max": 763.0,
+      "mean": 620.21,
+      "median": 619.0,
+      "std": 87.72
+    },
+    "dates": {
+      "available": true,
+      "date_unparsed_count": 0,
+      "issue_date_unparsed_count": 0,
+      "min_date": "2026-04-13",
+      "max_date": "2026-09-23",
+      "unique_dates_count": 140,
+      "min_issue_date": "2026-04-12",
+      "max_issue_date": "2026-09-22",
+      "unique_issue_dates_count": 140,
+      "lead_days_distribution": {
+        "1": 187320
+      },
+      "invalid_lead_days_negative_count": 0
+    },
+    "rainfall": {
+      "block_forecast_rainfall_mm": {
+        "available": true,
+        "null_count": 0,
+        "null_percentage": 0.0,
+        "zero_count": 6690,
+        "zero_percentage": 3.5714,
+        "negative_count": 0,
+        "sentinel_minus_999_count": 0,
+        "sentinel_minus_999_9_count": 0,
+        "sentinel_9999_count": 0,
+        "greater_than_100mm_count": 0,
+        "greater_than_200mm_count": 0,
+        "min": 0.0,
+        "max": 12.4,
+        "mean": 5.6764,
+        "median": 6.05,
+        "std": 3.9551,
+        "percentiles": {
+          "p10": 0.2,
+          "p25": 0.75,
+          "p50": 6.05,
+          "p75": 9.1,
+          "p90": 11.0,
+          "p95": 11.4,
+          "p99": 12.4
+        }
+      },
+      "actual_rainfall_mm": {
+        "available": true,
+        "null_count": 0,
+        "null_percentage": 0.0,
+        "zero_count": 68238,
+        "zero_percentage": 36.4286,
+        "negative_count": 0,
+        "sentinel_minus_999_count": 0,
+        "sentinel_minus_999_9_count": 0,
+        "sentinel_9999_count": 0,
+        "greater_than_100mm_count": 1338,
+        "greater_than_200mm_count": 0,
+        "min": 0.0,
+        "max": 120.3,
+        "mean": 6.1843,
+        "median": 1.5,
+        "std": 14.7368,
+        "percentiles": {
+          "p10": 0.0,
+          "p25": 0.0,
+          "p50": 1.5,
+          "p75": 4.65,
+          "p90": 19.93,
+          "p95": 26.925,
+          "p99": 93.6
+        }
+      }
+    },
+    "forecast_vs_actual_coverage": {
+      "total_records": 187320,
+      "paired_records": 187320,
+      "paired_percentage": 100.0,
+      "forecast_only_records": 0,
+      "actual_only_records": 0,
+      "neither_records": 0,
+      "forecast_coverage_percentage": 100.0,
+      "actual_coverage_percentage": 100.0
+    },
+    "stations": {
+      "available": true,
+      "unique_stations_count": 23,
+      "records_per_station": {
+        "GHCND:IN012190101": 18200,
+        "GHCND:IN012190801": 17500,
+        "GHCND:IN012190202": 16660,
+        "GHCND:IN012190402": 13300,
+        "GHCND:IN012191600": 13160,
+        "GHCND:IN012190500": 13020,
+        "GHCND:IN012190800": 12040,
+        "GHCND:IN012190300": 11200,
+        "GHCND:IN012190400": 10360,
+        "GHCND:IN012190201": 10080,
+        "GHCND:IN012190601": 8820,
+        "GHCND:IN012190301": 7420,
+        "METEOSTAT:43069": 7000,
+        "GHCND:IN012190501": 6020,
+        "GHCND:IN012190401": 5320,
+        "GHCND:IN012190200": 5180,
+        "GHCND:IN012190600": 3360,
+        "GHCND:IN012191800": 2940,
+        "METEOSTAT:43062": 2660,
+        "METEOSTAT:43064": 1960,
+        "GHCND:IN012191700": 560,
+        "METEOSTAT:43063": 280,
+        "GHCND:IN012190100": 280
+      },
+      "missing_station_id_count": 0,
+      "missing_station_coords_count": 0,
+      "missing_station_distance_count": 0,
+      "min_station_distance_km": 0.59,
+      "max_station_distance_km": 40.54,
+      "mean_station_distance_km": 13.11,
+      "median_station_distance_km": 12.35,
+      "suspicious_large_distance_gt_50km": 0,
+      "station_multiple_coordinate_anomalies": {
+        "stations_with_variable_latitude": [],
+        "stations_with_variable_longitude": []
+      }
+    },
+    "distance_recheck": {
+      "available": true,
+      "records_tested": 187320,
+      "mean_diff_km": 0.0083,
+      "median_diff_km": 0.01,
+      "max_diff_km": 0.03,
+      "within_0_1km_count": 187320,
+      "within_0_1km_percentage": 100.0,
+      "within_1km_count": 187320,
+      "within_1km_percentage": 100.0,
+      "gt_5km_count": 0,
+      "gt_10km_count": 0
+    },
+    "duplicates": {
+      "total_rows": 187320,
+      "exact_duplicate_rows": 0,
+      "panchayat_id_and_date_duplicates": 0,
+      "lgd_code_and_date_duplicates": 0,
+      "panchayat_issue_and_target_date_duplicates": 0,
+      "panchayat_date_and_station_duplicates": 0
+    },
+    "panchayat_completeness": {
+      "total_panchayats": 1338,
+      "min_records_per_panchayat": 140,
+      "max_records_per_panchayat": 140,
+      "mean_records_per_panchayat": 140.0,
+      "median_records_per_panchayat": 140.0,
+      "panchayats_with_zero_actual_rainfall": 0,
+      "panchayats_with_zero_forecasts": 0,
+      "panchayats_with_fewer_than_5_records": 0
+    },
+    "block_completeness": {
+      "AMBEGAON": {
+        "panchayat_count": 100,
+        "total_records": 14000,
+        "forecast_coverage_pct": 100.0,
+        "actual_coverage_pct": 100.0
+      },
+      "BARAMATI": {
+        "panchayat_count": 97,
+        "total_records": 13580,
+        "forecast_coverage_pct": 100.0,
+        "actual_coverage_pct": 100.0
+      },
+      "BHOR": {
+        "panchayat_count": 147,
+        "total_records": 20580,
+        "forecast_coverage_pct": 100.0,
+        "actual_coverage_pct": 100.0
+      },
+      "DAUND": {
+        "panchayat_count": 79,
+        "total_records": 11060,
+        "forecast_coverage_pct": 100.0,
+        "actual_coverage_pct": 100.0
+      },
+      "HAVELI": {
+        "panchayat_count": 78,
+        "total_records": 10920,
+        "forecast_coverage_pct": 100.0,
+        "actual_coverage_pct": 100.0
+      },
+      "INDAPUR": {
+        "panchayat_count": 111,
+        "total_records": 15540,
+        "forecast_coverage_pct": 100.0,
+        "actual_coverage_pct": 100.0
+      },
+      "JUNNAR": {
+        "panchayat_count": 135,
+        "total_records": 18900,
+        "forecast_coverage_pct": 100.0,
+        "actual_coverage_pct": 100.0
+      },
+      "KHED": {
+        "panchayat_count": 153,
+        "total_records": 21420,
+        "forecast_coverage_pct": 100.0,
+        "actual_coverage_pct": 100.0
+      },
+      "MAVAL": {
+        "panchayat_count": 100,
+        "total_records": 14000,
+        "forecast_coverage_pct": 100.0,
+        "actual_coverage_pct": 100.0
+      },
+      "MULSHI": {
+        "panchayat_count": 90,
+        "total_records": 12600,
+        "forecast_coverage_pct": 100.0,
+        "actual_coverage_pct": 100.0
+      },
+      "PURANDAR": {
+        "panchayat_count": 92,
+        "total_records": 12880,
+        "forecast_coverage_pct": 100.0,
+        "actual_coverage_pct": 100.0
+      },
+      "SHIRUR": {
+        "panchayat_count": 88,
+        "total_records": 12320,
+        "forecast_coverage_pct": 100.0,
+        "actual_coverage_pct": 100.0
+      },
+      "VELHE": {
+        "panchayat_count": 68,
+        "total_records": 9520,
+        "forecast_coverage_pct": 100.0,
+        "actual_coverage_pct": 100.0
+      }
+    },
+    "ml_readiness": {
+      "total_records": 187320,
+      "complete_candidate_records": 187320,
+      "complete_candidate_percentage": 100.0,
+      "feature_missingness": {
+        "block_forecast_rainfall_mm": {
+          "missing_count": 0,
+          "missing_percentage": 0.0
+        },
+        "panchayat_latitude": {
+          "missing_count": 0,
+          "missing_percentage": 0.0
+        },
+        "panchayat_longitude": {
+          "missing_count": 0,
+          "missing_percentage": 0.0
+        },
+        "elevation_m": {
+          "missing_count": 0,
+          "missing_percentage": 0.0
+        },
+        "station_distance_km": {
+          "missing_count": 0,
+          "missing_percentage": 0.0
+        },
+        "date": {
+          "missing_count": 0,
+          "missing_percentage": 0.0
+        },
+        "forecast_issue_date": {
+          "missing_count": 0,
+          "missing_percentage": 0.0
+        },
+        "actual_rainfall_mm": {
+          "missing_count": 0,
+          "missing_percentage": 0.0
+        }
+      },
+      "target_available": true,
+      "usable_for_training": true
+    }
+  },
+  "comparison_matrix": [
+    {
+      "dimension": "Dataset Scale (Rows)",
+      "nashik": "1,388 rows",
+      "pune": "187,320 rows",
+      "rating": "PARTIALLY COMPATIBLE",
+      "notes": "Pune has 135x more records (140 daily time-steps per GP vs 1 snapshot date per GP in Nashik)."
+    },
+    {
+      "dimension": "File Encoding",
+      "nashik": "latin1 (contains non-breaking spaces 0xa0)",
+      "pune": "utf-8 (clean standard encoding)",
+      "rating": "PARTIALLY COMPATIBLE",
+      "notes": "Nashik fails utf-8 without fallback; Pune loads with utf-8 natively."
+    },
+    {
+      "dimension": "Coordinate Column Names",
+      "nashik": "['latitude', 'longitude']",
+      "pune": "['panchayat_latitude', 'panchayat_longitude']",
+      "rating": "PARTIALLY COMPATIBLE",
+      "notes": "Trivial rename mapping required to normalize to standard schema."
+    },
+    {
+      "dimension": "Panchayat ID Format",
+      "nashik": "Integer (1001, 1002, ...)",
+      "pune": "String ('MH_27_PUNE_185262')",
+      "rating": "INCOMPATIBLE",
+      "notes": "Requires regex extractor to derive trailing integer/LGD code before database ingestion."
+    },
+    {
+      "dimension": "Text Casing",
+      "nashik": "Title Case ('Nashik', 'Baglan', 'Ajmer Saundane')",
+      "pune": "Uppercase ('PUNE', 'AMBEGAON', 'AHUPE')",
+      "rating": "PARTIALLY COMPATIBLE",
+      "notes": "Case-insensitive normalization or TitleCase formatting required."
+    },
+    {
+      "dimension": "Temporal Depth",
+      "nashik": "9 dates (mixed formats/snapshot)",
+      "pune": "140 dates (continuous daily: 2026-04-13 to 2026-09-23)",
+      "rating": "INCOMPATIBLE",
+      "notes": "Pune is a true continuous time-series; Nashik is a sparse spatial snapshot."
+    },
+    {
+      "dimension": "Lead Days Consistency",
+      "nashik": "Lead days = 0 (100% same-day issue and target)",
+      "pune": "Lead days = 1 (100% 1-day ahead forecast)",
+      "rating": "INCOMPATIBLE",
+      "notes": "Nashik has date == issue_date (0 lead days); Pune has issue_date = date - 1 day (1 lead day)."
+    },
+    {
+      "dimension": "Trailing Unnamed Columns",
+      "nashik": "Present ('Unnamed: 16')",
+      "pune": "None",
+      "rating": "PARTIALLY COMPATIBLE",
+      "notes": "Clean-up rule required to discard empty trailing columns."
+    },
+    {
+      "dimension": "Rainfall Missing Values / Sentinels",
+      "nashik": "None (-999.9 absent in raw snapshot)",
+      "pune": "None (0.0 to 120.3 mm, completely non-null)",
+      "rating": "COMPATIBLE",
+      "notes": "Both datasets contain complete non-negative actual rainfall records."
+    },
+    {
+      "dimension": "Elevation Coverage",
+      "nashik": "0.0% nulls (Mean: 594.62m)",
+      "pune": "0.0% nulls (Mean: 620.21m)",
+      "rating": "COMPATIBLE",
+      "notes": "100% elevation data available in both districts; elevations physically realistic."
+    },
+    {
+      "dimension": "Weather Station Coordinates",
+      "nashik": "24 stations, 0 missing coords",
+      "pune": "23 stations, 0 missing coords",
+      "rating": "COMPATIBLE",
+      "notes": "Both have complete station metadata and accurate geographic positions."
+    },
+    {
+      "dimension": "Station Distance Accuracy",
+      "nashik": "Haversine diff mean: 0.057 km",
+      "pune": "Haversine diff mean: 0.0083 km",
+      "rating": "COMPATIBLE",
+      "notes": "100% of distances match recalculated Haversine distance within 0.1 km."
+    },
+    {
+      "dimension": "Duplicate Row Rate",
+      "nashik": "0 exact duplicates",
+      "pune": "0 exact duplicates",
+      "rating": "COMPATIBLE",
+      "notes": "Zero exact duplicate rows in either raw dataset."
+    },
+    {
+      "dimension": "ML Candidate Vector Completeness",
+      "nashik": "1,388 (100.0%)",
+      "pune": "187,320 (100.0%)",
+      "rating": "COMPATIBLE",
+      "notes": "100% of rows in both datasets form complete candidate feature vectors."
+    }
+  ]
+}

@@ -1,0 +1,258 @@
+{
+  "phase": "1.4",
+  "title": "Canonical Weather Data Normalization Quality Report",
+  "timestamp": "2026-09-26T23:40:00+05:30",
+  "districts": {
+    "nashik": {
+      "district": "Nashik",
+      "district_key": "nashik",
+      "source_file": "data/raw/nashik/nashik_panchayat_weather_raw.csv",
+      "normalization_status": "PASS WITH WARNINGS",
+      "input_row_count": 1388,
+      "output_row_count": 1388,
+      "valid_rows": 1388,
+      "rejected_row_count": 0,
+      "rejected_rows": 0,
+      "errors_count": 0,
+      "warnings_count": 2,
+      "info_count": 1,
+      "errors": [],
+      "warnings": [
+        "Unmapped source columns detected: ['Unnamed: 16']",
+        "Panchayats with station distance > 50.0 km: 7 rows"
+      ],
+      "info": [
+        "Dropped trailing/unnamed source artifacts: ['Unnamed: 16']"
+      ],
+      "canonical_columns_count": 22,
+      "canonical_columns": [
+        "panchayat_id",
+        "lgd_code",
+        "panchayat_name",
+        "block_name",
+        "district_name",
+        "state_name",
+        "panchayat_latitude",
+        "panchayat_longitude",
+        "elevation_m",
+        "date",
+        "forecast_issue_date",
+        "lead_days",
+        "block_forecast_rainfall_mm",
+        "station_id",
+        "station_latitude",
+        "station_longitude",
+        "station_distance_km",
+        "actual_rainfall_mm",
+        "source_dataset",
+        "source_file",
+        "source_row_id",
+        "source_panchayat_id"
+      ],
+      "mapped_source_columns": [
+        "panchayat_id",
+        "lgd_code",
+        "panchayat_name",
+        "block_name",
+        "district_name",
+        "latitude",
+        "longitude",
+        "elevation_m",
+        "date",
+        "forecast_issue_date",
+        "block_forecast_rainfall_mm",
+        "station_id",
+        "station_latitude",
+        "station_longitude",
+        "station_distance_km",
+        "actual_rainfall_mm"
+      ],
+      "unmapped_source_columns": [
+        "Unnamed: 16"
+      ],
+      "unique_panchayats": 1388,
+      "unique_lgd_codes": 1283,
+      "unique_blocks": 15,
+      "block_names": [
+        "Baglan",
+        "Chandwad",
+        "Deola",
+        "Dindori",
+        "Igatpuri",
+        "Kalwan",
+        "Malegaon",
+        "Nandgaon",
+        "Nashik",
+        "Niphad",
+        "Peth",
+        "Sinnar",
+        "Surgana",
+        "Trimbak",
+        "Yeola"
+      ],
+      "unique_stations": 22,
+      "temporal_coverage": {
+        "min_date": "2026-01-09",
+        "max_date": "2026-09-04",
+        "unique_dates_count": 9,
+        "lead_days_distribution": {
+          "0": 1388
+        }
+      },
+      "rainfall_summary": {
+        "block_forecast_min": 2.0,
+        "block_forecast_max": 45.0,
+        "block_forecast_mean": 11.87,
+        "actual_rainfall_min": 0.4,
+        "actual_rainfall_max": 52.2,
+        "actual_rainfall_mean": 9.57,
+        "actual_rainfall_nulls": 0
+      },
+      "geographic_summary": {
+        "lat_min": 19.1911,
+        "lat_max": 20.8851,
+        "lon_min": 73.3945,
+        "lon_max": 74.92,
+        "elevation_min": 425.0,
+        "elevation_max": 745.0,
+        "elevation_mean": 594.62
+      },
+      "station_distance_summary": {
+        "min_km": 0.1,
+        "max_km": 99.1,
+        "mean_km": 12.55,
+        "max_haversine_discrepancy_km": 0.9763
+      },
+      "duplicates_summary": {
+        "exact_duplicate_rows": 0,
+        "business_key_duplicates": 0,
+        "conflicting_duplicates": 0
+      }
+    },
+    "pune": {
+      "district": "Pune",
+      "district_key": "pune",
+      "source_file": "data/raw/pune/pune_original.csv",
+      "normalization_status": "PASS",
+      "input_row_count": 187320,
+      "output_row_count": 187320,
+      "valid_rows": 187320,
+      "rejected_row_count": 0,
+      "rejected_rows": 0,
+      "errors_count": 0,
+      "warnings_count": 0,
+      "info_count": 0,
+      "errors": [],
+      "warnings": [],
+      "info": [],
+      "canonical_columns_count": 22,
+      "canonical_columns": [
+        "panchayat_id",
+        "lgd_code",
+        "panchayat_name",
+        "block_name",
+        "district_name",
+        "state_name",
+        "panchayat_latitude",
+        "panchayat_longitude",
+        "elevation_m",
+        "date",
+        "forecast_issue_date",
+        "lead_days",
+        "block_forecast_rainfall_mm",
+        "station_id",
+        "station_latitude",
+        "station_longitude",
+        "station_distance_km",
+        "actual_rainfall_mm",
+        "source_dataset",
+        "source_file",
+        "source_row_id",
+        "source_panchayat_id"
+      ],
+      "mapped_source_columns": [
+        "panchayat_id",
+        "lgd_code",
+        "panchayat_name",
+        "block_name",
+        "district_name",
+        "panchayat_latitude",
+        "panchayat_longitude",
+        "elevation_m",
+        "date",
+        "forecast_issue_date",
+        "block_forecast_rainfall_mm",
+        "station_id",
+        "station_latitude",
+        "station_longitude",
+        "station_distance_km",
+        "actual_rainfall_mm"
+      ],
+      "unmapped_source_columns": [],
+      "unique_panchayats": 1338,
+      "unique_lgd_codes": 1338,
+      "unique_blocks": 13,
+      "block_names": [
+        "Ambegaon",
+        "Baramati",
+        "Bhor",
+        "Daund",
+        "Haveli",
+        "Indapur",
+        "Junnar",
+        "Khed",
+        "Maval",
+        "Mulshi",
+        "Purandar",
+        "Shirur",
+        "Velhe"
+      ],
+      "unique_stations": 23,
+      "temporal_coverage": {
+        "min_date": "2026-04-13",
+        "max_date": "2026-09-23",
+        "unique_dates_count": 140,
+        "lead_days_distribution": {
+          "1": 187320
+        }
+      },
+      "rainfall_summary": {
+        "block_forecast_min": 0.0,
+        "block_forecast_max": 12.4,
+        "block_forecast_mean": 5.68,
+        "actual_rainfall_min": 0.0,
+        "actual_rainfall_max": 120.3,
+        "actual_rainfall_mean": 6.18,
+        "actual_rainfall_nulls": 0
+      },
+      "geographic_summary": {
+        "lat_min": 17.912814,
+        "lat_max": 19.354576,
+        "lon_min": 73.375077,
+        "lon_max": 75.134307,
+        "elevation_min": 100.0,
+        "elevation_max": 763.0,
+        "elevation_mean": 620.21
+      },
+      "station_distance_summary": {
+        "min_km": 0.59,
+        "max_km": 40.54,
+        "mean_km": 13.11,
+        "max_haversine_discrepancy_km": 0.0251
+      },
+      "duplicates_summary": {
+        "exact_duplicate_rows": 0,
+        "business_key_duplicates": 0,
+        "conflicting_duplicates": 0
+      }
+    }
+  },
+  "summary": {
+    "total_input_rows": 188708,
+    "total_normalized_rows": 188708,
+    "total_rejected_rows": 0,
+    "nashik_status": "PASS WITH WARNINGS",
+    "pune_status": "PASS",
+    "overall_status": "PASS WITH WARNINGS"
+  }
+}

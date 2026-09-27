@@ -1,0 +1,162 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gramsevak.gov.in/schemas/canonical_weather_schema.json",
+  "title": "GramSevakCanonicalWeatherRecord",
+  "description": "Canonical multi-district weather downscaling and observation schema representing normalized Panchayat-level meteorological records for Nashik, Pune, and future districts.",
+  "type": "object",
+  "required": [
+    "panchayat_id",
+    "lgd_code",
+    "panchayat_name",
+    "block_name",
+    "district_name",
+    "state_name",
+    "panchayat_latitude",
+    "panchayat_longitude",
+    "elevation_m",
+    "date",
+    "forecast_issue_date",
+    "lead_days",
+    "block_forecast_rainfall_mm",
+    "station_id",
+    "station_latitude",
+    "station_longitude",
+    "station_distance_km",
+    "source_dataset",
+    "source_file",
+    "source_row_id",
+    "source_panchayat_id"
+  ],
+  "properties": {
+    "panchayat_id": {
+      "description": "Normalized integer entity identifier for the Gram Panchayat (strictly positive integer).",
+      "type": "integer",
+      "minimum": 1
+    },
+    "lgd_code": {
+      "description": "Official Ministry of Panchayati Raj Local Government Directory (LGD) Panchayat Code.",
+      "type": "integer",
+      "minimum": 100000,
+      "maximum": 999999
+    },
+    "panchayat_name": {
+      "description": "Standardized Gram Panchayat name (Title Case, stripped of whitespace and non-breaking characters).",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120
+    },
+    "block_name": {
+      "description": "Standardized administrative Block / Tehsil / Taluka name (Title Case).",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "district_name": {
+      "description": "Standardized administrative District name (Title Case, e.g. 'Nashik', 'Pune').",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "state_name": {
+      "description": "Administrative State name (default: 'Maharashtra').",
+      "type": "string",
+      "default": "Maharashtra"
+    },
+    "panchayat_latitude": {
+      "description": "Geographical latitude of the Gram Panchayat centroid in decimal degrees (WGS84).",
+      "type": "number",
+      "minimum": 8.0,
+      "maximum": 37.0
+    },
+    "panchayat_longitude": {
+      "description": "Geographical longitude of the Gram Panchayat centroid in decimal degrees (WGS84).",
+      "type": "number",
+      "minimum": 68.0,
+      "maximum": 98.0
+    },
+    "elevation_m": {
+      "description": "Panchayat terrain elevation above mean sea level in meters.",
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 3000.0
+    },
+    "date": {
+      "description": "Validity target date of the daily 24-hour weather observation and forecast (ISO 8601 YYYY-MM-DD).",
+      "type": "string",
+      "format": "date",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "forecast_issue_date": {
+      "description": "Issuance date of the numerical weather prediction (NWP) model run (ISO 8601 YYYY-MM-DD).",
+      "type": "string",
+      "format": "date",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "lead_days": {
+      "description": "Forecast lead horizon in integer days: date - forecast_issue_date.",
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 15
+    },
+    "block_forecast_rainfall_mm": {
+      "description": "Regional numerical block-level precipitation forecast issued by IMD/NCMRWF in millimeters.",
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 500.0
+    },
+    "station_id": {
+      "description": "Identifier of reference Automatic Weather Station (AWS) or Automatic Rain Gauge (ARG).",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "station_latitude": {
+      "description": "Geographical latitude of reference weather station in decimal degrees (WGS84).",
+      "type": "number",
+      "minimum": 8.0,
+      "maximum": 37.0
+    },
+    "station_longitude": {
+      "description": "Geographical longitude of reference weather station in decimal degrees (WGS84).",
+      "type": "number",
+      "minimum": 68.0,
+      "maximum": 98.0
+    },
+    "station_distance_km": {
+      "description": "Great-circle Haversine distance between Panchayat centroid and reference station in kilometers.",
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 150.0
+    },
+    "actual_rainfall_mm": {
+      "description": "Ground truth observed 24-hour precipitation in millimeters. Nullable if observation is missing from station.",
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0.0,
+      "maximum": 1000.0
+    },
+    "source_dataset": {
+      "description": "Identifier of the source dataset jurisdiction (e.g. 'nashik', 'pune').",
+      "type": "string",
+      "minLength": 1
+    },
+    "source_file": {
+      "description": "Relative workspace file path of the source dataset from which record originated.",
+      "type": "string",
+      "minLength": 1
+    },
+    "source_row_id": {
+      "description": "Zero-indexed line/record sequence number in the originating source CSV file.",
+      "type": "integer",
+      "minimum": 0
+    },
+    "source_panchayat_id": {
+      "description": "Unmodified original string representation of the Panchayat identifier from raw source data.",
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "additionalProperties": false
+}

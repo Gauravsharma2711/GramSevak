@@ -48,6 +48,11 @@ class DistrictConfig:
     panchayat_id_extractor: Callable = default_panchayat_id_extractor
     source: str = "IMD"
     source_model: str = "GFS"
+    district_key: str = ""
+
+    def __post_init__(self):
+        if not self.district_key:
+            self.district_key = self.name.strip().lower()
 
 
 DISTRICT_REGISTRY: Dict[str, DistrictConfig] = {

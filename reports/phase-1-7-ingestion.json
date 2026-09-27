@@ -1,0 +1,199 @@
+{
+  "phase": "1.7",
+  "title": "Scalable Supabase Weather Ingestion Pipeline Validation Report",
+  "timestamp": "2026-09-27T00:22:00+05:30",
+  "overall_status": "PASS",
+  "ingestions": {
+    "nashik": {
+      "status": "PASS",
+      "dry_run": false,
+      "district": "nashik",
+      "total_input_rows": 1388,
+      "rows_upserted": 1388,
+      "batches_completed": 1,
+      "elapsed_seconds": 14.4156,
+      "throughput_rows_per_sec": 96.28,
+      "reconciliation": {
+        "matched": true,
+        "source_parquet": {
+          "row_count": 1388,
+          "unique_panchayats": 1388,
+          "min_date": "2026-01-09",
+          "max_date": "2026-09-04",
+          "actual_rainfall_sum": 13285.9,
+          "forecast_rainfall_sum": 16475.5
+        },
+        "database": {
+          "row_count": 1388,
+          "unique_panchayats": 1388,
+          "min_date": "2026-01-09",
+          "max_date": "2026-09-04",
+          "actual_rainfall_sum": 13285.9,
+          "forecast_rainfall_sum": 16475.5
+        },
+        "sample_record_checks": [
+          {
+            "sample_idx": 0,
+            "panchayat_id": 1001,
+            "date": "2026-09-04",
+            "parquet_actual": 2.5,
+            "db_actual": 2.5,
+            "parquet_forecast": 5.0,
+            "db_forecast": 5.0,
+            "verified": true
+          },
+          {
+            "sample_idx": 694,
+            "panchayat_id": 1695,
+            "date": "2026-01-09",
+            "parquet_actual": 3.5,
+            "db_actual": 3.5,
+            "parquet_forecast": 5.0,
+            "db_forecast": 5.0,
+            "verified": true
+          },
+          {
+            "sample_idx": 1387,
+            "panchayat_id": 2388,
+            "date": "2026-02-09",
+            "parquet_actual": 1.5,
+            "db_actual": 1.5,
+            "parquet_forecast": 2.0,
+            "db_forecast": 2.0,
+            "verified": true
+          }
+        ]
+      }
+    },
+    "pune": {
+      "status": "PASS",
+      "dry_run": false,
+      "district": "pune",
+      "total_input_rows": 187320,
+      "rows_upserted": 187320,
+      "batches_completed": 75,
+      "elapsed_seconds": 162.3428,
+      "throughput_rows_per_sec": 1153.85,
+      "reconciliation": {
+        "matched": true,
+        "source_parquet": {
+          "row_count": 187320,
+          "unique_panchayats": 1338,
+          "min_date": "2026-04-13",
+          "max_date": "2026-09-23",
+          "actual_rainfall_sum": 1158440.4,
+          "forecast_rainfall_sum": 1063308.6
+        },
+        "database": {
+          "row_count": 187320,
+          "unique_panchayats": 1338,
+          "min_date": "2026-04-13",
+          "max_date": "2026-09-23",
+          "actual_rainfall_sum": 1158440.4,
+          "forecast_rainfall_sum": 1063308.6
+        },
+        "sample_record_checks": [
+          {
+            "sample_idx": 0,
+            "panchayat_id": 185262,
+            "date": "2026-04-13",
+            "parquet_actual": 0.0,
+            "db_actual": 0.0,
+            "parquet_forecast": 0.0,
+            "db_forecast": 0.0,
+            "verified": true
+          },
+          {
+            "sample_idx": 93660,
+            "panchayat_id": 185981,
+            "date": "2026-04-13",
+            "parquet_actual": 0.0,
+            "db_actual": 0.0,
+            "parquet_forecast": 0.0,
+            "db_forecast": 0.0,
+            "verified": true
+          },
+          {
+            "sample_idx": 187319,
+            "panchayat_id": 299397,
+            "date": "2026-09-23",
+            "parquet_actual": 12.2,
+            "db_actual": 12.2,
+            "parquet_forecast": 5.8,
+            "db_forecast": 5.8,
+            "verified": true
+          }
+        ]
+      }
+    }
+  },
+  "idempotency_verification": {
+    "idempotent": true,
+    "total_count_before": 188708,
+    "total_count_after": 188708,
+    "nashik_count_before": 1388,
+    "nashik_count_after": 1388
+  },
+  "failure_recovery_verification": {
+    "error_caught": true,
+    "error_message": "Batch failed after 1 attempts: insert or update on table \"weather_observations\" violates foreign key constraint \"fk_weather_obs_panchayat\"\nDETAIL:  Key (panchayat_id)=(99999999) is not present in table \"panchayats\".\n",
+    "database_isolated": true,
+    "count_before": 188708,
+    "count_after": 188708
+  },
+  "raw_data_immutability": {
+    "nashik": {
+      "file": "data/raw/nashik/nashik_panchayat_weather_raw.csv",
+      "sha256": "208bb024dc49b978e1c9346c2eb941bb933a9cffdf7a4f3b84c5df3594040276",
+      "immutable": true
+    },
+    "pune": {
+      "file": "data/raw/pune/pune_original.csv",
+      "sha256": "8dbb31ea9e6d9b36eb951f5b980dd9d2a402108a57eeffa962ee944ba403a7a9",
+      "immutable": true
+    }
+  },
+  "representative_query_benchmarks": {
+    "1_district_list": {
+      "result_count": 2,
+      "elapsed_ms": 1296.97
+    },
+    "2_blocks_for_pune": {
+      "result_count": 13,
+      "elapsed_ms": 463.91
+    },
+    "3_blocks_for_nashik": {
+      "result_count": 15,
+      "elapsed_ms": 478.84
+    },
+    "4_panchayats_for_pune_block": {
+      "result_count": 20,
+      "elapsed_ms": 480.29
+    },
+    "5_panchayats_for_nashik_block": {
+      "result_count": 20,
+      "elapsed_ms": 406.3
+    },
+    "6_weather_for_panchayat": {
+      "result_count": 1,
+      "elapsed_ms": 552.88
+    },
+    "7_weather_for_date_range": {
+      "result_count": 25,
+      "elapsed_ms": 408.14
+    },
+    "8_forecast_by_issue_date": {
+      "result_count": 1,
+      "elapsed_ms": 552.92
+    },
+    "9_count_by_district": {
+      "result_count": 2,
+      "elapsed_ms": 479.85
+    },
+    "10_count_by_panchayat": {
+      "result_count": 10,
+      "elapsed_ms": 479.62
+    }
+  },
+  "total_database_observations": 188708
+}

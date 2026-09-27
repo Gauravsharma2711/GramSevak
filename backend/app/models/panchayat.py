@@ -19,9 +19,12 @@ class Panchayat(Base):
     longitude = Column(Numeric, nullable=True)
     elevation_m = Column(Numeric, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
     district = relationship("District", back_populates="panchayats")
     block = relationship("Block", back_populates="panchayats")
+    weather_observations = relationship("WeatherObservation", back_populates="panchayat")
+    downscaled_forecasts = relationship("DownscaledForecast", back_populates="panchayat")
 
     def __repr__(self) -> str:
         return f"<Panchayat(id={self.id}, name='{self.name}', lgd_code={self.lgd_code})>"
