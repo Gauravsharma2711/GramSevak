@@ -151,3 +151,61 @@ Implemented in `AdvisoryTraceabilityContract`:
 - **Safety Audit:** Full `SafetyValidationReport` snapshot with checked rules and violation logs.
 - **Human Oversight:** `officer_id`, `officer_action`, `officer_comment`, `action_timestamp`.
 - **Publication Audit:** `publication_timestamp`, `approved_content_hash`.
+
+---
+
+## 8. Deterministic Agricultural Risk & Recommendation Rule Engine (Phase 5.2)
+
+Implemented in `src.advisory.rule_engine` (`DeterministicRuleEngine`):
+
+### 8.1 Rule Categories Implemented
+1. `EXTREME_WEATHER`: Critical hazard management for extreme inundation.
+2. `DRAINAGE`: Soil saturation and furrow discharge protocols.
+3. `FIELD_OPERATIONS`: Tillage window and soil compaction prevention.
+4. `FERTILIZER`: Runoff and nitrogen leaching safeguards.
+5. `HARVEST`: Post-harvest produce shelter advisories.
+6. `SPRAYING`: Foliar chemical wash-off precautions.
+7. `IRRIGATION`: Natural precipitation recharge suspension and dry weather irrigation scheduling.
+8. `TEMPERATURE_STRESS`: Thermal crop stress (conditional on temperature availability).
+
+### 8.2 Rule Catalog & Threshold Provenance
+
+| Rule ID | Category | Parameter | Condition | Provenance & Source | Status | Priority |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `AGRO_RULE_EXTREME_INUNDATION_V1` | `EXTREME_WEATHER` | `downscaled_rainfall_mm` | `> 115.5 mm` | IMD Very Heavy Rainfall standard (>115.5 mm) | Authoritative | 1 |
+| `AGRO_RULE_HEAVY_RAIN_DRAINAGE_V1` | `DRAINAGE` | `downscaled_rainfall_mm` | `> 64.4 mm` | IMD Heavy Rainfall (>64.4 mm) / ICAR Drainage Guidelines | Authoritative | 2 |
+| `AGRO_RULE_TILLAGE_RESTRICTION_V1` | `FIELD_OPERATIONS` | `downscaled_rainfall_mm` | `> 15.5 mm` | ICAR Soil Management / Tilth Preservation (>15.5 mm) | Authoritative | 4 |
+| `AGRO_RULE_FERTILIZER_LEACHING_V1` | `FERTILIZER` | `downscaled_rainfall_mm` | `> 15.5 mm` | ICAR Nutrient Best Management Practices (>15.5 mm) | Authoritative | 4 |
+| `AGRO_RULE_HARVEST_SHELTER_V1` | `HARVEST` | `downscaled_rainfall_mm` | `> 15.5 mm` | ICAR Post-Harvest Protection Guidelines (>15.5 mm) | Authoritative | 3 |
+| `AGRO_RULE_SPRAY_WASHOFF_V1` | `SPRAYING` | `downscaled_rainfall_mm` | `> 2.5 mm` | ICAR Plant Protection (wash-off threshold >2.5 mm) | Authoritative | 5 |
+| `AGRO_RULE_IRRIGATION_SUSPENSION_V1`| `IRRIGATION` | `downscaled_rainfall_mm` | `> 2.5 mm` | ICAR Water Management / Daily Evapotranspiration | Authoritative | 6 |
+| `AGRO_RULE_VERY_LIGHT_RAIN_ROUTINE_V1`| `FIELD_OPERATIONS`| `downscaled_rainfall_mm` | `0.0 < rf <= 2.5`| IMD Very Light Rainfall Classification (0.1–2.5 mm) | Authoritative | 8 |
+| `AGRO_RULE_DRY_WEATHER_IRRIGATION_V1` | `IRRIGATION` | `downscaled_rainfall_mm` | `== 0.0 mm` | IMD No Significant Rainfall Classification (0.0 mm) | Authoritative | 9 |
+| `AGRO_RULE_HEAT_STRESS_PROTOTYPE_V1` | `TEMPERATURE_STRESS`| `temperature_c` | `> 38.0 °C` | ICAR Thermal Stress Guidelines (>38°C flower abortion)| Prototype (Needs validation) | 3 |
+
+### 8.3 Input Variables & Availability
+- **Primary / Active:** `downscaled_rainfall_mm` (downscaled by Phase 2 ML), `block_forecast_rainfall_mm`, `lead_days`.
+- **Optional / Future:** `temperature_c`, `humidity_pct`, `wind_speed_kmh`, `soil_moisture_index`. Default to `None` in current pipeline.
+
+### 8.4 Missing Data & Edge Case Safety
+- **Missing Rainfall:** Never assumed to be `0.0 mm`. Rainfall-dependent rules do not trigger. Evaluation trace records `skipped=True`. Operational guidance defaults to `"UNKNOWN"`.
+- **Missing Temperature:** Temperature rules safely skip with documented reason.
+- **Invalid Numerics:** Rejects `NaN`, `Inf`, and negative rainfall values without throwing uncaught exceptions.
+- **Missing Forecast Date:** Timing-dependent recommendations are marked unavailable (`timing_window = "Timing unavailable (missing forecast date)"`).
+- **Missing Panchayat Context:** Structured validation error returned in `validation_errors` (or raises `RuleEngineValidationError` if strict mode enabled).
+
+### 8.5 Output Structure & Deterministic Ordering
+`RuleEngineEvaluationResult`:
+- `risks`: List of `AgriculturalRiskItem` sorted deterministically by severity (`CRITICAL > HIGH > MODERATE > LOW`) then `rule_id`.
+- `recommendation_context`: `DeterministicRecommendationContext` containing:
+  - `recommended_actions`: Consolidated, deduplicated action strings ordered by rule priority.
+  - `timing_window`: Timing window from highest-priority triggered rule.
+  - `operational_guidance`: Dict mapping operation keys (`spraying`, `tillage`, `drainage`, `irrigation`) to guidance tokens, resolved deterministically by priority.
+- `triggered_rules`: Triggered rules sorted by priority (`1 = critical`) then `rule_id`.
+- `evaluation_trace`: Complete audit trail of all evaluated rules (triggered, skipped, actual values, thresholds).
+- `validation_errors`: Structured non-blocking warnings or validation issues.
+- `rule_version`: Immutable version string (`v1.0.0`).
+
+### 8.6 Known Limitations
+- Current ML forecasts downscaled rainfall only; thermal and moisture index rules remain conditional prototypes until multi-variable sensors/models are added.
+- General agronomic rules apply at the Panchayat level; crop-specific phenological thresholds require farm-level crop profile inputs.

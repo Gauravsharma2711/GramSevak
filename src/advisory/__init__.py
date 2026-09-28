@@ -29,6 +29,7 @@ from src.advisory.rule_engine import (
     DEFAULT_AGRICULTURAL_RULES,
     default_rule_engine,
     RULE_ENGINE_VERSION,
+    RuleEngineValidationError,
 )
 
 __all__ = [
@@ -52,4 +53,5 @@ __all__ = [
     "DEFAULT_AGRICULTURAL_RULES",
     "default_rule_engine",
     "RULE_ENGINE_VERSION",
+    "RuleEngineValidationError",
 ]

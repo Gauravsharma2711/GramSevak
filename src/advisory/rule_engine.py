@@ -108,6 +108,20 @@ class AgriculturalRuleDefinition:
         }
 
 
+class RuleEngineValidationError(ValueError):
+    """Raised when rule engine input validation fails."""
+    def __init__(
+        self,
+        message: str,
+        field: Optional[str] = None,
+        details: Optional[Dict[str, Any]] = None,
+    ):
+        super().__init__(message)
+        self.message = message
+        self.field = field
+        self.details = details or {}
+
+
 @dataclass
 class RuleEvaluationTrace:
     """
@@ -133,6 +147,7 @@ class RuleEngineEvaluationResult:
     recommendation_context: DeterministicRecommendationContext
     triggered_rules: List[AgriculturalRuleDefinition]
     evaluation_trace: List[RuleEvaluationTrace]
+    validation_errors: List[str] = field(default_factory=list)
     rule_version: str = RULE_ENGINE_VERSION
 
 
@@ -420,6 +435,21 @@ class DeterministicRuleEngine:
     def __init__(self, rules: Optional[List[AgriculturalRuleDefinition]] = None):
         self.rules = rules if rules is not None else DEFAULT_AGRICULTURAL_RULES
 
+    def _is_valid_numeric(self, val: Any, allow_negative: bool = True) -> bool:
+        """Determines if a value is a valid, finite numeric float."""
+        if val is None:
+            return False
+        try:
+            import math
+            f = float(val)
+            if math.isnan(f) or math.isinf(f):
+                return False
+            if not allow_negative and f < 0.0:
+                return False
+            return True
+        except (ValueError, TypeError):
+            return False
+
     def _evaluate_condition(
         self,
         actual_val: Any,
@@ -457,6 +487,7 @@ class DeterministicRuleEngine:
         self,
         forecast_context: ForecastContext,
         panchayat_context: Optional[PanchayatContext] = None,
+        require_panchayat: bool = False,
     ) -> RuleEngineEvaluationResult:
         """
         Executes all active rules against the given forecast context.
@@ -464,11 +495,23 @@ class DeterministicRuleEngine:
         Args:
             forecast_context: Validated numerical downscaled weather prediction.
             panchayat_context: Optional administrative Panchayat context.
+            require_panchayat: If True, raises RuleEngineValidationError when panchayat_context is None.
             
         Returns:
             RuleEngineEvaluationResult: Aggregated risks, consolidated recommendations,
             operational guidance, and comprehensive execution trace.
         """
+        validation_errors: List[str] = []
+
+        # Validate Panchayat context
+        if panchayat_context is None:
+            if require_panchayat:
+                raise RuleEngineValidationError(
+                    "Missing Panchayat context: panchayat_context is required for localized advisory evaluation.",
+                    field="panchayat_context",
+                )
+            validation_errors.append("Panchayat context is missing; recommendations remain general without micro-spatial adjustment.")
+
         triggered_rules: List[AgriculturalRuleDefinition] = []
         evaluation_traces: List[RuleEvaluationTrace] = []
         risks: List[AgriculturalRiskItem] = []
@@ -478,17 +521,25 @@ class DeterministicRuleEngine:
             "drainage": "NORMAL",
             "irrigation": "CONTINUE_NORMAL",
         }
+        guidance_priority: Dict[str, int] = {}
 
         # Context dictionary mapping input variable names to forecast values
         context_vars = {
-            "downscaled_rainfall_mm": forecast_context.downscaled_rainfall_mm,
-            "block_forecast_rainfall_mm": forecast_context.block_forecast_rainfall_mm,
-            "lead_days": forecast_context.lead_days,
-            "temperature_c": forecast_context.temperature_c,
-            "humidity_pct": forecast_context.humidity_pct,
-            "wind_speed_kmh": forecast_context.wind_speed_kmh,
-            "soil_moisture_index": forecast_context.soil_moisture_index,
+            "downscaled_rainfall_mm": getattr(forecast_context, "downscaled_rainfall_mm", None),
+            "block_forecast_rainfall_mm": getattr(forecast_context, "block_forecast_rainfall_mm", None),
+            "lead_days": getattr(forecast_context, "lead_days", None),
+            "temperature_c": getattr(forecast_context, "temperature_c", None),
+            "humidity_pct": getattr(forecast_context, "humidity_pct", None),
+            "wind_speed_kmh": getattr(forecast_context, "wind_speed_kmh", None),
+            "soil_moisture_index": getattr(forecast_context, "soil_moisture_index", None),
         }
+
+        # Check missing or invalid rainfall explicitly - NEVER assume 0 mm
+        rainfall_val = context_vars["downscaled_rainfall_mm"]
+        if rainfall_val is None:
+            validation_errors.append("Rainfall forecast data is unavailable; rainfall-dependent rules cannot be evaluated.")
+        elif not self._is_valid_numeric(rainfall_val, allow_negative=False):
+            validation_errors.append(f"Invalid rainfall value '{rainfall_val}'; must be a non-negative finite number.")
 
         # Evaluate rules in sequence
         for rule in self.rules:
@@ -528,6 +579,24 @@ class DeterministicRuleEngine:
                 )
                 continue
 
+            # Validate numeric sanity (reject NaN, Inf, negative rainfall)
+            allow_neg = primary_var not in ("downscaled_rainfall_mm", "block_forecast_rainfall_mm", "humidity_pct")
+            if not self._is_valid_numeric(actual_val, allow_negative=allow_neg):
+                evaluation_traces.append(
+                    RuleEvaluationTrace(
+                        rule_id=rule.rule_id,
+                        rule_name=rule.rule_name,
+                        triggered=False,
+                        skipped=True,
+                        skip_reason=f"Invalid numeric value '{actual_val}' for variable '{primary_var}'.",
+                        actual_value=None,
+                        threshold_value=rule.threshold_value,
+                        condition=f"{rule.input_variables} {rule.condition_operator.value} {rule.threshold_value}",
+                        explanation=rule.explanation,
+                    )
+                )
+                continue
+
             # Evaluate condition
             is_triggered = self._evaluate_condition(
                 actual_val=actual_val,
@@ -556,9 +625,9 @@ class DeterministicRuleEngine:
                 risk_item = AgriculturalRiskItem(
                     risk_type=rule.risk_type,
                     severity=rule.severity,
-                    triggering_condition=f"{rule.rule_name}: {primary_var}={actual_val:.1f} {rule.threshold_unit} ({rule.condition_operator.value} {rule.threshold_value})",
+                    triggering_condition=f"{rule.rule_name}: {primary_var}={float(actual_val):.1f} {rule.threshold_unit} ({rule.condition_operator.value} {rule.threshold_value})",
                     supporting_values={
-                        "actual_value": actual_val,
+                        "actual_value": float(actual_val),
                         "threshold_value": rule.threshold_value,
                         "unit": rule.threshold_unit,
                         "threshold_source": rule.threshold_source,
@@ -568,15 +637,19 @@ class DeterministicRuleEngine:
                 )
                 risks.append(risk_item)
 
-                # Update operational guidance tags (higher severity wins)
+                # Update operational guidance tags (higher priority / lower priority number wins)
                 if rule.operational_action_key and rule.operational_action_value:
-                    operational_guidance[rule.operational_action_key] = rule.operational_action_value
+                    prev_priority = guidance_priority.get(rule.operational_action_key, 999)
+                    if rule.priority < prev_priority:
+                        operational_guidance[rule.operational_action_key] = rule.operational_action_value
+                        guidance_priority[rule.operational_action_key] = rule.priority
 
-        # Sort triggered rules by priority (ascending: 1 = most urgent)
-        triggered_rules.sort(key=lambda r: r.priority)
-        risks.sort(key=lambda r: (
-            {"CRITICAL": 0, "HIGH": 1, "MODERATE": 2, "LOW": 3}.get(r.severity.value, 4)
-        ))
+        # Sort triggered rules deterministically: primary by priority ascending, secondary by rule_id
+        triggered_rules.sort(key=lambda r: (r.priority, r.rule_id))
+
+        # Sort risks deterministically: primary by severity descending, secondary by rule_id
+        severity_rank = {"CRITICAL": 0, "HIGH": 1, "MODERATE": 2, "LOW": 3}
+        risks.sort(key=lambda r: (severity_rank.get(r.severity.value, 4), r.rule_id))
 
         # Consolidate non-redundant recommended actions
         recommended_actions: List[str] = []
@@ -584,11 +657,28 @@ class DeterministicRuleEngine:
             if r.recommendation not in recommended_actions:
                 recommended_actions.append(r.recommendation)
 
+        # Handle missing rainfall or no rules triggered
         if not recommended_actions:
-            recommended_actions.append("Maintain routine crop monitoring and soil moisture assessments.")
+            if rainfall_val is None or not self._is_valid_numeric(rainfall_val, allow_negative=False):
+                recommended_actions.append(
+                    "Rainfall forecast data is unavailable; cannot generate rainfall-dependent agricultural recommendations. Maintain standard crop monitoring."
+                )
+                operational_guidance = {
+                    "spraying": "UNKNOWN",
+                    "tillage": "UNKNOWN",
+                    "drainage": "UNKNOWN",
+                    "irrigation": "UNKNOWN",
+                }
+            else:
+                recommended_actions.append("Maintain routine crop monitoring and soil moisture assessments.")
 
-        # Determine timing window from most severe rule
-        timing_window = triggered_rules[0].timing if triggered_rules else "Next 24 to 48 hours"
+        # Determine timing window; check if forecast_date is missing
+        forecast_date = getattr(forecast_context, "forecast_date", None)
+        if forecast_date is None:
+            timing_window = "Timing unavailable (missing forecast date)"
+            validation_errors.append("Forecast date is missing; timing-dependent recommendations cannot be generated.")
+        else:
+            timing_window = triggered_rules[0].timing if triggered_rules else "Next 24 to 48 hours"
 
         recommendation_context = DeterministicRecommendationContext(
             recommended_actions=recommended_actions,
@@ -601,6 +691,7 @@ class DeterministicRuleEngine:
             recommendation_context=recommendation_context,
             triggered_rules=triggered_rules,
             evaluation_trace=evaluation_traces,
+            validation_errors=validation_errors,
             rule_version=RULE_ENGINE_VERSION,
         )
 
