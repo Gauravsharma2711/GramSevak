@@ -389,10 +389,20 @@ html, body {
 
 @media (max-width: 480px) {
   .app-card {
-    padding: 12px !important;
+    padding: 14px !important;
   }
   .btn-primary, .btn-secondary, .btn-danger {
     padding: 8px 14px;
     font-size: 13px;
+  }
+}
+
+/* Accessibility: Respect Reduced Motion Preferences */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

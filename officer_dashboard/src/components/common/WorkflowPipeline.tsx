@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Building2, 
   Cpu, 
@@ -6,14 +6,20 @@ import {
   FileText, 
   UserCheck, 
   CheckCircle2, 
-  ArrowRight 
+  ArrowRight,
+  ChevronDown,
+  ChevronUp,
+  ShieldCheck 
 } from 'lucide-react';
 
 interface WorkflowPipelineProps {
   activeStep?: number;
+  initiallyExpanded?: boolean;
 }
 
-export const WorkflowPipeline: React.FC<WorkflowPipelineProps> = () => {
+export const WorkflowPipeline: React.FC<WorkflowPipelineProps> = ({ initiallyExpanded = false }) => {
+  const [isExpanded, setIsExpanded] = useState(initiallyExpanded);
+
   const steps = [
     {
       id: 1,
@@ -54,35 +60,59 @@ export const WorkflowPipeline: React.FC<WorkflowPipelineProps> = () => {
   ];
 
   return (
-    <div
+    <section
       className="app-card"
       style={{
-        backgroundColor: 'var(--surface)',
-        border: '1px solid var(--primary-100)',
-        padding: '16px 20px',
+        backgroundColor: 'var(--surface-subtle)',
+        border: 'var(--border-subtle)',
+        padding: '14px 18px',
+        boxShadow: 'none',
       }}
-      role="region"
       aria-label="GramSevak Workflow Pipeline"
     >
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-        <span className="text-label" style={{ color: 'var(--primary-700)' }}>
-          GramSevak End-to-End Operational Pipeline
-        </span>
-        <span style={{ fontSize: '11px', color: 'var(--ink-500)', fontWeight: 500 }}>
-          MoES / IMD Agromet Protocol
-        </span>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <ShieldCheck size={16} color="var(--primary-600)" />
+          <span style={{ fontSize: '13px', fontWeight: 650, color: 'var(--ink-900)' }}>
+            MoES • IMD Agromet Protocol Pipeline
+          </span>
+          <span style={{ fontSize: '11px', color: 'var(--ink-500)' }} className="hide-on-mobile">
+            (6-stage deterministic & verified flow)
+          </span>
+        </div>
+
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="btn-secondary"
+          style={{
+            padding: '4px 10px',
+            fontSize: '11px',
+            minHeight: '28px',
+            gap: '4px',
+            borderRadius: 'var(--radius-pill)',
+          }}
+          aria-expanded={isExpanded}
+          aria-label={isExpanded ? 'Collapse pipeline stages' : 'Expand pipeline stages'}
+        >
+          <span>{isExpanded ? 'Hide Pipeline Stages' : 'View Protocol Stages'}</span>
+          {isExpanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+        </button>
       </div>
 
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          overflowX: 'auto',
-          gap: '8px',
-          paddingBottom: '4px',
-        }}
-      >
+      {isExpanded && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            overflowX: 'auto',
+            gap: '8px',
+            paddingTop: '14px',
+            marginTop: '10px',
+            borderTop: 'var(--border-subtle)',
+          }}
+          className="fade-in"
+        >
         {steps.map((step, idx) => (
           <React.Fragment key={step.id}>
             <div
@@ -127,7 +157,8 @@ export const WorkflowPipeline: React.FC<WorkflowPipelineProps> = () => {
             )}
           </React.Fragment>
         ))}
-      </div>
-    </div>
+        </div>
+      )}
+    </section>
   );
 };
