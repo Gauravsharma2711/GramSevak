@@ -110,12 +110,11 @@ class ForecastGenerateResponse(BaseModel):
         description="Version tag of the deployed ML model",
         examples=["v1.0.0"],
     )
-    # TODO (Day 5+): Implement defensible uncertainty/confidence calibration based on historical model residuals (e.g., Conformal Prediction intervals).
     confidence: Optional[float] = Field(
         None,
         description=(
-            "Model prediction uncertainty / confidence metric. Null by default in Day 4 "
-            "to prevent arbitrary unsupported percentages until statistical calibration is implemented."
+            "Model prediction uncertainty / confidence metric. Null by default "
+            "unless statistical calibration is provided."
         ),
         examples=[None],
     )
@@ -185,12 +184,11 @@ class ForecastRetrievalResponse(BaseModel):
         description="Version tag of the deployed ML model",
         examples=["v1.0.0"],
     )
-    # TODO (Day 5+): Implement defensible uncertainty/confidence calibration based on historical model residuals (e.g., Conformal Prediction intervals).
     confidence: Optional[float] = Field(
         None,
         description=(
-            "Model prediction uncertainty / confidence metric. Null by default in Day 4 "
-            "to prevent arbitrary unsupported percentages until statistical calibration is implemented."
+            "Model prediction uncertainty / confidence metric. Null by default "
+            "unless statistical calibration is provided."
         ),
         examples=[None],
     )

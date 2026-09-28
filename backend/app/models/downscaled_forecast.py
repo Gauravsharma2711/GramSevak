@@ -19,8 +19,7 @@ class DownscaledForecast(Base):
     actual_rainfall_mm = Column(Numeric, nullable=True)
     model_name = Column(Text, nullable=True)
     model_version = Column(Text, nullable=True)
-    # Note: confidence is nullable. Kept null in Day 4 to avoid arbitrary percentages.
-    # TODO (Day 5+): Implement defensible uncertainty/confidence calibration based on historical model residuals (e.g. Conformal Prediction or quantile error distributions).
+    # Note: confidence is nullable; null by default unless statistical calibration is provided.
     confidence = Column(Numeric, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=True)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

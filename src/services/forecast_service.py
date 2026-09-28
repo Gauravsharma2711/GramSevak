@@ -378,8 +378,7 @@ def generate_panchayat_forecast(
         "raw_predicted_rainfall_mm": validated_output.raw_predicted_rainfall_mm,
         "model_name": pred_result.get("model_name", "XGBoost Regressor"),
         "model_version": pred_result.get("model_version", "v1.0.0"),
-        # TODO (Day 5+): Implement statistical confidence/uncertainty calibration based on historical model residuals.
-        # Null by default in Day 4 to avoid arbitrary unsupported percentage estimates.
+        # Confidence is null by default unless statistical calibration is provided.
         "confidence": None,
         "status": "success"
     }
