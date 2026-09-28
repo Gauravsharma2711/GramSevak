@@ -10,6 +10,7 @@ class FarmProfileScreen extends StatelessWidget {
   final VoidCallback onChangePanchayat;
   final String currentLang;
   final Function(String) onLanguageChanged;
+  final VoidCallback? onOpenOnboarding;
 
   const FarmProfileScreen({
     super.key,
@@ -18,6 +19,7 @@ class FarmProfileScreen extends StatelessWidget {
     required this.onChangePanchayat,
     required this.currentLang,
     required this.onLanguageChanged,
+    this.onOpenOnboarding,
   });
 
   @override
@@ -190,6 +192,63 @@ class FarmProfileScreen extends StatelessWidget {
               ],
             ),
           ),
+
+          if (onOpenOnboarding != null) ...[
+            const SizedBox(height: 20),
+            InkWell(
+              onTap: onOpenOnboarding,
+              borderRadius: BorderRadius.circular(16),
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFE5EAE7)),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: AppColors.primary050,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(
+                        Icons.explore_outlined,
+                        color: AppColors.primary700,
+                        size: 22,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'App Tour & Village Guide',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.ink900,
+                            ),
+                          ),
+                          Text(
+                            'Learn how localized micro-climate forecasts work',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: AppColors.ink500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Icon(Icons.chevron_right, size: 20, color: AppColors.ink500),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );

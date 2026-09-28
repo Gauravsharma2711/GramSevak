@@ -12,6 +12,7 @@ import 'screens/home_forecast_screen.dart';
 import 'screens/forecast_detail_screen.dart';
 import 'screens/advisory_detail_screen.dart';
 import 'screens/farm_profile_screen.dart';
+import 'screens/onboarding_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,7 +20,12 @@ void main() {
 }
 
 class GramSevakFarmerApp extends StatefulWidget {
-  const GramSevakFarmerApp({super.key});
+  final bool showOnboardingInitially;
+
+  const GramSevakFarmerApp({
+    super.key,
+    this.showOnboardingInitially = false,
+  });
 
   @override
   State<GramSevakFarmerApp> createState() => _GramSevakFarmerAppState();
@@ -48,6 +54,7 @@ class _GramSevakFarmerAppState extends State<GramSevakFarmerApp> {
         DefaultWidgetsLocalizations.delegate,
       ],
       home: FarmerAppMainScreen(
+        showOnboardingInitially: widget.showOnboardingInitially,
         onGlobalLanguageChanged: setLocale,
       ),
     );
@@ -55,10 +62,12 @@ class _GramSevakFarmerAppState extends State<GramSevakFarmerApp> {
 }
 
 class FarmerAppMainScreen extends StatefulWidget {
+  final bool showOnboardingInitially;
   final Function(String)? onGlobalLanguageChanged;
 
   const FarmerAppMainScreen({
     super.key,
+    this.showOnboardingInitially = false,
     this.onGlobalLanguageChanged,
   });
 
@@ -69,6 +78,7 @@ class FarmerAppMainScreen extends StatefulWidget {
 class _FarmerAppMainScreenState extends State<FarmerAppMainScreen> {
   final FarmerRepository _repository = FarmerRepository();
 
+  late bool _showOnboarding;
   int _selectedNavIndex = 0;
   String _selectedLang = 'en';
   int _selectedPanchayatId = 1001; // Pilot Village: Ajmer Saundane (Baglan)
@@ -80,6 +90,7 @@ class _FarmerAppMainScreenState extends State<FarmerAppMainScreen> {
   @override
   void initState() {
     super.initState();
+    _showOnboarding = widget.showOnboardingInitially;
     _loadInitialData();
   }
 
@@ -170,6 +181,27 @@ class _FarmerAppMainScreenState extends State<FarmerAppMainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_showOnboarding) {
+      return FarmerOnboardingScreen(
+        panchayats: _panchayats.isNotEmpty
+            ? _panchayats
+            : FarmerRepository.fallbackPanchayats,
+        initialPanchayatId: _selectedPanchayatId,
+        currentLang: _selectedLang,
+        onLanguageChanged: _onLanguageChanged,
+        onCompleteOnboarding: (panchayat) {
+          setState(() {
+            _showOnboarding = false;
+            _selectedPanchayatId = panchayat.panchayatId;
+            if (!_panchayats.any((p) => p.panchayatId == panchayat.panchayatId)) {
+              _panchayats.insert(0, panchayat);
+            }
+          });
+          _reloadForecast();
+        },
+      );
+    }
+
     final currentP = _panchayats.firstWhere(
       (p) => p.panchayatId == _selectedPanchayatId,
       orElse: () => _panchayats.isNotEmpty
@@ -254,6 +286,9 @@ class _FarmerAppMainScreenState extends State<FarmerAppMainScreen> {
           onChangePanchayat: _openPanchayatPicker,
           currentLang: _selectedLang,
           onLanguageChanged: _onLanguageChanged,
+          onOpenOnboarding: () {
+            setState(() => _showOnboarding = true);
+          },
         );
     }
   }

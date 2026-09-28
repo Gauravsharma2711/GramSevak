@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/farmer_forecast.dart';
 import '../theme/app_theme.dart';
 import '../l10n/app_localizations.dart';
+import 'agricultural_illustrations.dart';
 
 class AdvisoryCard extends StatelessWidget {
   final FarmerForecast forecast;
@@ -144,12 +145,17 @@ class AdvisoryCard extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(
-                            isPlayingAudio ? Icons.volume_up : Icons.volume_mute_outlined,
-                            size: 16,
-                            color: AppColors.primary700,
-                          ),
-                          const SizedBox(width: 6),
+                          if (isPlayingAudio) ...[
+                            const AudioWaveformIllustration(isPlaying: true),
+                            const SizedBox(width: 6),
+                          ] else ...[
+                            const Icon(
+                              Icons.volume_up_outlined,
+                              size: 16,
+                              color: AppColors.primary700,
+                            ),
+                            const SizedBox(width: 6),
+                          ],
                           Text(
                             isPlayingAudio ? l10n.listeningAudio : l10n.listenAudio,
                             style: const TextStyle(

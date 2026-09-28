@@ -136,18 +136,18 @@ class WeatherHeroCard extends StatelessWidget {
                         Text(
                           forecast.rainfallMm.toStringAsFixed(1),
                           style: TextStyle(
-                            fontSize: 42,
+                            fontSize: 30,
                             fontWeight: FontWeight.w800,
                             color: categoryColor,
-                            height: 1.0,
-                            letterSpacing: -1,
+                            height: 1.1,
+                            letterSpacing: -0.5,
                           ),
                         ),
                         const SizedBox(width: 4),
                         const Text(
                           'mm',
                           style: TextStyle(
-                            fontSize: 18,
+                            fontSize: 14,
                             fontWeight: FontWeight.w600,
                             color: AppColors.ink700,
                           ),
@@ -159,15 +159,15 @@ class WeatherHeroCard extends StatelessWidget {
 
                 // Weather Icon Illustration
                 Container(
-                  width: 68,
-                  height: 68,
+                  width: 56,
+                  height: 56,
                   decoration: BoxDecoration(
                     color: isHeavy
                         ? AppColors.danger100
                         : isModerate
                             ? AppColors.primary050
                             : AppColors.info100,
-                    borderRadius: BorderRadius.circular(18),
+                    borderRadius: BorderRadius.circular(16),
                     border: Border.all(
                       color: isHeavy
                           ? const Color(0xFFF5C6CB)
@@ -183,7 +183,7 @@ class WeatherHeroCard extends StatelessWidget {
                             ? Icons.water_drop_outlined
                             : Icons.wb_sunny_outlined,
                     color: categoryColor,
-                    size: 36,
+                    size: 30,
                     semanticLabel: categoryLabel,
                   ),
                 ),

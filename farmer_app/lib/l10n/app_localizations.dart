@@ -103,6 +103,19 @@ class AppLocalizations {
   String get noForecastTitle => _lookup('no_forecast_title');
   String get noForecastDescription => _lookup('no_forecast_desc');
 
+  // Onboarding
+  String get onboardingWelcomeTitle => _lookup('onboarding_welcome_title');
+  String get onboardingWelcomeSub => _lookup('onboarding_welcome_sub');
+  String get onboardingLocationTitle => _lookup('onboarding_location_title');
+  String get onboardingLocationSub => _lookup('onboarding_location_sub');
+  String get onboardingSelectionTitle => _lookup('onboarding_selection_title');
+  String get onboardingSelectionSub => _lookup('onboarding_selection_sub');
+  String get btnChooseVillage => _lookup('btn_choose_village');
+  String get btnUseDemoVillage => _lookup('btn_use_demo_village');
+  String get btnGetStarted => _lookup('btn_get_started');
+  String get btnNext => _lookup('btn_next');
+  String get btnSkip => _lookup('btn_skip');
+
   // --- LOCALIZED DICTIONARIES ---
 
   static const Map<String, String> _englishStrings = {
@@ -160,6 +173,20 @@ class AppLocalizations {
     'no_forecast_title': 'No Forecast Available',
     'no_forecast_desc':
         'No weather forecast recorded for this village yet.',
+    'onboarding_welcome_title': 'Village-Level Weather & Farm Guidance',
+    'onboarding_welcome_sub':
+        'Accurate micro-climate forecasts downscaled specifically to your Gram Panchayat.',
+    'onboarding_location_title': 'Weather Changes Every 5 km',
+    'onboarding_location_sub':
+        'Mountain ridges and valleys have different rainfall. Choose your exact Gram Panchayat for village-level guidance.',
+    'onboarding_selection_title': 'Select Your Gram Panchayat',
+    'onboarding_selection_sub':
+        'Choose your District, Block, and Village to receive verified agro-advisory.',
+    'btn_choose_village': 'Choose Gram Panchayat',
+    'btn_use_demo_village': 'Start with Pilot Village (Ajmer Saundane)',
+    'btn_get_started': 'Open My Farm Dashboard',
+    'btn_next': 'Next',
+    'btn_skip': 'Skip',
   };
 
   static const Map<String, String> _marathiStrings = {
@@ -217,6 +244,20 @@ class AppLocalizations {
     'no_forecast_title': 'अंदाज उपलब्ध नाही',
     'no_forecast_desc':
         'या गावासाठी हवामान अंदाज उपलब्ध नाही.',
+    'onboarding_welcome_title': 'गाव पातळीवरील हवामान व कृषी सल्ला',
+    'onboarding_welcome_sub':
+        'तुमच्या शेतासाठी अचूक ग्रामपंचायत पातळीवरील हवामान अंदाज.',
+    'onboarding_location_title': 'दर ५ किमीवर हवामान बदलते',
+    'onboarding_location_sub':
+        'डोंगराळ आणि सपाट भागात पाऊस वेगवेगळा असतो. योग्य निर्णय घेण्यासाठी तुमची ग्रामपंचायत निवडा.',
+    'onboarding_selection_title': 'तुमची ग्रामपंचायत निवडा',
+    'onboarding_selection_sub':
+        'प्रमाणित कृषी सल्ला मिळवण्यासाठी जिल्हा, तालुका आणि गाव निवडा.',
+    'btn_choose_village': 'ग्रामपंचायत निवडा',
+    'btn_use_demo_village': 'पायलट गावापासून सुरू करा (अजमेर सौंदाणे)',
+    'btn_get_started': 'माझे शेत डॅशबोर्ड उघडा',
+    'btn_next': 'पुढे',
+    'btn_skip': 'वगळा',
   };
 
   static const Map<String, String> _hindiStrings = {
@@ -274,6 +315,20 @@ class AppLocalizations {
     'no_forecast_title': 'पूर्वानुमान उपलब्ध नहीं',
     'no_forecast_desc':
         'इस गांव के लिए पूर्वानुमान उपलब्ध नहीं है।',
+    'onboarding_welcome_title': 'ग्राम पंचायत स्तर का मौसम व कृषि सलाह',
+    'onboarding_welcome_sub':
+        'आपके खेत के लिए अति-स्थानीय मौसम पूर्वानुमान और प्रमाणित कृषि सलाह।',
+    'onboarding_location_title': 'हर 5 किमी पर मौसम बदलता है',
+    'onboarding_location_sub':
+        'पहाड़ी और घाटी क्षेत्रों में वर्षा भिन्न होती है। सटीक निर्णयों के लिए अपनी पंचायत चुनें।',
+    'onboarding_selection_title': 'अपनी ग्राम पंचायत चुनें',
+    'onboarding_selection_sub':
+        'प्रमाणित कृषि सलाह प्राप्त करने के लिए जिला, ब्लॉक और गांव चुनें।',
+    'btn_choose_village': 'ग्राम पंचायत चुनें',
+    'btn_use_demo_village': 'पायलट गांव से शुरू करें (अजमेर सौंदाने)',
+    'btn_get_started': 'मेरा खेत डैशबोर्ड खोलें',
+    'btn_next': 'आगे बढ़ें',
+    'btn_skip': 'छोड़ें',
   };
 }
 
