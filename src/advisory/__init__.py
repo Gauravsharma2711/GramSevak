@@ -71,6 +71,18 @@ from src.advisory.ai_service import (
     get_ai_advisory_provider,
 )
 
+from src.advisory.safety_rules import validate_advisory_safety
+from src.advisory.safety_validator import (
+    VALIDATOR_VERSION,
+    AdvisorySchemaValidator,
+    ForecastGroundingValidator,
+    RuleGroundingValidator,
+    AdvisorySafetyValidator,
+    DeterministicFallbackBuilder,
+    AdvisoryValidationService,
+    default_advisory_validation_service,
+)
+
 __all__ = [
     "classify_rainfall",
     "RainfallCategory",
@@ -126,4 +138,13 @@ __all__ = [
     "AIOutputValidationError",
     "ForecastGroundednessViolationError",
     "get_ai_advisory_provider",
+    "validate_advisory_safety",
+    "VALIDATOR_VERSION",
+    "AdvisorySchemaValidator",
+    "ForecastGroundingValidator",
+    "RuleGroundingValidator",
+    "AdvisorySafetyValidator",
+    "DeterministicFallbackBuilder",
+    "AdvisoryValidationService",
+    "default_advisory_validation_service",
 ]

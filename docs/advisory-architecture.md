@@ -326,3 +326,69 @@ The service handles failure gracefully through a structured exception taxonomy:
 
 ### 10.8 Real-Provider Verification Status
 In the current development environment, no live external LLM API credentials (`GEMINI_API_KEY`, `OPENAI_API_KEY`, or `AI_ADVISORY_API_KEY`) were configured. In accordance with Section 16 instructions, tests and verification were performed via the deterministic mock provider; live provider verification was not performed and no mock outputs are presented as real AI inferences.
+
+---
+
+## 11. Safety Validation & Deterministic Fallback Layer (Phase 5.5)
+
+Implemented in `src.advisory.safety_validator` (`AdvisoryValidationService`, `AdvisorySchemaValidator`, `ForecastGroundingValidator`, `RuleGroundingValidator`, `AdvisorySafetyValidator`, `DeterministicFallbackBuilder`) and canonical schemas in `backend.app.schemas.advisory_contracts`:
+
+### 11.1 Validation Architecture & Layers
+The safety validation engine operates post-generation, independently of the AI provider:
+```text
+AI Advisory Output (or Service Error)
+           ↓
+[Layer 1: AdvisorySchemaValidator]
+- Field completeness, string lengths, valid severity enum, forecast ref dict
+           ↓
+[Layer 2: ForecastGroundingValidator]
+- Rainfall tolerance (±0.05 mm in ref, ±0.5 mm in text)
+- Temperature consistency (disallows hallucination if unmeasured)
+- Date and location consistency (prohibits alien dates or districts)
+           ↓
+[Layer 3: RuleGroundingValidator]
+- Severity coherence (CRITICAL risk cannot be downgraded to LOW)
+- Operational guidance consistency (no immediate spraying if DELAY/PAUSE)
+- Prohibits hallucinating severe weather in dry 0.0 mm conditions
+           ↓
+[Layer 4: AdvisorySafetyValidator]
+- Banned chemical dosage & numeric mixing patterns
+- Medical claims, panic-inducing terms, and fake emergency alarms
+- Unsupported certainty claims (100% crop loss, zero risk)
+- Unsupported crop disease diagnoses without pathology input
+- Dangerous physical instructions (wading into deep floodwaters)
+           ↓
+Safety Pass?
+├── YES → AdvisoryValidationResult(status=VALID, advisory=AI output)
+└── NO  → AdvisoryValidationResult(status=FALLBACK, advisory=Deterministic fallback)
+           ↓
+Queue for Future Phase 5.6 Extension Officer Review (NEEDS_REVIEW)
+```
+
+### 11.2 Validation States & Severity Tiers
+- **Validation Statuses (`ValidationStatusEnum`):**
+  - `VALID`: Advisory passed all structural, grounding, and content safety checks.
+  - `FALLBACK`: AI output failed validation or provider failed; deterministic fallback generated.
+  - `INVALID`: Content structurally malformed or irreparably unsafe.
+  - `REVIEW_REQUIRED`: Advisory flagged for mandatory officer attention before action.
+- **Validation Severity Tiers (`ValidationSeverityEnum`):**
+  - `PASS`: All safety rules satisfied without findings.
+  - `WARNING`: Non-blocking observations preserved for officer review.
+  - `ERROR`: Recoverable issue triggering fallback.
+  - `CRITICAL`: Safety breach, weather contradiction, or provider failure triggering deterministic fallback.
+
+### 11.3 Deterministic Fallback System
+When the AI service times out, returns HTTP errors, generates malformed JSON, alters numerical weather predictions, or violates safety boundaries, `DeterministicFallbackBuilder` automatically synthesizes an authoritative advisory from `AdvisoryContext`:
+- Summarizes conditions using triggered Phase 5.2 rule titles and IMD rainfall categories.
+- Factual meteorological explanation grounded in authoritative downscaled rainfall.
+- Explains agronomic risks directly from deterministic rule descriptions.
+- Employs exact deterministic `recommended_actions` and `timing_window`.
+- Identifies source as `AdvisorySourceEnum.DETERMINISTIC_FALLBACK` with explicit `fallback_reason`.
+
+### 11.4 Traceability & Non-Publication Invariant
+- **Traceability (`AdvisoryTraceabilityContract`):** Preserves `panchayat_id`, `forecast_id`, `forecast_date`, `forecast_issue_date`, `ml_model_name`, `rule_version`, `validator_version` (`v1.0.0`), `advisory_source`, and `validation_report`.
+- **Officer Quarantine:** AI-generated or fallback advisories are NEVER published directly to farmers. They are placed in quarantine (`NEEDS_REVIEW`) awaiting Phase 5.6 human extension officer approval.
+
+### 11.5 Known Limitations
+- Multi-variable thresholds (e.g. soil moisture index, relative humidity) remain conditional until real sensor integration in future phases.
+- Disease diagnostic checks rely on bounded pattern and terminology recognition; domain-specific crop pathology models will be evaluated in future agronomic expansions.

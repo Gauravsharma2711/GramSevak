@@ -72,6 +72,26 @@ class AdvisorySourceEnum(str, Enum):
     DETERMINISTIC_FALLBACK = "DETERMINISTIC_FALLBACK"
 
 
+class ValidationStatusEnum(str, Enum):
+    """
+    Categorical outcome status of the automated advisory safety validation.
+    """
+    VALID = "VALID"
+    INVALID = "INVALID"
+    FALLBACK = "FALLBACK"
+    REVIEW_REQUIRED = "REVIEW_REQUIRED"
+
+
+class ValidationSeverityEnum(str, Enum):
+    """
+    Deterministic severity tier for safety validation findings.
+    """
+    PASS = "PASS"
+    WARNING = "WARNING"
+    ERROR = "ERROR"
+    CRITICAL = "CRITICAL"
+
+
 # =============================================================================
 # 2. PANCHAYAT CONTEXT CONTRACT
 # =============================================================================
@@ -468,6 +488,26 @@ class SafetyValidationReport(BaseModel):
         default=False,
         description="True if validation failed and deterministic fallback must be used",
     )
+    status: Optional[ValidationStatusEnum] = Field(
+        None,
+        description="Validation outcome status: VALID, INVALID, FALLBACK, REVIEW_REQUIRED",
+    )
+    validation_severity: Optional[ValidationSeverityEnum] = Field(
+        None,
+        description="Highest finding severity: PASS, WARNING, ERROR, CRITICAL",
+    )
+    warnings: List[str] = Field(
+        default_factory=list,
+        description="Non-blocking observations or warnings for review",
+    )
+    fallback_reason: Optional[str] = Field(
+        None,
+        description="Reason why deterministic fallback was triggered",
+    )
+    validator_version: str = Field(
+        default="v1.0.0",
+        description="Version tag of the safety validation suite",
+    )
 
 
 # =============================================================================
@@ -568,6 +608,60 @@ class AdvisoryTraceabilityContract(BaseModel):
     approved_content_hash: Optional[str] = Field(
         None,
         description="Cryptographic or structured hash of approved content for tamper verification",
+    )
+
+
+class AdvisoryValidationResult(BaseModel):
+    """
+    Structured outcome of the safety validation pipeline.
+    Carries the final validated or fallback advisory content, validation report,
+    and end-to-end audit traceability.
+    """
+    model_config = ConfigDict(from_attributes=True, extra="forbid")
+
+    status: ValidationStatusEnum = Field(
+        ...,
+        description="Overall validation status: VALID, INVALID, FALLBACK, REVIEW_REQUIRED",
+    )
+    validation_severity: ValidationSeverityEnum = Field(
+        ...,
+        description="Highest finding severity: PASS, WARNING, ERROR, CRITICAL",
+    )
+    is_valid: bool = Field(
+        ...,
+        description="True if AI advisory passed all checks without fallback",
+    )
+    advisory: AIAdvisoryOutputContract = Field(
+        ...,
+        description="Validated advisory content (AI-generated if passed, or deterministic fallback)",
+    )
+    report: SafetyValidationReport = Field(
+        ...,
+        description="Detailed safety inspection report",
+    )
+    advisory_source: AdvisorySourceEnum = Field(
+        ...,
+        description="Source of the final advisory (AI_AUGMENTED or DETERMINISTIC_FALLBACK)",
+    )
+    fallback_reason: Optional[str] = Field(
+        None,
+        description="Reason why fallback was triggered, if applicable",
+    )
+    fallback_rule_ids: List[str] = Field(
+        default_factory=list,
+        description="Deterministic rule IDs used to formulate fallback",
+    )
+    traceability: AdvisoryTraceabilityContract = Field(
+        ...,
+        description="Complete audit and lineage metadata",
+    )
+    validator_version: str = Field(
+        default="v1.0.0",
+        description="Validator version tag",
+    )
+    validation_timestamp: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc),
+        description="Timestamp of validation execution",
     )
 
 

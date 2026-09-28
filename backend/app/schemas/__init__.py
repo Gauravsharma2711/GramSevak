@@ -30,6 +30,9 @@ from backend.app.schemas.advisory_contracts import (
     SafetyValidationReport,
     AdvisoryTraceabilityContract,
     FullAdvisoryPipelineEnvelope,
+    ValidationStatusEnum,
+    ValidationSeverityEnum,
+    AdvisoryValidationResult,
 )
 
 __all__ = [
@@ -57,6 +60,9 @@ __all__ = [
     "SafetyValidationReport",
     "AdvisoryTraceabilityContract",
     "FullAdvisoryPipelineEnvelope",
+    "ValidationStatusEnum",
+    "ValidationSeverityEnum",
+    "AdvisoryValidationResult",
 ]
 
 
