@@ -47,8 +47,8 @@ export const App: React.FC = () => {
   const [preselectedPanchayatForGen, setPreselectedPanchayatForGen] = useState<PanchayatItem | null>(null);
 
   // Selected Jurisdiction State
-  const [selectedDistrictId, setSelectedDistrictId] = useState<number>(1);
-  const [selectedDistrictName, setSelectedDistrictName] = useState<string>('Nashik');
+  const [selectedDistrictId, setSelectedDistrictId] = useState<number | null>(null);
+  const [selectedDistrictName, setSelectedDistrictName] = useState<string>('');
   const [selectedBlockId, setSelectedBlockId] = useState<number | null>(null);
   const [selectedBlockName, setSelectedBlockName] = useState<string | null>(null);
 
@@ -65,12 +65,22 @@ export const App: React.FC = () => {
   const loadData = async (filterBlock?: string) => {
     setError(null);
     try {
-      const [panchayatRes, advisoriesRes] = await Promise.all([
+      const [panchayatRes, advisoriesRes, districtRes] = await Promise.all([
         ApiService.getPanchayats(filterBlock),
         ApiService.getOfficerAdvisories(),
+        ApiService.getDistricts().catch(() => null),
       ]);
       setPanchayats(panchayatRes.items);
       setAdvisories(advisoriesRes);
+
+      if (districtRes && districtRes.items && districtRes.items.length > 0) {
+        setSelectedDistrictId((prevId) => {
+          if (prevId != null) return prevId;
+          const first = districtRes.items[0];
+          setSelectedDistrictName(first.name);
+          return first.id;
+        });
+      }
     } catch (err: any) {
       console.error('Error loading officer dashboard data:', err);
       setError('Unable to load latest advisory and downscaled forecast records from API.');
@@ -332,7 +342,7 @@ export const App: React.FC = () => {
               {/* Weather Downscaling Hero Card */}
               <WeatherHeroCard
                 advisories={advisories}
-                blockName={selectedBlockName || 'Baglan'}
+                blockName={selectedBlockName || (panchayats[0]?.block_name) || 'All Blocks'}
                 onReviewClick={(advisory) => {
                   setSelectedAdvisoryForDetail(advisory);
                 }}

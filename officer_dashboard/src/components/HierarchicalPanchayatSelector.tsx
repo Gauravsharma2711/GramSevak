@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { 
   Search, 
   MapPin, 
@@ -7,7 +7,8 @@ import {
   Mountain,
   Check,
   X,
-  AlertCircle
+  AlertCircle,
+  RefreshCw
 } from 'lucide-react';
 import { ApiService } from '../services/api';
 import { 
@@ -20,7 +21,7 @@ import {
 export interface HierarchicalPanchayatSelectorProps {
   onSelectPanchayat: (panchayat: PanchayatItem) => void;
   selectedPanchayatId?: number | null;
-  selectedDistrictId?: number;
+  selectedDistrictId?: number | null;
   selectedBlockId?: number | null;
   onDistrictChange?: (districtId: number, districtName: string) => void;
   onBlockChange?: (blockId: number | null, blockName: string | null) => void;
@@ -30,8 +31,8 @@ export interface HierarchicalPanchayatSelectorProps {
 
 export const HierarchicalPanchayatSelector: React.FC<HierarchicalPanchayatSelectorProps> = ({
   onSelectPanchayat,
-  selectedPanchayatId,
-  selectedDistrictId = 1,
+  selectedPanchayatId = null,
+  selectedDistrictId = null,
   selectedBlockId = null,
   onDistrictChange,
   onBlockChange,
@@ -39,32 +40,70 @@ export const HierarchicalPanchayatSelector: React.FC<HierarchicalPanchayatSelect
   className = '',
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [step, setStep] = useState<'district' | 'block' | 'panchayat'>('panchayat');
+  const [step, setStep] = useState<'district' | 'block' | 'panchayat'>(() => {
+    if (selectedBlockId) return 'panchayat';
+    if (selectedDistrictId) return 'block';
+    return 'district';
+  });
 
-  // Hierarchy State
+  // 1. District Hierarchy State
   const [districts, setDistricts] = useState<DistrictItem[]>([]);
-  const [blocks, setBlocks] = useState<BlockItem[]>([]);
-  const [panchayats, setPanchayats] = useState<BlockPanchayatItem[]>([]);
+  const [activeDistrictId, setActiveDistrictId] = useState<number | null>(selectedDistrictId);
+  const [activeDistrictName, setActiveDistrictName] = useState<string>('');
+  const [districtSearch, setDistrictSearch] = useState('');
+  const [districtPage, setDistrictPage] = useState(1);
+  const [districtTotalPages, setDistrictTotalPages] = useState(1);
+  const [districtTotalCount, setDistrictTotalCount] = useState(0);
+  const [loadingDistricts, setLoadingDistricts] = useState(false);
+  const [districtError, setDistrictError] = useState<string | null>(null);
 
-  const [activeDistrictId, setActiveDistrictId] = useState<number>(selectedDistrictId);
-  const [activeDistrictName, setActiveDistrictName] = useState<string>('Nashik');
+  // 2. Block Hierarchy State
+  const [blocks, setBlocks] = useState<BlockItem[]>([]);
   const [activeBlockId, setActiveBlockId] = useState<number | null>(selectedBlockId);
   const [activeBlockName, setActiveBlockName] = useState<string | null>(null);
-  const [activePanchayatName, setActivePanchayatName] = useState<string | null>(null);
-
-  // Search & Pagination State
-  const [searchQuery, setSearchQuery] = useState('');
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
-
-  // Loading & Error States
-  const [loadingDistricts, setLoadingDistricts] = useState(false);
+  const [blockSearch, setBlockSearch] = useState('');
+  const [blockPage, setBlockPage] = useState(1);
+  const [blockTotalPages, setBlockTotalPages] = useState(1);
+  const [blockTotalCount, setBlockTotalCount] = useState(0);
   const [loadingBlocks, setLoadingBlocks] = useState(false);
+  const [blockError, setBlockError] = useState<string | null>(null);
+
+  // 3. Panchayat Hierarchy State
+  const [panchayats, setPanchayats] = useState<BlockPanchayatItem[]>([]);
+  const [activePanchayatName, setActivePanchayatName] = useState<string | null>(null);
+  const [panchayatSearch, setPanchayatSearch] = useState('');
+  const [panchayatPage, setPanchayatPage] = useState(1);
+  const [panchayatTotalPages, setPanchayatTotalPages] = useState(1);
+  const [panchayatTotalCount, setPanchayatTotalCount] = useState(0);
   const [loadingPanchayats, setLoadingPanchayats] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [panchayatError, setPanchayatError] = useState<string | null>(null);
+
+  // Race condition mitigation refs
+  const districtReqIdRef = useRef(0);
+  const blockReqIdRef = useRef(0);
+  const panchayatReqIdRef = useRef(0);
 
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Sync external selectedDistrictId prop if changed
+  useEffect(() => {
+    if (selectedDistrictId !== undefined && selectedDistrictId !== activeDistrictId) {
+      setActiveDistrictId(selectedDistrictId);
+      if (selectedDistrictId && !selectedBlockId) {
+        setStep('block');
+      }
+    }
+  }, [selectedDistrictId, selectedBlockId]);
+
+  // Sync external selectedBlockId prop if changed
+  useEffect(() => {
+    if (selectedBlockId !== undefined && selectedBlockId !== activeBlockId) {
+      setActiveBlockId(selectedBlockId);
+      if (selectedBlockId) {
+        setStep('panchayat');
+      }
+    }
+  }, [selectedBlockId]);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -77,140 +116,227 @@ export const HierarchicalPanchayatSelector: React.FC<HierarchicalPanchayatSelect
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // 1. Load Districts on Mount
-  useEffect(() => {
-    let isCancelled = false;
-    const fetchDistricts = async () => {
-      setLoadingDistricts(true);
-      try {
-        const data = await ApiService.getDistricts();
-        if (!isCancelled && data.length > 0) {
-          setDistricts(data);
-          const current = data.find((d) => d.id === activeDistrictId) || data[0];
-          setActiveDistrictId(current.id);
-          setActiveDistrictName(current.name);
-        }
-      } catch (err: any) {
-        if (!isCancelled) {
-          console.warn('[Selector] Failed to load districts:', err);
-          setDistricts([
-            { id: 1, name: 'Nashik', state: 'Maharashtra' },
-            { id: 4, name: 'Pune', state: 'Maharashtra' },
-          ]);
-        }
-      } finally {
-        if (!isCancelled) setLoadingDistricts(false);
-      }
-    };
+  // ==========================================
+  // FETCH DISTRICTS (Server-Side Search & Pagination)
+  // ==========================================
+  const fetchDistricts = useCallback(async () => {
+    const currentReqId = ++districtReqIdRef.current;
+    setLoadingDistricts(true);
+    setDistrictError(null);
 
-    fetchDistricts();
-    return () => { isCancelled = true; };
-  }, []);
+    try {
+      const res = await ApiService.getDistricts(
+        districtSearch.trim() || undefined,
+        districtPage,
+        20
+      );
+      if (districtReqIdRef.current === currentReqId) {
+        setDistricts(res.items);
+        setDistrictTotalPages(res.total_pages);
+        setDistrictTotalCount(res.total);
 
-  // 2. Load Blocks when activeDistrictId changes
-  useEffect(() => {
-    if (!activeDistrictId) return;
-    let isCancelled = false;
-    const fetchBlocks = async () => {
-      setLoadingBlocks(true);
-      setError(null);
-      try {
-        const data = await ApiService.getDistrictBlocks(activeDistrictId);
-        if (!isCancelled) {
-          setBlocks(data);
-          if (data.length > 0 && !activeBlockId) {
-            setActiveBlockId(data[0].id);
-            setActiveBlockName(data[0].name);
+        // If active district not set yet, or matches existing, resolve name
+        if (res.items.length > 0) {
+          if (!activeDistrictId) {
+            setActiveDistrictId(res.items[0].id);
+            setActiveDistrictName(res.items[0].name);
+            onDistrictChange?.(res.items[0].id, res.items[0].name);
+          } else {
+            const current = res.items.find((d) => d.id === activeDistrictId);
+            if (current) {
+              setActiveDistrictName(current.name);
+            }
           }
         }
-      } catch (err: any) {
-        if (!isCancelled) {
-          console.warn('[Selector] Failed to load blocks:', err);
-          setError('Failed to load blocks for this district.');
-        }
-      } finally {
-        if (!isCancelled) setLoadingBlocks(false);
       }
-    };
+    } catch (err: any) {
+      if (districtReqIdRef.current === currentReqId) {
+        console.error('[Selector] Failed to load districts:', err);
+        setDistrictError(err.message || 'Failed to retrieve administrative districts.');
+      }
+    } finally {
+      if (districtReqIdRef.current === currentReqId) {
+        setLoadingDistricts(false);
+      }
+    }
+  }, [districtSearch, districtPage, activeDistrictId, onDistrictChange]);
 
-    fetchBlocks();
-    return () => { isCancelled = true; };
-  }, [activeDistrictId]);
-
-  // 3. Load Panchayats when activeBlockId, page, or searchQuery changes
   useEffect(() => {
-    if (!activeBlockId) return;
-    let isCancelled = false;
-    const timer = setTimeout(async () => {
-      setLoadingPanchayats(true);
-      setError(null);
-      try {
-        const res = await ApiService.getBlockPanchayats(
-          activeBlockId,
-          searchQuery.trim() || undefined,
-          page,
-          50
-        );
-        if (!isCancelled) {
-          setPanchayats(res.items);
-          setTotalPages(res.total_pages);
-          setTotalCount(res.total);
-
-          // Find active panchayat name if selected
-          if (selectedPanchayatId) {
-            const match = res.items.find((p) => p.id === selectedPanchayatId);
-            if (match) setActivePanchayatName(match.name);
-          }
-        }
-      } catch (err: any) {
-        if (!isCancelled) {
-          console.warn('[Selector] Failed to load panchayats:', err);
-          setError('Failed to retrieve panchayats from database.');
-        }
-      } finally {
-        if (!isCancelled) setLoadingPanchayats(false);
-      }
+    const timer = setTimeout(() => {
+      fetchDistricts();
     }, 250);
+    return () => clearTimeout(timer);
+  }, [fetchDistricts]);
 
-    return () => {
-      isCancelled = true;
-      clearTimeout(timer);
-    };
-  }, [activeBlockId, page, searchQuery, selectedPanchayatId]);
+  // ==========================================
+  // FETCH BLOCKS (Scoped strictly to activeDistrictId)
+  // ==========================================
+  const fetchBlocks = useCallback(async () => {
+    if (!activeDistrictId) {
+      setBlocks([]);
+      setBlockTotalPages(1);
+      setBlockTotalCount(0);
+      return;
+    }
 
+    const currentReqId = ++blockReqIdRef.current;
+    setLoadingBlocks(true);
+    setBlockError(null);
+
+    try {
+      const res = await ApiService.getDistrictBlocks(
+        activeDistrictId,
+        blockSearch.trim() || undefined,
+        blockPage,
+        20
+      );
+      if (blockReqIdRef.current === currentReqId) {
+        setBlocks(res.items);
+        setBlockTotalPages(res.total_pages);
+        setBlockTotalCount(res.total);
+
+        if (activeBlockId) {
+          const match = res.items.find((b) => b.id === activeBlockId);
+          if (match) {
+            setActiveBlockName(match.name);
+          }
+        }
+      }
+    } catch (err: any) {
+      if (blockReqIdRef.current === currentReqId) {
+        console.error('[Selector] Failed to load blocks for district:', activeDistrictId, err);
+        setBlockError(err.message || 'Failed to retrieve blocks for this district.');
+      }
+    } finally {
+      if (blockReqIdRef.current === currentReqId) {
+        setLoadingBlocks(false);
+      }
+    }
+  }, [activeDistrictId, blockSearch, blockPage, activeBlockId]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchBlocks();
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [fetchBlocks]);
+
+  // ==========================================
+  // FETCH PANCHAYATS (Scoped strictly to activeBlockId)
+  // ==========================================
+  const fetchPanchayats = useCallback(async () => {
+    if (!activeBlockId) {
+      setPanchayats([]);
+      setPanchayatTotalPages(1);
+      setPanchayatTotalCount(0);
+      return;
+    }
+
+    const currentReqId = ++panchayatReqIdRef.current;
+    setLoadingPanchayats(true);
+    setPanchayatError(null);
+
+    try {
+      const res = await ApiService.getBlockPanchayats(
+        activeBlockId,
+        panchayatSearch.trim() || undefined,
+        panchayatPage,
+        50
+      );
+      if (panchayatReqIdRef.current === currentReqId) {
+        setPanchayats(res.items);
+        setPanchayatTotalPages(res.total_pages);
+        setPanchayatTotalCount(res.total);
+
+        if (selectedPanchayatId) {
+          const match = res.items.find((p) => p.id === selectedPanchayatId || p.panchayat_id === selectedPanchayatId);
+          if (match) {
+            setActivePanchayatName(match.name || match.panchayat_name || null);
+          }
+        }
+      }
+    } catch (err: any) {
+      if (panchayatReqIdRef.current === currentReqId) {
+        console.error('[Selector] Failed to load panchayats for block:', activeBlockId, err);
+        setPanchayatError(err.message || 'Failed to retrieve Gram Panchayats from database.');
+      }
+    } finally {
+      if (panchayatReqIdRef.current === currentReqId) {
+        setLoadingPanchayats(false);
+      }
+    }
+  }, [activeBlockId, panchayatSearch, panchayatPage, selectedPanchayatId]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchPanchayats();
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [fetchPanchayats]);
+
+  // ==========================================
+  // SELECTION HANDLERS
+  // ==========================================
   const handleSelectDistrict = (district: DistrictItem) => {
+    if (district.id === activeDistrictId) {
+      setStep('block');
+      return;
+    }
+
+    // Dependent parent change: invalidate all child selections & state
     setActiveDistrictId(district.id);
     setActiveDistrictName(district.name);
+
     setActiveBlockId(null);
     setActiveBlockName(null);
+    setBlocks([]);
+    setBlockSearch('');
+    setBlockPage(1);
+    setBlockError(null);
+
     setActivePanchayatName(null);
-    setSearchQuery('');
-    setPage(1);
+    setPanchayats([]);
+    setPanchayatSearch('');
+    setPanchayatPage(1);
+    setPanchayatError(null);
+
     setStep('block');
     onDistrictChange?.(district.id, district.name);
+    onBlockChange?.(null, null);
   };
 
   const handleSelectBlock = (block: BlockItem) => {
+    if (block.id === activeBlockId) {
+      setStep('panchayat');
+      return;
+    }
+
+    // Dependent parent change: invalidate child panchayat selections
     setActiveBlockId(block.id);
     setActiveBlockName(block.name);
+
     setActivePanchayatName(null);
-    setSearchQuery('');
-    setPage(1);
+    setPanchayats([]);
+    setPanchayatSearch('');
+    setPanchayatPage(1);
+    setPanchayatError(null);
+
     setStep('panchayat');
     onBlockChange?.(block.id, block.name);
   };
 
   const handleSelectPanchayat = (item: BlockPanchayatItem) => {
-    setActivePanchayatName(item.name);
+    const pName = item.name || item.panchayat_name || 'Gram Panchayat';
+    setActivePanchayatName(pName);
     setIsOpen(false);
 
     // Adapt to standard PanchayatItem contract
     const panchayatItem: PanchayatItem = {
-      panchayat_id: item.id,
-      lgd_code: item.lgd_code,
-      panchayat_name: item.name,
+      panchayat_id: item.id || item.panchayat_id || 0,
+      lgd_code: item.lgd_code || 0,
+      panchayat_name: pName,
       block_name: activeBlockName || 'Block',
-      district_name: activeDistrictName,
+      district_name: activeDistrictName || 'District',
       latitude: item.latitude ?? 20.0,
       longitude: item.longitude ?? 74.0,
       elevation_m: item.elevation_m ?? 500.0,
@@ -249,21 +375,39 @@ export const HierarchicalPanchayatSelector: React.FC<HierarchicalPanchayatSelect
         }}
         aria-label="Administrative Scope & Panchayat Selector"
         aria-expanded={isOpen}
+        aria-haspopup="dialog"
       >
         <MapPin size={15} color="var(--primary-700)" style={{ flexShrink: 0 }} />
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px', minWidth: 0 }}>
           <span style={{ color: 'var(--primary-700)', fontWeight: 700, whiteSpace: 'nowrap' }}>
-            {activeDistrictName}
+            {activeDistrictName || 'Select District'}
           </span>
           <span style={{ color: 'var(--ink-300)' }}>›</span>
-          <span style={{ color: 'var(--ink-700)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100px' }}>
+          <span 
+            style={{ 
+              color: activeBlockName ? 'var(--ink-700)' : 'var(--ink-400)', 
+              whiteSpace: 'nowrap', 
+              overflow: 'hidden', 
+              textOverflow: 'ellipsis', 
+              maxWidth: '100px' 
+            }}
+          >
             {activeBlockName || 'Select Block'}
           </span>
           {activePanchayatName && (
             <>
               <span style={{ color: 'var(--ink-300)' }}>›</span>
-              <span style={{ color: 'var(--ink-900)', fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '120px' }}>
+              <span 
+                style={{ 
+                  color: 'var(--ink-900)', 
+                  fontWeight: 700, 
+                  whiteSpace: 'nowrap', 
+                  overflow: 'hidden', 
+                  textOverflow: 'ellipsis', 
+                  maxWidth: '120px' 
+                }}
+              >
                 {activePanchayatName}
               </span>
             </>
@@ -289,7 +433,7 @@ export const HierarchicalPanchayatSelector: React.FC<HierarchicalPanchayatSelect
             position: 'absolute',
             top: 'calc(100% + 8px)',
             right: 0,
-            width: 'clamp(300px, 90vw, 420px)',
+            width: 'clamp(290px, 92vw, 440px)',
             maxHeight: '520px',
             padding: 0,
             overflow: 'hidden',
@@ -316,7 +460,7 @@ export const HierarchicalPanchayatSelector: React.FC<HierarchicalPanchayatSelect
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ fontSize: '11px', color: 'var(--ink-500)', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.04em' }}>
-                Administrative Hierarchy
+                Administrative Scope (District › Block › Panchayat)
               </div>
               {activePanchayatName && (
                 <button
@@ -329,6 +473,7 @@ export const HierarchicalPanchayatSelector: React.FC<HierarchicalPanchayatSelect
                     cursor: 'pointer',
                     fontWeight: 600,
                   }}
+                  aria-label="Clear selected Panchayat"
                 >
                   Clear Selection
                 </button>
@@ -348,158 +493,83 @@ export const HierarchicalPanchayatSelector: React.FC<HierarchicalPanchayatSelect
                   textDecoration: step === 'district' ? 'underline' : 'none',
                   padding: '2px 4px',
                 }}
+                aria-label="Step 1: Select District"
               >
-                1. {activeDistrictName}
+                1. {activeDistrictName || 'District'}
               </button>
               <ChevronRight size={12} color="var(--ink-300)" />
               <button
-                onClick={() => setStep('block')}
+                onClick={() => {
+                  if (activeDistrictId) setStep('block');
+                }}
+                disabled={!activeDistrictId}
                 style={{
                   background: 'none',
                   border: 'none',
-                  cursor: 'pointer',
+                  cursor: activeDistrictId ? 'pointer' : 'not-allowed',
+                  opacity: activeDistrictId ? 1 : 0.5,
                   fontWeight: step === 'block' ? 700 : 500,
                   color: step === 'block' ? 'var(--primary-700)' : 'var(--ink-700)',
                   textDecoration: step === 'block' ? 'underline' : 'none',
                   padding: '2px 4px',
                 }}
+                aria-label="Step 2: Select Block"
               >
-                2. {activeBlockName || 'Select Block'}
+                2. {activeBlockName || 'Block'}
               </button>
               <ChevronRight size={12} color="var(--ink-300)" />
-              <span
+              <button
+                onClick={() => {
+                  if (activeBlockId) setStep('panchayat');
+                }}
+                disabled={!activeBlockId}
                 style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: activeBlockId ? 'pointer' : 'not-allowed',
+                  opacity: activeBlockId ? 1 : 0.5,
                   fontWeight: step === 'panchayat' ? 700 : 500,
-                  color: step === 'panchayat' ? 'var(--primary-700)' : 'var(--ink-500)',
+                  color: step === 'panchayat' ? 'var(--primary-700)' : 'var(--ink-700)',
+                  textDecoration: step === 'panchayat' ? 'underline' : 'none',
                   padding: '2px 4px',
                 }}
+                aria-label="Step 3: Select Panchayat"
               >
-                3. Panchayat
-              </span>
+                3. {activePanchayatName || 'Panchayat'}
+              </button>
             </div>
           </div>
 
-          {/* STEP 1: DISTRICT SELECTION */}
+          {/* ======================================================== */}
+          {/* STEP 1: DISTRICT SELECTION (Server-Side Search & Pagination) */}
+          {/* ======================================================== */}
           {step === 'district' && (
-            <div style={{ padding: '14px', flex: 1, overflowY: 'auto' }}>
-              <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--ink-700)', marginBottom: '10px' }}>
-                Select Administrative District:
-              </div>
-              {loadingDistricts ? (
-                <div style={{ padding: '20px', textAlign: 'center', color: 'var(--ink-500)', fontSize: '13px' }}>
-                  Loading districts...
-                </div>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  {districts.map((d) => (
-                    <button
-                      key={d.id}
-                      onClick={() => handleSelectDistrict(d)}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '12px 14px',
-                        borderRadius: 'var(--radius-sm)',
-                        border: d.id === activeDistrictId ? '2px solid var(--primary-500)' : '1px solid var(--ink-100)',
-                        backgroundColor: d.id === activeDistrictId ? 'var(--primary-050)' : 'var(--surface)',
-                        cursor: 'pointer',
-                        textAlign: 'left',
-                        minHeight: '44px',
-                      }}
-                    >
-                      <div>
-                        <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--ink-900)' }}>
-                          {d.name} District
-                        </div>
-                        <div style={{ fontSize: '11px', color: 'var(--ink-500)' }}>
-                          State: {d.state || 'Maharashtra'}
-                        </div>
-                      </div>
-                      {d.id === activeDistrictId && <Check size={16} color="var(--primary-700)" />}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* STEP 2: BLOCK SELECTION */}
-          {step === 'block' && (
-            <div style={{ padding: '14px', flex: 1, overflowY: 'auto' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-                <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--ink-700)' }}>
-                  Blocks in {activeDistrictName} ({blocks.length}):
-                </span>
-                <button
-                  onClick={() => setStep('district')}
-                  style={{ background: 'none', border: 'none', color: 'var(--primary-700)', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}
-                >
-                  Change District
-                </button>
-              </div>
-
-              {loadingBlocks ? (
-                <div style={{ padding: '20px', textAlign: 'center', color: 'var(--ink-500)', fontSize: '13px' }}>
-                  Loading blocks...
-                </div>
-              ) : blocks.length === 0 ? (
-                <div style={{ padding: '20px', textAlign: 'center', color: 'var(--ink-500)', fontSize: '13px' }}>
-                  No blocks found for {activeDistrictName}.
-                </div>
-              ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))', gap: '8px' }}>
-                  {blocks.map((b) => (
-                    <button
-                      key={b.id}
-                      onClick={() => handleSelectBlock(b)}
-                      style={{
-                        padding: '10px 12px',
-                        borderRadius: 'var(--radius-sm)',
-                        border: b.id === activeBlockId ? '2px solid var(--primary-500)' : '1px solid var(--ink-300)',
-                        backgroundColor: b.id === activeBlockId ? 'var(--primary-050)' : 'var(--surface)',
-                        cursor: 'pointer',
-                        textAlign: 'center',
-                        fontSize: '13px',
-                        fontWeight: b.id === activeBlockId ? 700 : 500,
-                        color: b.id === activeBlockId ? 'var(--primary-700)' : 'var(--ink-900)',
-                        minHeight: '44px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      {b.name}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* STEP 3: PANCHAYAT SELECTION */}
-          {step === 'panchayat' && (
             <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
-              {/* Search within Block */}
+              {/* Search Districts */}
               <div style={{ padding: '10px 14px', borderBottom: 'var(--border-subtle)' }}>
                 <div style={{ position: 'relative' }}>
                   <Search size={15} color="var(--ink-500)" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)' }} />
                   <input
                     type="text"
-                    placeholder={`Search ${activeBlockName || ''} Panchayats or LGD...`}
-                    value={searchQuery}
+                    placeholder="Search districts by name..."
+                    value={districtSearch}
                     onChange={(e) => {
-                      setSearchQuery(e.target.value);
-                      setPage(1);
+                      setDistrictSearch(e.target.value);
+                      setDistrictPage(1);
                     }}
                     className="input-field"
-                    style={{ paddingLeft: '32px', fontSize: '12px', height: '36px' }}
+                    style={{ paddingLeft: '32px', fontSize: '12px', height: '36px', width: '100%' }}
+                    aria-label="Search districts input"
                     autoFocus
                   />
-                  {searchQuery && (
+                  {districtSearch && (
                     <button
-                      onClick={() => setSearchQuery('')}
+                      onClick={() => {
+                        setDistrictSearch('');
+                        setDistrictPage(1);
+                      }}
                       style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer' }}
+                      aria-label="Clear district search"
                     >
                       <X size={14} color="var(--ink-500)" />
                     </button>
@@ -507,55 +577,59 @@ export const HierarchicalPanchayatSelector: React.FC<HierarchicalPanchayatSelect
                 </div>
               </div>
 
-              {/* Panchayat Results List */}
-              <div style={{ flex: 1, overflowY: 'auto', padding: '6px 10px', maxHeight: '280px' }}>
-                {loadingPanchayats ? (
-                  <div style={{ padding: '24px', textAlign: 'center', color: 'var(--ink-500)', fontSize: '12px' }}>
-                    Loading Panchayats...
+              {/* Districts List */}
+              <div style={{ flex: 1, overflowY: 'auto', padding: '10px 14px', maxHeight: '280px' }}>
+                {loadingDistricts ? (
+                  <div style={{ padding: '24px', textAlign: 'center', color: 'var(--ink-500)', fontSize: '13px' }}>
+                    Loading districts...
                   </div>
-                ) : error ? (
-                  <div style={{ padding: '16px', color: 'var(--danger-600)', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <AlertCircle size={15} />
-                    <span>{error}</span>
+                ) : districtError ? (
+                  <div style={{ padding: '16px', color: 'var(--danger-600)', fontSize: '12px', display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <AlertCircle size={16} />
+                      <span>{districtError}</span>
+                    </div>
+                    <button
+                      onClick={fetchDistricts}
+                      className="btn-secondary"
+                      style={{ padding: '4px 10px', fontSize: '11px' }}
+                    >
+                      <RefreshCw size={12} style={{ marginRight: '4px' }} /> Retry
+                    </button>
                   </div>
-                ) : panchayats.length === 0 ? (
-                  <div style={{ padding: '24px', textAlign: 'center', color: 'var(--ink-500)', fontSize: '12px' }}>
-                    No Gram Panchayats found in {activeBlockName}.
+                ) : districts.length === 0 ? (
+                  <div style={{ padding: '24px', textAlign: 'center', color: 'var(--ink-500)', fontSize: '13px' }}>
+                    No administrative districts found{districtSearch ? ` matching "${districtSearch}"` : ''}.
                   </div>
                 ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    {panchayats.map((p) => {
-                      const isSelected = p.id === selectedPanchayatId;
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    {districts.map((d) => {
+                      const isSelected = d.id === activeDistrictId;
                       return (
                         <button
-                          key={p.id}
-                          onClick={() => handleSelectPanchayat(p)}
+                          key={d.id}
+                          onClick={() => handleSelectDistrict(d)}
                           style={{
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'space-between',
-                            padding: '8px 12px',
+                            padding: '12px 14px',
                             borderRadius: 'var(--radius-sm)',
-                            border: isSelected ? '1px solid var(--primary-500)' : '1px solid transparent',
-                            backgroundColor: isSelected ? 'var(--primary-050)' : 'transparent',
+                            border: isSelected ? '2px solid var(--primary-500)' : '1px solid var(--ink-100)',
+                            backgroundColor: isSelected ? 'var(--primary-050)' : 'var(--surface)',
                             cursor: 'pointer',
                             textAlign: 'left',
-                            transition: 'background-color 0.15s ease',
-                            minHeight: '40px',
+                            minHeight: '44px',
                           }}
                           className="app-card-interactive"
+                          aria-label={`Select ${d.name} District`}
                         >
                           <div>
-                            <div style={{ fontSize: '13px', fontWeight: 650, color: 'var(--ink-900)' }}>
-                              {p.name}
+                            <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--ink-900)' }}>
+                              {d.name} District
                             </div>
-                            <div style={{ fontSize: '11px', color: 'var(--ink-500)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <span>LGD: {p.lgd_code}</span>
-                              {p.elevation_m != null && (
-                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
-                                  <Mountain size={10} /> {Math.round(p.elevation_m)}m
-                                </span>
-                              )}
+                            <div style={{ fontSize: '11px', color: 'var(--ink-500)' }}>
+                              State: {d.state || 'Maharashtra'}{d.code ? ` • Code: ${d.code}` : ''}
                             </div>
                           </div>
                           {isSelected && <Check size={16} color="var(--primary-700)" />}
@@ -566,8 +640,8 @@ export const HierarchicalPanchayatSelector: React.FC<HierarchicalPanchayatSelect
                 )}
               </div>
 
-              {/* Pagination Controls */}
-              {totalPages > 1 && (
+              {/* District Pagination Controls */}
+              {districtTotalPages > 1 && (
                 <div
                   style={{
                     padding: '8px 14px',
@@ -581,43 +655,395 @@ export const HierarchicalPanchayatSelector: React.FC<HierarchicalPanchayatSelect
                   }}
                 >
                   <span>
-                    Page {page} of {totalPages} ({totalCount} total)
+                    Page {districtPage} of {districtTotalPages} ({districtTotalCount} total)
                   </span>
                   <div style={{ display: 'flex', gap: '4px' }}>
                     <button
-                      onClick={() => setPage((p) => Math.max(1, p - 1))}
-                      disabled={page <= 1}
+                      onClick={() => setDistrictPage((p) => Math.max(1, p - 1))}
+                      disabled={districtPage <= 1}
                       style={{
                         padding: '4px 8px',
                         borderRadius: 'var(--radius-sm)',
                         border: '1px solid var(--ink-300)',
                         backgroundColor: 'var(--surface)',
-                        cursor: page <= 1 ? 'not-allowed' : 'pointer',
-                        opacity: page <= 1 ? 0.5 : 1,
+                        cursor: districtPage <= 1 ? 'not-allowed' : 'pointer',
+                        opacity: districtPage <= 1 ? 0.5 : 1,
                         fontSize: '11px',
                         fontWeight: 600,
                       }}
+                      aria-label="Previous district page"
                     >
                       Prev
                     </button>
                     <button
-                      onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                      disabled={page >= totalPages}
+                      onClick={() => setDistrictPage((p) => Math.min(districtTotalPages, p + 1))}
+                      disabled={districtPage >= districtTotalPages}
                       style={{
                         padding: '4px 8px',
                         borderRadius: 'var(--radius-sm)',
                         border: '1px solid var(--ink-300)',
                         backgroundColor: 'var(--surface)',
-                        cursor: page >= totalPages ? 'not-allowed' : 'pointer',
-                        opacity: page >= totalPages ? 0.5 : 1,
+                        cursor: districtPage >= districtTotalPages ? 'not-allowed' : 'pointer',
+                        opacity: districtPage >= districtTotalPages ? 0.5 : 1,
                         fontSize: '11px',
                         fontWeight: 600,
                       }}
+                      aria-label="Next district page"
                     >
                       Next
                     </button>
                   </div>
                 </div>
+              )}
+            </div>
+          )}
+
+          {/* ======================================================== */}
+          {/* STEP 2: BLOCK SELECTION (Server-Side Search & Pagination) */}
+          {/* ======================================================== */}
+          {step === 'block' && (
+            <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+              {!activeDistrictId ? (
+                <div style={{ padding: '24px', textAlign: 'center', color: 'var(--ink-500)', fontSize: '13px' }}>
+                  Select a district to view blocks.
+                </div>
+              ) : (
+                <>
+                  {/* Search Blocks */}
+                  <div style={{ padding: '10px 14px', borderBottom: 'var(--border-subtle)', display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <div style={{ position: 'relative', flex: 1 }}>
+                      <Search size={15} color="var(--ink-500)" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)' }} />
+                      <input
+                        type="text"
+                        placeholder={`Search blocks in ${activeDistrictName}...`}
+                        value={blockSearch}
+                        onChange={(e) => {
+                          setBlockSearch(e.target.value);
+                          setBlockPage(1);
+                        }}
+                        className="input-field"
+                        style={{ paddingLeft: '32px', fontSize: '12px', height: '36px', width: '100%' }}
+                        aria-label="Search blocks input"
+                        autoFocus
+                      />
+                      {blockSearch && (
+                        <button
+                          onClick={() => {
+                            setBlockSearch('');
+                            setBlockPage(1);
+                          }}
+                          style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer' }}
+                          aria-label="Clear block search"
+                        >
+                          <X size={14} color="var(--ink-500)" />
+                        </button>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => setStep('district')}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: 'var(--primary-700)',
+                        fontSize: '11px',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        whiteSpace: 'nowrap',
+                      }}
+                      aria-label="Change District"
+                    >
+                      Change District
+                    </button>
+                  </div>
+
+                  {/* Block Results Grid */}
+                  <div style={{ flex: 1, overflowY: 'auto', padding: '10px 14px', maxHeight: '280px' }}>
+                    {loadingBlocks ? (
+                      <div style={{ padding: '24px', textAlign: 'center', color: 'var(--ink-500)', fontSize: '13px' }}>
+                        Loading blocks...
+                      </div>
+                    ) : blockError ? (
+                      <div style={{ padding: '16px', color: 'var(--danger-600)', fontSize: '12px', display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <AlertCircle size={16} />
+                          <span>{blockError}</span>
+                        </div>
+                        <button
+                          onClick={fetchBlocks}
+                          className="btn-secondary"
+                          style={{ padding: '4px 10px', fontSize: '11px' }}
+                        >
+                          <RefreshCw size={12} style={{ marginRight: '4px' }} /> Retry
+                        </button>
+                      </div>
+                    ) : blocks.length === 0 ? (
+                      <div style={{ padding: '24px', textAlign: 'center', color: 'var(--ink-500)', fontSize: '13px' }}>
+                        No blocks found in {activeDistrictName}{blockSearch ? ` matching "${blockSearch}"` : ''}.
+                      </div>
+                    ) : (
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))', gap: '8px' }}>
+                        {blocks.map((b) => {
+                          const isSelected = b.id === activeBlockId;
+                          return (
+                            <button
+                              key={b.id}
+                              onClick={() => handleSelectBlock(b)}
+                              style={{
+                                padding: '10px 12px',
+                                borderRadius: 'var(--radius-sm)',
+                                border: isSelected ? '2px solid var(--primary-500)' : '1px solid var(--ink-300)',
+                                backgroundColor: isSelected ? 'var(--primary-050)' : 'var(--surface)',
+                                cursor: 'pointer',
+                                textAlign: 'center',
+                                fontSize: '13px',
+                                fontWeight: isSelected ? 700 : 500,
+                                color: isSelected ? 'var(--primary-700)' : 'var(--ink-900)',
+                                minHeight: '44px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                              }}
+                              className="app-card-interactive"
+                              aria-label={`Select ${b.name} Block`}
+                            >
+                              {b.name}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Block Pagination Controls */}
+                  {blockTotalPages > 1 && (
+                    <div
+                      style={{
+                        padding: '8px 14px',
+                        borderTop: 'var(--border-subtle)',
+                        backgroundColor: 'var(--surface-subtle)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        fontSize: '11px',
+                        color: 'var(--ink-700)',
+                      }}
+                    >
+                      <span>
+                        Page {blockPage} of {blockTotalPages} ({blockTotalCount} total)
+                      </span>
+                      <div style={{ display: 'flex', gap: '4px' }}>
+                        <button
+                          onClick={() => setBlockPage((p) => Math.max(1, p - 1))}
+                          disabled={blockPage <= 1}
+                          style={{
+                            padding: '4px 8px',
+                            borderRadius: 'var(--radius-sm)',
+                            border: '1px solid var(--ink-300)',
+                            backgroundColor: 'var(--surface)',
+                            cursor: blockPage <= 1 ? 'not-allowed' : 'pointer',
+                            opacity: blockPage <= 1 ? 0.5 : 1,
+                            fontSize: '11px',
+                            fontWeight: 600,
+                          }}
+                          aria-label="Previous block page"
+                        >
+                          Prev
+                        </button>
+                        <button
+                          onClick={() => setBlockPage((p) => Math.min(blockTotalPages, p + 1))}
+                          disabled={blockPage >= blockTotalPages}
+                          style={{
+                            padding: '4px 8px',
+                            borderRadius: 'var(--radius-sm)',
+                            border: '1px solid var(--ink-300)',
+                            backgroundColor: 'var(--surface)',
+                            cursor: blockPage >= blockTotalPages ? 'not-allowed' : 'pointer',
+                            opacity: blockPage >= blockTotalPages ? 0.5 : 1,
+                            fontSize: '11px',
+                            fontWeight: 600,
+                          }}
+                          aria-label="Next block page"
+                        >
+                          Next
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+
+          {/* ======================================================== */}
+          {/* STEP 3: PANCHAYAT SELECTION (Server-Side Search & Pagination) */}
+          {/* ======================================================== */}
+          {step === 'panchayat' && (
+            <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+              {!activeBlockId ? (
+                <div style={{ padding: '24px', textAlign: 'center', color: 'var(--ink-500)', fontSize: '13px' }}>
+                  Select a block to view Panchayats.
+                </div>
+              ) : (
+                <>
+                  {/* Search within Block */}
+                  <div style={{ padding: '10px 14px', borderBottom: 'var(--border-subtle)' }}>
+                    <div style={{ position: 'relative' }}>
+                      <Search size={15} color="var(--ink-500)" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)' }} />
+                      <input
+                        type="text"
+                        placeholder={`Search ${activeBlockName || ''} Panchayats or LGD...`}
+                        value={panchayatSearch}
+                        onChange={(e) => {
+                          setPanchayatSearch(e.target.value);
+                          setPanchayatPage(1);
+                        }}
+                        className="input-field"
+                        style={{ paddingLeft: '32px', fontSize: '12px', height: '36px', width: '100%' }}
+                        aria-label="Search Panchayats by name or LGD code"
+                        autoFocus
+                      />
+                      {panchayatSearch && (
+                        <button
+                          onClick={() => {
+                            setPanchayatSearch('');
+                            setPanchayatPage(1);
+                          }}
+                          style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer' }}
+                          aria-label="Clear panchayat search"
+                        >
+                          <X size={14} color="var(--ink-500)" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Panchayat Results List */}
+                  <div style={{ flex: 1, overflowY: 'auto', padding: '6px 10px', maxHeight: '280px' }}>
+                    {loadingPanchayats ? (
+                      <div style={{ padding: '24px', textAlign: 'center', color: 'var(--ink-500)', fontSize: '12px' }}>
+                        Loading Panchayats...
+                      </div>
+                    ) : panchayatError ? (
+                      <div style={{ padding: '16px', color: 'var(--danger-600)', fontSize: '12px', display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <AlertCircle size={16} />
+                          <span>{panchayatError}</span>
+                        </div>
+                        <button
+                          onClick={fetchPanchayats}
+                          className="btn-secondary"
+                          style={{ padding: '4px 10px', fontSize: '11px' }}
+                        >
+                          <RefreshCw size={12} style={{ marginRight: '4px' }} /> Retry
+                        </button>
+                      </div>
+                    ) : panchayats.length === 0 ? (
+                      <div style={{ padding: '24px', textAlign: 'center', color: 'var(--ink-500)', fontSize: '12px' }}>
+                        No Gram Panchayats found in {activeBlockName}{panchayatSearch ? ` matching "${panchayatSearch}"` : ''}.
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        {panchayats.map((p) => {
+                          const pId = p.id || p.panchayat_id;
+                          const pName = p.name || p.panchayat_name;
+                          const isSelected = pId === selectedPanchayatId;
+                          return (
+                            <button
+                              key={pId}
+                              onClick={() => handleSelectPanchayat(p)}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                padding: '8px 12px',
+                                borderRadius: 'var(--radius-sm)',
+                                border: isSelected ? '1px solid var(--primary-500)' : '1px solid transparent',
+                                backgroundColor: isSelected ? 'var(--primary-050)' : 'transparent',
+                                cursor: 'pointer',
+                                textAlign: 'left',
+                                transition: 'background-color 0.15s ease',
+                                minHeight: '40px',
+                              }}
+                              className="app-card-interactive"
+                              aria-label={`Select Gram Panchayat ${pName}`}
+                            >
+                              <div>
+                                <div style={{ fontSize: '13px', fontWeight: 650, color: 'var(--ink-900)' }}>
+                                  {pName}
+                                </div>
+                                <div style={{ fontSize: '11px', color: 'var(--ink-500)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  {p.lgd_code && <span>LGD: {p.lgd_code}</span>}
+                                  {p.elevation_m != null && (
+                                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
+                                      <Mountain size={10} /> {Math.round(p.elevation_m)}m
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              {isSelected && <Check size={16} color="var(--primary-700)" />}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Pagination Controls */}
+                  {panchayatTotalPages > 1 && (
+                    <div
+                      style={{
+                        padding: '8px 14px',
+                        borderTop: 'var(--border-subtle)',
+                        backgroundColor: 'var(--surface-subtle)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        fontSize: '11px',
+                        color: 'var(--ink-700)',
+                      }}
+                    >
+                      <span>
+                        Page {panchayatPage} of {panchayatTotalPages} ({panchayatTotalCount} total)
+                      </span>
+                      <div style={{ display: 'flex', gap: '4px' }}>
+                        <button
+                          onClick={() => setPanchayatPage((p) => Math.max(1, p - 1))}
+                          disabled={panchayatPage <= 1}
+                          style={{
+                            padding: '4px 8px',
+                            borderRadius: 'var(--radius-sm)',
+                            border: '1px solid var(--ink-300)',
+                            backgroundColor: 'var(--surface)',
+                            cursor: panchayatPage <= 1 ? 'not-allowed' : 'pointer',
+                            opacity: panchayatPage <= 1 ? 0.5 : 1,
+                            fontSize: '11px',
+                            fontWeight: 600,
+                          }}
+                          aria-label="Previous panchayat page"
+                        >
+                          Prev
+                        </button>
+                        <button
+                          onClick={() => setPanchayatPage((p) => Math.min(panchayatTotalPages, p + 1))}
+                          disabled={panchayatPage >= panchayatTotalPages}
+                          style={{
+                            padding: '4px 8px',
+                            borderRadius: 'var(--radius-sm)',
+                            border: '1px solid var(--ink-300)',
+                            backgroundColor: 'var(--surface)',
+                            cursor: panchayatPage >= panchayatTotalPages ? 'not-allowed' : 'pointer',
+                            opacity: panchayatPage >= panchayatTotalPages ? 0.5 : 1,
+                            fontSize: '11px',
+                            fontWeight: 600,
+                          }}
+                          aria-label="Next panchayat page"
+                        >
+                          Next
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           )}

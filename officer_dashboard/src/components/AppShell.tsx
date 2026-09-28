@@ -41,7 +41,7 @@ export const AppShell: React.FC<AppShellProps> = ({
   onRefresh,
   isRefreshing,
   forecastDate,
-  selectedDistrictName = 'Nashik',
+  selectedDistrictName = '',
   selectedBlockName,
   selectedPanchayatName,
   headerSelectorSlot,
@@ -169,6 +169,7 @@ export const AppShell: React.FC<AppShellProps> = ({
             minHeight: '44px',
           }}
           aria-current={currentTab === 'dashboard' ? 'page' : undefined}
+          aria-label="Dashboard Overview"
         >
           <LayoutDashboard size={18} strokeWidth={currentTab === 'dashboard' ? 2.2 : 1.75} />
           <span>Dashboard Overview</span>
@@ -194,6 +195,7 @@ export const AppShell: React.FC<AppShellProps> = ({
             minHeight: '44px',
           }}
           aria-current={currentTab === 'forecasts' ? 'page' : undefined}
+          aria-label="Panchayat Forecasts"
         >
           <Compass size={18} strokeWidth={currentTab === 'forecasts' ? 2.2 : 1.75} />
           <span>Panchayat Forecasts</span>
@@ -218,6 +220,7 @@ export const AppShell: React.FC<AppShellProps> = ({
             minHeight: '44px',
           }}
           aria-current={currentTab === 'review' ? 'page' : undefined}
+          aria-label="Advisory Review"
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <FileCheck2 size={18} strokeWidth={currentTab === 'review' ? 2.2 : 1.75} />
@@ -260,6 +263,7 @@ export const AppShell: React.FC<AppShellProps> = ({
             minHeight: '44px',
           }}
           aria-current={currentTab === 'panchayats' ? 'page' : undefined}
+          aria-label="Panchayat Directory"
         >
           <Building2 size={18} strokeWidth={currentTab === 'panchayats' ? 2.2 : 1.75} />
           <span>Panchayat Directory</span>
@@ -285,6 +289,7 @@ export const AppShell: React.FC<AppShellProps> = ({
             minHeight: '44px',
           }}
           aria-current={currentTab === 'audit' ? 'page' : undefined}
+          aria-label="Approval Audit Log"
         >
           <History size={18} strokeWidth={currentTab === 'audit' ? 2.2 : 1.75} />
           <span>Approval Audit Log</span>

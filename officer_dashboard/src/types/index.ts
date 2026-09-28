@@ -20,13 +20,31 @@ export interface PanchayatPagination {
 export interface DistrictItem {
   id: number;
   name: string;
+  code?: string | null;
   state?: string;
+}
+
+export interface DistrictPagination {
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+  items: DistrictItem[];
 }
 
 export interface BlockItem {
   id: number;
   district_id: number;
   name: string;
+  code?: string | null;
+}
+
+export interface BlockPagination {
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+  items: BlockItem[];
 }
 
 export interface BlockPanchayatItem {
