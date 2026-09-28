@@ -1,6 +1,6 @@
 /// Data model strictly matching backend `FarmerForecastResponse` schema
 /// (`/api/v1/farmer/panchayat/{id}`).
-/// 
+///
 /// Contains downscaled rainfall prediction paired with verified agronomic guidance.
 /// Zero internal model hyperparameters, database IDs, or sensitive officer metadata.
 class FarmerForecast {
@@ -75,14 +75,15 @@ class FarmerForecast {
     return FarmerForecast(
       panchayatName: json['panchayat_name'] as String? ?? 'Gram Panchayat',
       blockName: json['block_name'] as String? ?? 'Block',
-      districtName: json['district_name'] as String? ?? 'Nashik',
+      districtName: json['district_name'] as String? ?? 'District',
       forecastDate: json['forecast_date']?.toString() ?? '2026-09-09',
       rainfallMm: rawRainfall,
       rainfallCategory: json['rainfall_category'] as String? ?? 'No rainfall',
       severity: json['severity'] as String? ?? 'LOW',
       advisoryTitle: json['advisory_title'] as String?,
       advisoryPoints: points,
-      advisoryStatus: json['advisory_status'] as String? ?? 'NO_APPROVED_ADVISORY',
+      advisoryStatus:
+          json['advisory_status'] as String? ?? 'NO_APPROVED_ADVISORY',
       language: json['language'] as String? ?? 'en',
       availableLanguages: languages,
       languageStatus: json['language_status'] as String?,

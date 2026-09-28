@@ -55,19 +55,27 @@ class FarmerRepository {
   ];
 
   /// Retrieve available Gram Panchayats from live backend API with fallback
-  Future<List<PanchayatItem>> getPanchayats({String? search, String? blockName}) async {
+  Future<List<PanchayatItem>> getPanchayats(
+      {String? search, String? blockName}) async {
     final Map<String, String> queryParams = {
       'page': '1',
       'page_size': '50',
     };
-    if (search != null && search.isNotEmpty) queryParams['search'] = search;
-    if (blockName != null && blockName.isNotEmpty) queryParams['block_name'] = blockName;
+    if (search != null && search.isNotEmpty) {
+      queryParams['search'] = search;
+    }
+    if (blockName != null && blockName.isNotEmpty) {
+      queryParams['block_name'] = blockName;
+    }
 
     try {
-      final data = await _apiClient.get('/panchayats', queryParams: queryParams);
+      final data =
+          await _apiClient.get('/panchayats', queryParams: queryParams);
       if (data is Map && data['items'] is List) {
         final List<dynamic> rawItems = data['items'];
-        final items = rawItems.map((e) => PanchayatItem.fromJson(e as Map<String, dynamic>)).toList();
+        final items = rawItems
+            .map((e) => PanchayatItem.fromJson(e as Map<String, dynamic>))
+            .toList();
         if (items.isNotEmpty) return items;
       }
     } catch (_) {
@@ -76,41 +84,86 @@ class FarmerRepository {
     return fallbackPanchayats;
   }
 
-  /// Retrieve all administrative districts
-  Future<List<DistrictItem>> getDistricts() async {
-    try {
-      final data = await _apiClient.get('/districts');
-      if (data is List) {
-        return data.map((e) => DistrictItem.fromJson(e as Map<String, dynamic>)).toList();
-      }
-    } catch (_) {}
-    return [
-      DistrictItem(id: 1, name: 'Nashik', state: 'Maharashtra'),
-      DistrictItem(id: 4, name: 'Pune', state: 'Maharashtra'),
-    ];
-  }
-
-  /// Retrieve all blocks within a district
-  Future<List<BlockItem>> getDistrictBlocks(int districtId) async {
-    try {
-      final data = await _apiClient.get('/districts/$districtId/blocks');
-      if (data is List) {
-        return data.map((e) => BlockItem.fromJson(e as Map<String, dynamic>)).toList();
-      }
-    } catch (_) {}
-    return [
-      BlockItem(id: 101, districtId: districtId, name: 'Baglan'),
-      BlockItem(id: 102, districtId: districtId, name: 'Dindori'),
-      BlockItem(id: 103, districtId: districtId, name: 'Surgana'),
-    ];
-  }
-
-  /// Retrieve Panchayats within a block with search and pagination support
-  Future<List<PanchayatItem>> getBlockPanchayats(
-    int blockId, {
+  /// Retrieve all administrative districts with server-side pagination and search
+  Future<DistrictPagination> getDistricts({
+    int page = 1,
+    int pageSize = 20,
     String? search,
+  }) async {
+    final Map<String, String> queryParams = {
+      'page': page.toString(),
+      'page_size': pageSize.toString(),
+    };
+    if (search != null && search.trim().isNotEmpty) {
+      queryParams['search'] = search.trim();
+    }
+
+    try {
+      final data = await _apiClient.get('/districts', queryParams: queryParams);
+      if (data is Map<String, dynamic>) {
+        return DistrictPagination.fromJson(data);
+      } else if (data is List) {
+        final items = data
+            .map((e) => DistrictItem.fromJson(e as Map<String, dynamic>))
+            .toList();
+        return DistrictPagination(
+          total: items.length,
+          page: page,
+          pageSize: pageSize,
+          totalPages: 1,
+          items: items,
+        );
+      }
+    } catch (_) {
+      rethrow;
+    }
+    throw FarmerApiException('Invalid response format for districts');
+  }
+
+  /// Retrieve all blocks within a district with server-side pagination and search
+  Future<BlockPagination> getDistrictBlocks(
+    int districtId, {
+    int page = 1,
+    int pageSize = 20,
+    String? search,
+  }) async {
+    final Map<String, String> queryParams = {
+      'page': page.toString(),
+      'page_size': pageSize.toString(),
+    };
+    if (search != null && search.trim().isNotEmpty) {
+      queryParams['search'] = search.trim();
+    }
+
+    try {
+      final data = await _apiClient.get('/districts/$districtId/blocks',
+          queryParams: queryParams);
+      if (data is Map<String, dynamic>) {
+        return BlockPagination.fromJson(data);
+      } else if (data is List) {
+        final items = data
+            .map((e) => BlockItem.fromJson(e as Map<String, dynamic>))
+            .toList();
+        return BlockPagination(
+          total: items.length,
+          page: page,
+          pageSize: pageSize,
+          totalPages: 1,
+          items: items,
+        );
+      }
+    } catch (_) {
+      rethrow;
+    }
+    throw FarmerApiException('Invalid response format for blocks');
+  }
+
+  /// Retrieve Panchayats within a block with server-side search and pagination
+  Future<PanchayatPagination> getBlockPanchayats(
+    int blockId, {
     int page = 1,
     int pageSize = 50,
+    String? search,
     String? blockName,
     String? districtName,
   }) async {
@@ -118,29 +171,62 @@ class FarmerRepository {
       'page': page.toString(),
       'page_size': pageSize.toString(),
     };
-    if (search != null && search.isNotEmpty) queryParams['search'] = search;
+    if (search != null && search.trim().isNotEmpty) {
+      queryParams['search'] = search.trim();
+    }
 
     try {
-      final data = await _apiClient.get('/blocks/$blockId/panchayats', queryParams: queryParams);
-      if (data is Map && data['items'] is List) {
-        final List<dynamic> rawItems = data['items'];
-        return rawItems.map((e) {
-          final m = e as Map<String, dynamic>;
-          return PanchayatItem(
-            panchayatId: m['id'] as int? ?? 1001,
-            lgdCode: m['lgd_code'] as int? ?? 0,
-            panchayatName: m['name'] as String? ?? 'Panchayat',
-            blockName: blockName ?? 'Block',
-            districtName: districtName ?? 'District',
-            latitude: (m['latitude'] as num?)?.toDouble() ?? 20.0,
-            longitude: (m['longitude'] as num?)?.toDouble() ?? 74.0,
-            elevationM: (m['elevation_m'] as num?)?.toDouble() ?? 550.0,
-          );
-        }).toList();
+      final data = await _apiClient.get('/blocks/$blockId/panchayats',
+          queryParams: queryParams);
+      if (data is Map<String, dynamic>) {
+        return PanchayatPagination.fromJson(data,
+            blockName: blockName, districtName: districtName);
       }
-    } catch (_) {}
-    return fallbackPanchayats;
+    } catch (_) {
+      rethrow;
+    }
+    throw FarmerApiException('Invalid response format for Panchayats');
   }
+
+  /// Retrieve single Panchayat detail by ID (GET /api/v1/panchayats/{id})
+  Future<PanchayatItem> getPanchayatById(int panchayatId) async {
+    try {
+      final data = await _apiClient.get('/panchayats/$panchayatId');
+      if (data is Map<String, dynamic>) {
+        return PanchayatItem.fromJson(data);
+      }
+    } catch (_) {
+      rethrow;
+    }
+    throw FarmerApiException(
+        'Invalid response format for Panchayat $panchayatId');
+  }
+
+  // Aliases conforming to Section 3: API / NETWORK LAYER
+  Future<DistrictPagination> listDistricts(
+          {int page = 1, int pageSize = 20, String? search}) =>
+      getDistricts(page: page, pageSize: pageSize, search: search);
+
+  Future<BlockPagination> listBlocks(int districtId,
+          {int page = 1, int pageSize = 20, String? search}) =>
+      getDistrictBlocks(districtId,
+          page: page, pageSize: pageSize, search: search);
+
+  Future<PanchayatPagination> listPanchayats(int blockId,
+          {int page = 1,
+          int pageSize = 50,
+          String? search,
+          String? blockName,
+          String? districtName}) =>
+      getBlockPanchayats(blockId,
+          page: page,
+          pageSize: pageSize,
+          search: search,
+          blockName: blockName,
+          districtName: districtName);
+
+  Future<PanchayatItem> getPanchayat(int panchayatId) =>
+      getPanchayatById(panchayatId);
 
   /// Retrieve high-resolution downscaled weather forecast and approved advisory for a Panchayat
   Future<FarmerForecast> getFarmerForecast({
@@ -156,7 +242,8 @@ class FarmerRepository {
     }
 
     try {
-      final data = await _apiClient.get('/farmer/panchayat/$panchayatId', queryParams: queryParams);
+      final data = await _apiClient.get('/farmer/panchayat/$panchayatId',
+          queryParams: queryParams);
       if (data is Map<String, dynamic>) {
         return FarmerForecast.fromJson(data);
       }
