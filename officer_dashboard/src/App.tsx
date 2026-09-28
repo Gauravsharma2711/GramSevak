@@ -467,6 +467,9 @@ export const App: React.FC = () => {
                 onReviewAdvisory={(a) => {
                   setSelectedAdvisoryForDetail(a);
                 }}
+                onSelectPanchayat={(p) => {
+                  setSelectedPanchayatDetail(p);
+                }}
                 onGenerateForecast={(p) => {
                   setPreselectedPanchayatForGen(p);
                   setIsGenerateModalOpen(true);
