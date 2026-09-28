@@ -428,7 +428,7 @@ export const HierarchicalPanchayatSelector: React.FC<HierarchicalPanchayatSelect
       {/* Hierarchical Dropdown Panel */}
       {isOpen && (
         <div
-          className="app-card fade-in"
+          className="app-card fade-in hierarchy-selector-panel"
           style={{
             position: 'absolute',
             top: 'calc(100% + 8px)',

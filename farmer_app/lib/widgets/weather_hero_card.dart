@@ -72,24 +72,31 @@ class WeatherHeroCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  const Icon(
-                    Icons.calendar_today_outlined,
-                    size: 14,
-                    color: AppColors.ink500,
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    '${l10n.tomorrow} • ${forecast.forecastDate}',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.ink700,
+              Flexible(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.calendar_today_outlined,
+                      size: 14,
+                      color: AppColors.ink500,
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: Text(
+                        '${l10n.tomorrow} • ${forecast.forecastDate}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.ink700,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
               ),
+              const SizedBox(width: 6),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                 decoration: BoxDecoration(
@@ -117,8 +124,9 @@ class WeatherHeroCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       l10n.panchayatRainfall,
@@ -157,8 +165,9 @@ class WeatherHeroCard extends StatelessWidget {
                     ),
                   ],
                 ),
+              ),
 
-                // Weather Condition Illustration
+              // Weather Condition Illustration
                 WeatherConditionIllustration(
                   rainfallMm: forecast.rainfallMm,
                   size: 56,

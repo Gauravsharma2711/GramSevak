@@ -64,28 +64,33 @@ class _HomeForecastScreenState extends State<HomeForecastScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.forecast.panchayatName,
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.ink900,
-                        letterSpacing: -0.3,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.forecast.panchayatName,
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.ink900,
+                          letterSpacing: -0.3,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                    Text(
-                      '${widget.forecast.blockName} Block, ${widget.forecast.districtName}',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.ink500,
-                        fontWeight: FontWeight.w500,
+                      Text(
+                        '${widget.forecast.blockName} Block, ${widget.forecast.districtName}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.ink500,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
+                const SizedBox(width: 8),
                 Semantics(
                   button: true,
                   label: '${l10n.changeVillage}: currently ${widget.forecast.panchayatName}',
@@ -127,13 +132,16 @@ class _HomeForecastScreenState extends State<HomeForecastScreen> {
               children: [
                 const Icon(Icons.cloud_outlined, size: 16, color: AppColors.primary700),
                 const SizedBox(width: 6),
-                Text(
-                  l10n.todaysForecast,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.ink900,
-                    letterSpacing: 0.2,
+                Expanded(
+                  child: Text(
+                    l10n.todaysForecast,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.ink900,
+                      letterSpacing: 0.2,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
@@ -179,21 +187,27 @@ class _HomeForecastScreenState extends State<HomeForecastScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    const Icon(Icons.assignment_turned_in_outlined, size: 16, color: AppColors.primary700),
-                    const SizedBox(width: 6),
-                    Text(
-                      l10n.agriculturalAdvisory,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.ink900,
+                Expanded(
+                  child: Row(
+                    children: [
+                      const Icon(Icons.assignment_turned_in_outlined, size: 16, color: AppColors.primary700),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          l10n.agriculturalAdvisory,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.ink900,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-                if (widget.onViewAdvisoryDetails != null)
+                if (widget.onViewAdvisoryDetails != null) ...[
+                  const SizedBox(width: 8),
                   GestureDetector(
                     onTap: widget.onViewAdvisoryDetails,
                     child: Text(
@@ -205,6 +219,7 @@ class _HomeForecastScreenState extends State<HomeForecastScreen> {
                       ),
                     ),
                   ),
+                ],
               ],
             ),
 
@@ -233,14 +248,18 @@ class _HomeForecastScreenState extends State<HomeForecastScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        l10n.forecastDetails,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.ink900,
+                      Expanded(
+                        child: Text(
+                          l10n.forecastDetails,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.ink900,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
+                      const SizedBox(width: 8),
                       const Icon(Icons.wb_sunny_outlined, size: 16, color: AppColors.primary700),
                     ],
                   ),

@@ -109,24 +109,30 @@ class AdvisoryCard extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    Icon(
-                      Icons.verified_user,
-                      size: 18,
-                      color: bannerTextColor,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      l10n.officerVerifiedAdvisory,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
+                Expanded(
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.verified_user,
+                        size: 18,
                         color: bannerTextColor,
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          l10n.officerVerifiedAdvisory,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: bannerTextColor,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
+                const SizedBox(width: 8),
 
                 // Audio Read-Aloud / Voice Button for Farmers
                 Semantics(
@@ -203,12 +209,15 @@ class AdvisoryCard extends StatelessWidget {
                         const Icon(Icons.water_drop_outlined,
                             size: 13, color: AppColors.primary700),
                         const SizedBox(width: 4),
-                        Text(
-                          '${l10n.forecastBasis}: ${forecast.rainfallMm.toStringAsFixed(1)} mm • ${forecast.rainfallCategory.replaceAll('_', ' ')}',
-                          style: const TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.primary700,
+                        Flexible(
+                          child: Text(
+                            '${l10n.forecastBasis}: ${forecast.rainfallMm.toStringAsFixed(1)} mm • ${forecast.rainfallCategory.replaceAll('_', ' ')}',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.primary700,
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],

@@ -95,46 +95,54 @@ class _FarmerOnboardingScreenState extends State<FarmerOnboardingScreen> {
           children: [
             // Top Bar: Branding + Language Selector + Skip
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   // Logo & App Name
-                  Row(
-                    children: [
-                      Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color: AppColors.primary050,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: AppColors.primary100),
+                  Flexible(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 28,
+                          height: 28,
+                          decoration: BoxDecoration(
+                            color: AppColors.primary050,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: AppColors.primary100),
+                          ),
+                          child: const Icon(
+                            Icons.eco,
+                            color: AppColors.primary700,
+                            size: 16,
+                          ),
                         ),
-                        child: const Icon(
-                          Icons.eco,
-                          color: AppColors.primary700,
-                          size: 18,
+                        const SizedBox(width: 6),
+                        Flexible(
+                          child: Text(
+                            l10n.appName,
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.primary700,
+                              letterSpacing: -0.2,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        l10n.appName,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.primary700,
-                          letterSpacing: -0.2,
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
+                  const SizedBox(width: 6),
 
                   // Actions: Language Toggle & Optional Skip
                   Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       _buildLangPill(),
                       if (_currentPage < 2) ...[
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 4),
                         TextButton(
                           onPressed: () {
                             _pageController.animateToPage(
@@ -145,13 +153,13 @@ class _FarmerOnboardingScreenState extends State<FarmerOnboardingScreen> {
                           },
                           style: TextButton.styleFrom(
                             foregroundColor: AppColors.ink500,
-                            padding: const EdgeInsets.symmetric(horizontal: 10),
-                            minimumSize: const Size(40, 36),
+                            padding: const EdgeInsets.symmetric(horizontal: 6),
+                            minimumSize: const Size(36, 32),
                           ),
                           child: Text(
                             l10n.btnSkip,
                             style: const TextStyle(
-                              fontSize: 12,
+                              fontSize: 11,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -259,118 +267,130 @@ class _FarmerOnboardingScreenState extends State<FarmerOnboardingScreen> {
 
   // --- Step 1: Welcome Page ---
   Widget _buildWelcomePage(AppLocalizations l10n) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const AgriSunFieldIllustration(size: 160),
-          const SizedBox(height: 28),
-          Text(
-            l10n.onboardingWelcomeTitle,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w800,
-              color: AppColors.ink900,
-              letterSpacing: -0.3,
-              height: 1.25,
+    final double illSize = MediaQuery.of(context).size.height < 640 ? 120 : 150;
+
+    return Center(
+      child: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            AgriSunFieldIllustration(size: illSize),
+            const SizedBox(height: 24),
+            Text(
+              l10n.onboardingWelcomeTitle,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+                color: AppColors.ink900,
+                letterSpacing: -0.3,
+                height: 1.25,
+              ),
             ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            l10n.onboardingWelcomeSub,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 13,
-              color: AppColors.ink700,
-              height: 1.5,
+            const SizedBox(height: 12),
+            Text(
+              l10n.onboardingWelcomeSub,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 13,
+                color: AppColors.ink700,
+                height: 1.5,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
   // --- Step 2: Why Location Matters Page ---
   Widget _buildWhyLocationPage(AppLocalizations l10n) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const TopographyRainIllustration(size: 160),
-          const SizedBox(height: 28),
-          Text(
-            l10n.onboardingLocationTitle,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w800,
-              color: AppColors.ink900,
-              letterSpacing: -0.3,
-              height: 1.25,
+    final double illSize = MediaQuery.of(context).size.height < 640 ? 120 : 150;
+
+    return Center(
+      child: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            TopographyRainIllustration(size: illSize),
+            const SizedBox(height: 24),
+            Text(
+              l10n.onboardingLocationTitle,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+                color: AppColors.ink900,
+                letterSpacing: -0.3,
+                height: 1.25,
+              ),
             ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            l10n.onboardingLocationSub,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 13,
-              color: AppColors.ink700,
-              height: 1.5,
+            const SizedBox(height: 12),
+            Text(
+              l10n.onboardingLocationSub,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 13,
+                color: AppColors.ink700,
+                height: 1.5,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
   // --- Step 3: Location Selection Page ---
   Widget _buildSelectionPage(AppLocalizations l10n) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Container(
-            width: 64,
-            height: 64,
-            decoration: BoxDecoration(
-              color: AppColors.primary050,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: AppColors.primary100),
+    return Center(
+      child: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: AppColors.primary050,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.primary100),
+              ),
+              child: const Icon(
+                Icons.location_on_outlined,
+                size: 28,
+                color: AppColors.primary700,
+              ),
             ),
-            child: const Icon(
-              Icons.location_on_outlined,
-              size: 32,
-              color: AppColors.primary700,
+            const SizedBox(height: 16),
+            Text(
+              l10n.onboardingSelectionTitle,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+                color: AppColors.ink900,
+                letterSpacing: -0.3,
+              ),
             ),
-          ),
-          const SizedBox(height: 18),
-          Text(
-            l10n.onboardingSelectionTitle,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w800,
-              color: AppColors.ink900,
-              letterSpacing: -0.3,
+            const SizedBox(height: 8),
+            Text(
+              l10n.onboardingSelectionSub,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 13,
+                color: AppColors.ink700,
+                height: 1.4,
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            l10n.onboardingSelectionSub,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 13,
-              color: AppColors.ink700,
-              height: 1.4,
-            ),
-          ),
-          const SizedBox(height: 24),
+            const SizedBox(height: 20),
 
           // Selected Panchayat Card
           Container(
@@ -464,13 +484,14 @@ class _FarmerOnboardingScreenState extends State<FarmerOnboardingScreen> {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   // --- Compact Language Pill ---
   Widget _buildLangPill() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(999),
@@ -480,8 +501,8 @@ class _FarmerOnboardingScreenState extends State<FarmerOnboardingScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           _buildLangItem('EN', 'en'),
-          _buildLangItem('मराठी', 'mr'),
-          _buildLangItem('हिन्दी', 'hi'),
+          _buildLangItem('MR', 'mr'),
+          _buildLangItem('HI', 'hi'),
         ],
       ),
     );
@@ -493,7 +514,7 @@ class _FarmerOnboardingScreenState extends State<FarmerOnboardingScreen> {
       onTap: () => widget.onLanguageChanged(code),
       borderRadius: BorderRadius.circular(999),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.primary500 : Colors.transparent,
           borderRadius: BorderRadius.circular(999),
@@ -501,7 +522,7 @@ class _FarmerOnboardingScreenState extends State<FarmerOnboardingScreen> {
         child: Text(
           label,
           style: TextStyle(
-            fontSize: 11,
+            fontSize: 10,
             fontWeight: FontWeight.w700,
             color: isSelected ? AppColors.surface : AppColors.ink700,
           ),

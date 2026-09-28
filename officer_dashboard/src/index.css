@@ -528,13 +528,54 @@ html, body {
 }
 
 @media (max-width: 480px) {
+  .app-header {
+    padding: 8px 12px !important;
+  }
+  .app-main-content {
+    padding: 12px 10px !important;
+  }
   .app-card {
-    padding: 14px !important;
+    padding: 12px !important;
   }
   .btn-primary, .btn-secondary, .btn-danger {
-    padding: 8px 14px;
+    padding: 8px 12px;
     font-size: 13px;
+    min-height: 44px;
   }
+  .hierarchy-selector-panel {
+    position: fixed !important;
+    top: 60px !important;
+    left: 8px !important;
+    right: 8px !important;
+    width: auto !important;
+    max-width: calc(100vw - 16px) !important;
+    max-height: 80vh !important;
+  }
+}
+
+/* Touch Device Ergonomics: Standard 44px Minimum Touch Targets */
+@media (pointer: coarse) {
+  button,
+  .btn-primary,
+  .btn-secondary,
+  .btn-danger {
+    min-height: 44px;
+  }
+}
+
+/* Accessibility: High-contrast focus indicator for keyboard navigation */
+:focus-visible {
+  outline: 2px solid var(--primary-600) !important;
+  outline-offset: 2px !important;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--primary-600) !important;
+  outline-offset: 2px !important;
 }
 
 /* Accessibility: Respect Reduced Motion Preferences */
@@ -546,3 +587,4 @@ html, body {
     scroll-behavior: auto !important;
   }
 }
+
