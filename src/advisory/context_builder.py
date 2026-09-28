@@ -22,7 +22,8 @@ from backend.app.schemas.advisory_contracts import (
     AdvisorySourceEnum,
 )
 from src.advisory.rainfall_classifier import classify_rainfall
-from src.advisory.advisory_engine import ADVISORY_RULES_REGISTRY, RULE_VERSION
+from src.advisory.advisory_engine import RULE_VERSION
+from src.advisory.rule_engine import default_rule_engine
 
 
 class ContextBuilderError(ValueError):
@@ -87,48 +88,11 @@ def build_deterministic_risk_and_recommendations(
     forecast_context: ForecastContext,
 ) -> tuple[List[AgriculturalRiskItem], DeterministicRecommendationContext]:
     """
-    Maps validated forecast context through the existing Phase 3/4 deterministic rule registry
-    to produce structured risk items and baseline recommendations.
+    Evaluates validated forecast context through the Phase 5 Deterministic Agricultural Rule Engine
+    to produce structured, prioritized risk items and consolidated operational guidance.
     """
-    rainfall_mm = forecast_context.downscaled_rainfall_mm
-    category_str = classify_rainfall(rainfall_mm)
-    rule = ADVISORY_RULES_REGISTRY.get(category_str)
-
-    severity_str = rule.severity if rule else "MODERATE"
-    severity_enum = AdvisorySeverityEnum(severity_str)
-
-    # Build risk item
-    risk = AgriculturalRiskItem(
-        risk_type="RAINFALL_INTENSITY",
-        severity=severity_enum,
-        triggering_condition=f"Rainfall {rainfall_mm:.1f} mm falls into category '{category_str}'",
-        supporting_values={"downscaled_rainfall_mm": rainfall_mm, "category": category_str},
-        rule_id=rule.rule_id if rule else "RULE_DEFAULT",
-        rule_version=RULE_VERSION,
-    )
-
-    # Build deterministic recommendation from rule templates
-    if rule and rule.advisory_points_templates:
-        actions = [
-            tpl.format(rainfall_mm=rainfall_mm, panchayat_name="the Gram Panchayat")
-            for tpl in rule.advisory_points_templates
-        ]
-    else:
-        actions = ["Monitor field moisture conditions."]
-
-    guidance = {
-        "spraying": "POSTPONE" if rainfall_mm > 2.5 else "SAFE_WINDOW",
-        "tillage": "DELAY" if rainfall_mm > 15.5 else "PERMITTED",
-        "drainage": "OPEN_TRENCHES" if rainfall_mm > 64.5 else "NORMAL",
-    }
-
-    recs = DeterministicRecommendationContext(
-        recommended_actions=actions,
-        timing_window="Next 24 to 48 hours",
-        operational_guidance=guidance,
-    )
-
-    return [risk], recs
+    eval_result = default_rule_engine.evaluate(forecast_context)
+    return eval_result.risks, eval_result.recommendation_context
 
 
 def build_ai_advisory_input(

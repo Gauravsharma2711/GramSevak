@@ -19,6 +19,18 @@ from src.advisory.advisory_engine import (
     RULE_VERSION,
 )
 
+from src.advisory.rule_engine import (
+    RuleCategory,
+    ComparisonOperator,
+    AgriculturalRuleDefinition,
+    RuleEvaluationTrace,
+    RuleEngineEvaluationResult,
+    DeterministicRuleEngine,
+    DEFAULT_AGRICULTURAL_RULES,
+    default_rule_engine,
+    RULE_ENGINE_VERSION,
+)
+
 __all__ = [
     "classify_rainfall",
     "RainfallCategory",
@@ -31,4 +43,13 @@ __all__ = [
     "ADVISORY_RULES_REGISTRY",
     "generate_agricultural_advisory",
     "RULE_VERSION",
+    "RuleCategory",
+    "ComparisonOperator",
+    "AgriculturalRuleDefinition",
+    "RuleEvaluationTrace",
+    "RuleEngineEvaluationResult",
+    "DeterministicRuleEngine",
+    "DEFAULT_AGRICULTURAL_RULES",
+    "default_rule_engine",
+    "RULE_ENGINE_VERSION",
 ]
