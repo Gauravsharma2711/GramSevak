@@ -17,6 +17,20 @@ from backend.app.schemas.advisory import (
 )
 
 from backend.app.schemas.farmer import FarmerForecastResponse
+from backend.app.schemas.advisory_contracts import (
+    AdvisoryStatus,
+    AdvisorySeverityEnum,
+    AdvisorySourceEnum,
+    PanchayatContext,
+    ForecastContext,
+    AgriculturalRiskItem,
+    DeterministicRecommendationContext,
+    AIAdvisoryInputContract,
+    AIAdvisoryOutputContract,
+    SafetyValidationReport,
+    AdvisoryTraceabilityContract,
+    FullAdvisoryPipelineEnvelope,
+)
 
 __all__ = [
     "PanchayatItem",
@@ -31,6 +45,18 @@ __all__ = [
     "OfficerApproveRequest",
     "OfficerRejectRequest",
     "FarmerForecastResponse",
+    "AdvisoryStatus",
+    "AdvisorySeverityEnum",
+    "AdvisorySourceEnum",
+    "PanchayatContext",
+    "ForecastContext",
+    "AgriculturalRiskItem",
+    "DeterministicRecommendationContext",
+    "AIAdvisoryInputContract",
+    "AIAdvisoryOutputContract",
+    "SafetyValidationReport",
+    "AdvisoryTraceabilityContract",
+    "FullAdvisoryPipelineEnvelope",
 ]
 
 
