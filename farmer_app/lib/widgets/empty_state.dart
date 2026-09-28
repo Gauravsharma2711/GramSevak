@@ -8,6 +8,7 @@ class FarmerEmptyState extends StatelessWidget {
   final String? actionText;
   final VoidCallback? onAction;
   final IconData icon;
+  final Widget? illustration;
 
   const FarmerEmptyState({
     super.key,
@@ -16,6 +17,7 @@ class FarmerEmptyState extends StatelessWidget {
     this.actionText,
     this.onAction,
     this.icon = Icons.cloud_off_outlined,
+    this.illustration,
   });
 
   @override
@@ -27,20 +29,23 @@ class FarmerEmptyState extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Container(
-              width: 64,
-              height: 64,
-              decoration: BoxDecoration(
-                color: AppColors.primary050,
-                shape: BoxShape.circle,
-                border: Border.all(color: AppColors.primary100),
+            if (illustration != null)
+              illustration!
+            else
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: AppColors.primary050,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.primary100),
+                ),
+                child: Icon(
+                  icon,
+                  color: AppColors.primary700,
+                  size: 32,
+                ),
               ),
-              child: Icon(
-                icon,
-                color: AppColors.primary700,
-                size: 32,
-              ),
-            ),
             const SizedBox(height: 16),
             Text(
               title,

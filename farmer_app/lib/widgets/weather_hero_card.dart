@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/farmer_forecast.dart';
 import '../theme/app_theme.dart';
 import '../l10n/app_localizations.dart';
+import 'agricultural_illustrations.dart';
 
 class WeatherHeroCard extends StatelessWidget {
   final FarmerForecast forecast;
@@ -109,7 +110,7 @@ class WeatherHeroCard extends StatelessWidget {
 
           const SizedBox(height: 16),
 
-          // Main Display: Rainfall Metric & Weather Icon
+          // Main Display: Rainfall Metric & Weather Condition Illustration
           Semantics(
             label: '${l10n.panchayatRainfall}: ${forecast.rainfallMm.toStringAsFixed(1)} millimeters, $categoryLabel',
             child: Row(
@@ -157,35 +158,10 @@ class WeatherHeroCard extends StatelessWidget {
                   ],
                 ),
 
-                // Weather Icon Illustration
-                Container(
-                  width: 56,
-                  height: 56,
-                  decoration: BoxDecoration(
-                    color: isHeavy
-                        ? AppColors.danger100
-                        : isModerate
-                            ? AppColors.primary050
-                            : AppColors.info100,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: isHeavy
-                          ? const Color(0xFFF5C6CB)
-                          : isModerate
-                              ? AppColors.primary100
-                              : const Color(0xFFCCE5FF),
-                    ),
-                  ),
-                  child: Icon(
-                    isHeavy
-                        ? Icons.thunderstorm_outlined
-                        : isModerate
-                            ? Icons.water_drop_outlined
-                            : Icons.wb_sunny_outlined,
-                    color: categoryColor,
-                    size: 30,
-                    semanticLabel: categoryLabel,
-                  ),
+                // Weather Condition Illustration
+                WeatherConditionIllustration(
+                  rainfallMm: forecast.rainfallMm,
+                  size: 56,
                 ),
               ],
             ),
@@ -195,3 +171,4 @@ class WeatherHeroCard extends StatelessWidget {
     );
   }
 }
+

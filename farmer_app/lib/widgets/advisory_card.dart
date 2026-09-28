@@ -189,6 +189,31 @@ class AdvisoryCard extends StatelessWidget {
                       height: 1.3,
                     ),
                   ),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary050,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppColors.primary100),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.water_drop_outlined,
+                            size: 13, color: AppColors.primary700),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${l10n.forecastBasis}: ${forecast.rainfallMm.toStringAsFixed(1)} mm • ${forecast.rainfallCategory.replaceAll('_', ' ')}',
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.primary700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                   const SizedBox(height: 14),
                 ],
 

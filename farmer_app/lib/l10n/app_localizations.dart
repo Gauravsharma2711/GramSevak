@@ -88,6 +88,19 @@ class AppLocalizations {
   String get actionableGuidance => _lookup('actionable_guidance');
   String get verifiedByOfficer => _lookup('verified_by_officer');
 
+  // 3-Tier Advisory Experience
+  String get whatIsHappening => _lookup('what_is_happening');
+  String get whyItMatters => _lookup('why_it_matters');
+  String get whatYouCanDo => _lookup('what_you_can_do');
+  String get recommendedAction => _lookup('recommended_action');
+  String get timingOutlook => _lookup('timing_outlook');
+  String get imdRainfallScale => _lookup('imd_rainfall_scale');
+  String get alertHighRain => _lookup('alert_high_rain');
+  String get alertHighRainDesc => _lookup('alert_high_rain_desc');
+  String get primaryForecastDay => _lookup('primary_forecast_day');
+  String get hourlyBreakdown => _lookup('hourly_breakdown');
+  String get forecastBasis => _lookup('forecast_basis');
+
   // Voice Audio & Helpline
   String get audioAdvisory => _lookup('audio_advisory');
   String get tapToListen => _lookup('tap_to_listen');
@@ -159,6 +172,18 @@ class AppLocalizations {
     'actionable_guidance': 'Actionable Guidance for Farmers:',
     'verified_by_officer':
         'Verified by Agricultural Extension Officer • District Agromet Unit',
+    'what_is_happening': 'What is happening?',
+    'why_it_matters': 'Why it matters for your field',
+    'what_you_can_do': 'What you can do (Recommended Actions)',
+    'recommended_action': 'Recommended Action',
+    'timing_outlook': 'Timing & Validity',
+    'imd_rainfall_scale': 'IMD Rainfall Classification',
+    'alert_high_rain': 'Heavy Rain Weather Advisory',
+    'alert_high_rain_desc':
+        'High rainfall predicted for this Gram Panchayat. Clear drainage channels and secure harvested produce.',
+    'primary_forecast_day': 'Primary Forecast',
+    'hourly_breakdown': 'Time-of-Day Outlook',
+    'forecast_basis': 'Downscaled Weather Basis',
     'audio_advisory': 'Audio Advisory / व्हॉइस सल्ला',
     'tap_to_listen': 'Tap to listen to verified guidance',
     'listen_audio': 'Listen',
@@ -230,6 +255,18 @@ class AppLocalizations {
     'actionable_guidance': 'शेतकऱ्यांसाठी कृषी सूचना:',
     'verified_by_officer':
         'कृषी विस्तार अधिकाऱ्यांद्वारे प्रमाणित • जिल्हा कृषी हवामान केंद्र',
+    'what_is_happening': 'काय घडत आहे?',
+    'why_it_matters': 'तुमच्या शेतासाठी हे का महत्त्वाचे आहे',
+    'what_you_can_do': 'तुम्ही काय करू शकता (शिफारस केलेल्या कृती)',
+    'recommended_action': 'शिफारस केलेली मुख्य कृती',
+    'timing_outlook': 'वेळ आणि वैधता',
+    'imd_rainfall_scale': 'IMD पर्जन्यमान वर्गीकरण',
+    'alert_high_rain': 'मुसळधार पाऊस सतर्कता सूचना',
+    'alert_high_rain_desc':
+        'या ग्रामपंचायतीसाठी मुसळधार पावसाचा अंदाज आहे. पाण्याचा निचरा करा व काढणी केलेला माल सुरक्षित ठेवा.',
+    'primary_forecast_day': 'मुख्य अंदाज',
+    'hourly_breakdown': 'वेळेनुसार हवामान अंदाज',
+    'forecast_basis': 'हवामान अंदाजाचा आधार',
     'audio_advisory': 'व्हॉइस सल्ला',
     'tap_to_listen': 'प्रमाणित सल्ला ऐकण्यासाठी टॅप करा',
     'listen_audio': 'ऐका',
@@ -301,6 +338,18 @@ class AppLocalizations {
     'actionable_guidance': 'किसानों के लिए आवश्यक निर्देश:',
     'verified_by_officer':
         'कृषि विस्तार अधिकारी द्वारा सत्यापित • जिला कृषि मौसम केंद्र',
+    'what_is_happening': 'क्या हो रहा है?',
+    'why_it_matters': 'आपके खेत के लिए यह क्यों महत्वपूर्ण है',
+    'what_you_can_do': 'आप क्या कर सकते हैं (अनुशंसित कार्रवाई)',
+    'recommended_action': 'अनुशंसित मुख्य कार्रवाई',
+    'timing_outlook': 'समय और वैधता',
+    'imd_rainfall_scale': 'IMD वर्षा वर्गीकरण',
+    'alert_high_rain': 'भारी वर्षा मौसम चेतावनी',
+    'alert_high_rain_desc':
+        'इस ग्राम पंचायत के लिए भारी वर्षा का पूर्वानुमान है। जल निकासी की व्यवस्था करें और फसल सुरक्षित रखें।',
+    'primary_forecast_day': 'मुख्य पूर्वानुमान',
+    'hourly_breakdown': 'समयानुसार मौसम पूर्वानुमान',
+    'forecast_basis': 'मौसम पूर्वानुमान का आधार',
     'audio_advisory': 'ऑडियो सलाह',
     'tap_to_listen': 'सत्यापित सलाह सुनने के लिए टैप करें',
     'listen_audio': 'सुनें',

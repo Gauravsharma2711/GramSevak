@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 import '../models/farmer_forecast.dart';
 import '../theme/app_theme.dart';
 import '../l10n/app_localizations.dart';
+import '../widgets/agricultural_illustrations.dart';
 
 /// Detailed Advisory Screen for Farmers
-/// Displays the full approved agricultural advisory with voice support and emergency helpline
+/// Implements the 3-Tier Agro-Advisory UX Structure:
+/// 1. WHAT IS HAPPENING?
+/// 2. WHY IT MATTERS
+/// 3. WHAT YOU CAN DO
 class AdvisoryDetailScreen extends StatefulWidget {
   final FarmerForecast forecast;
   final VoidCallback onRefresh;
@@ -32,7 +36,7 @@ class _AdvisoryDetailScreenState extends State<AdvisoryDetailScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          'Playing verified voice advisory in ${widget.currentLang == 'mr' ? 'Marathi' : widget.currentLang == 'hi' ? 'Hindi' : 'English'}...',
+          'Playing verified voice advisory in ${widget.currentLang == 'mr' ? 'Marathi (मराठी)' : widget.currentLang == 'hi' ? 'Hindi (हिन्दी)' : 'English'}...',
           style: const TextStyle(fontWeight: FontWeight.w600),
         ),
         backgroundColor: AppColors.primary700,
@@ -55,7 +59,7 @@ class _AdvisoryDetailScreenState extends State<AdvisoryDetailScreen> {
       color: AppColors.primary500,
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -72,7 +76,8 @@ class _AdvisoryDetailScreenState extends State<AdvisoryDetailScreen> {
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.translate, size: 16, color: AppColors.primary700),
+                      const Icon(Icons.translate,
+                          size: 16, color: AppColors.primary700),
                       const SizedBox(width: 6),
                       Text(
                         l10n.preferredLanguage,
@@ -97,11 +102,10 @@ class _AdvisoryDetailScreenState extends State<AdvisoryDetailScreen> {
               ),
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 14),
 
-            // Top Status Banner
             if (isApproved) ...[
-              // Verified Officer Banner
+              // 1. Officer Verified Status Header Banner
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -129,20 +133,48 @@ class _AdvisoryDetailScreenState extends State<AdvisoryDetailScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            l10n.officerVerifiedAdvisory,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.primary700,
-                            ),
+                          Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  l10n.officerVerifiedAdvisory,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.primary700,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: AppColors.surface,
+                                  borderRadius: BorderRadius.circular(999),
+                                  border:
+                                      Border.all(color: AppColors.primary100),
+                                ),
+                                child: Text(
+                                  widget.forecast.severity,
+                                  style: const TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.primary700,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
+                          const SizedBox(height: 2),
                           Text(
-                            '${widget.forecast.panchayatName} • ${widget.forecast.forecastDate}',
+                            '${widget.forecast.panchayatName} (${widget.forecast.blockName}) • ${widget.forecast.forecastDate}',
                             style: const TextStyle(
-                              fontSize: 11,
+                              fontSize: 11.5,
                               color: AppColors.ink700,
                             ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ),
@@ -151,9 +183,9 @@ class _AdvisoryDetailScreenState extends State<AdvisoryDetailScreen> {
                 ),
               ),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: 14),
 
-              // Audio Read-Aloud Voice Card
+              // 2. Audio Read-Aloud Voice Card
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -164,33 +196,41 @@ class _AdvisoryDetailScreenState extends State<AdvisoryDetailScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          l10n.audioAdvisory,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.ink900,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l10n.audioAdvisory,
+                            style: const TextStyle(
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.ink900,
+                            ),
                           ),
-                        ),
-                        Text(
-                          l10n.tapToListen,
-                          style: const TextStyle(
-                            fontSize: 11,
-                            color: AppColors.ink500,
+                          const SizedBox(height: 2),
+                          Text(
+                            l10n.tapToListen,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: AppColors.ink500,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
+                    const SizedBox(width: 10),
                     ElevatedButton.icon(
                       onPressed: _handleAudioPlay,
-                      icon: Icon(
-                        _isPlayingAudio ? Icons.volume_up : Icons.volume_mute_outlined,
-                        size: 16,
+                      icon: _isPlayingAudio
+                          ? const AudioWaveformIllustration(
+                              isPlaying: true, color: AppColors.surface)
+                          : const Icon(Icons.volume_up_outlined, size: 16),
+                      label: Text(
+                        _isPlayingAudio
+                            ? l10n.listeningAudio
+                            : l10n.listenAudio,
                       ),
-                      label: Text(_isPlayingAudio ? l10n.listeningAudio : l10n.listenAudio),
                       style: ElevatedButton.styleFrom(
                         minimumSize: const Size(110, 40),
                         backgroundColor: AppColors.primary500,
@@ -202,7 +242,51 @@ class _AdvisoryDetailScreenState extends State<AdvisoryDetailScreen> {
 
               const SizedBox(height: 16),
 
-              // Full Advisory Content Box
+              // 3. Main Recommendation Highlight Card
+              if (widget.forecast.advisoryTitle != null) ...[
+                Container(
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(color: AppColors.primary100, width: 1.5),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.star_outline,
+                              size: 16, color: AppColors.primary700),
+                          const SizedBox(width: 6),
+                          Text(
+                            l10n.recommendedAction,
+                            style: const TextStyle(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.primary700,
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        widget.forecast.advisoryTitle!,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.ink900,
+                          height: 1.35,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
+
+              // 4. THE 3-TIER ADVISORY FLOW CONTAINER
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
@@ -213,69 +297,131 @@ class _AdvisoryDetailScreenState extends State<AdvisoryDetailScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (widget.forecast.advisoryTitle != null) ...[
-                      Text(
-                        widget.forecast.advisoryTitle!,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.ink900,
-                          height: 1.3,
-                        ),
+                    // TIER 1: WHAT IS HAPPENING?
+                    _buildSectionHeader(
+                      number: '1',
+                      title: l10n.whatIsHappening,
+                      icon: Icons.cloud_outlined,
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceSubtle,
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      const SizedBox(height: 16),
-                      const Divider(color: Color(0xFFF0F4F1), height: 1),
-                      const SizedBox(height: 16),
-                    ],
+                      child: Row(
+                        children: [
+                          const Icon(Icons.water_drop_outlined,
+                              size: 18, color: AppColors.primary700),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              '${widget.forecast.rainfallMm.toStringAsFixed(1)} mm rainfall (${widget.forecast.rainfallCategory.replaceAll('_', ' ')}) predicted for ${widget.forecast.panchayatName}.',
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: AppColors.ink900,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
 
-                    Text(
-                      l10n.actionableGuidance,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.primary700,
-                      ),
+                    const SizedBox(height: 18),
+                    const Divider(color: Color(0xFFF0F4F1), height: 1),
+                    const SizedBox(height: 18),
+
+                    // TIER 2: WHY IT MATTERS
+                    _buildSectionHeader(
+                      number: '2',
+                      title: l10n.whyItMatters,
+                      icon: Icons.psychology_outlined,
+                    ),
+                    const SizedBox(height: 8),
+                    _buildReasonRow(
+                      icon: Icons.grass,
+                      title: l10n.sprayingWindow,
+                      explanation: widget.forecast.rainfallMm > 2.5
+                          ? 'Sprayed pesticides or fertilizers risk runoff wash-off.'
+                          : 'Dry foliage ensures maximum chemical absorption.',
+                    ),
+                    const SizedBox(height: 8),
+                    _buildReasonRow(
+                      icon: Icons.water_damage_outlined,
+                      title: l10n.fieldDrainage,
+                      explanation: widget.forecast.rainfallMm >= 20.0
+                          ? 'Risk of standing water and root rot in clay soils.'
+                          : 'Normal moisture balance expected for crops.',
+                    ),
+
+                    const SizedBox(height: 18),
+                    const Divider(color: Color(0xFFF0F4F1), height: 1),
+                    const SizedBox(height: 18),
+
+                    // TIER 3: WHAT YOU CAN DO
+                    _buildSectionHeader(
+                      number: '3',
+                      title: l10n.whatYouCanDo,
+                      icon: Icons.checklist_outlined,
                     ),
                     const SizedBox(height: 12),
 
-                    ...widget.forecast.advisoryPoints.map(
-                      (point) => Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              margin: const EdgeInsets.only(top: 6, right: 10),
-                              width: 8,
-                              height: 8,
-                              decoration: const BoxDecoration(
-                                color: AppColors.primary500,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                            Expanded(
-                              child: Text(
-                                point,
-                                style: const TextStyle(
-                                  fontSize: 13.5,
-                                  color: AppColors.ink900,
-                                  height: 1.5,
-                                  fontWeight: FontWeight.w500,
+                    ...widget.forecast.advisoryPoints.asMap().entries.map(
+                      (entry) {
+                        final idx = entry.key + 1;
+                        final point = entry.value;
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                width: 22,
+                                height: 22,
+                                margin: const EdgeInsets.only(top: 2, right: 10),
+                                decoration: const BoxDecoration(
+                                  color: AppColors.primary050,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    '$idx',
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.primary700,
+                                    ),
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                      ),
+                              Expanded(
+                                child: Text(
+                                  point,
+                                  style: const TextStyle(
+                                    fontSize: 13.5,
+                                    color: AppColors.ink900,
+                                    height: 1.5,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
                     ),
 
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 10),
                     const Divider(color: Color(0xFFF0F4F1), height: 1),
                     const SizedBox(height: 12),
 
+                    // Official Extension Verification Footer
                     Row(
                       children: [
-                        const Icon(Icons.verified_user, size: 14, color: AppColors.primary700),
+                        const Icon(Icons.verified_user,
+                            size: 14, color: AppColors.primary700),
                         const SizedBox(width: 6),
                         Expanded(
                           child: Text(
@@ -293,7 +439,7 @@ class _AdvisoryDetailScreenState extends State<AdvisoryDetailScreen> {
                 ),
               ),
             ] else ...[
-              // Unapproved / Pending Review State (Never display DRAFT or REJECTED content)
+              // Unapproved / Pending Review State (Never display DRAFT or unapproved content)
               Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
@@ -349,7 +495,7 @@ class _AdvisoryDetailScreenState extends State<AdvisoryDetailScreen> {
               ),
             ],
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 18),
 
             // Kisan Toll-Free Contact Banner
             Container(
@@ -407,6 +553,86 @@ class _AdvisoryDetailScreenState extends State<AdvisoryDetailScreen> {
     );
   }
 
+  Widget _buildSectionHeader({
+    required String number,
+    required String title,
+    required IconData icon,
+  }) {
+    return Row(
+      children: [
+        Container(
+          width: 20,
+          height: 20,
+          decoration: BoxDecoration(
+            color: AppColors.primary700,
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Center(
+            child: Text(
+              number,
+              style: const TextStyle(
+                color: AppColors.surface,
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Icon(icon, size: 16, color: AppColors.primary700),
+        const SizedBox(width: 6),
+        Flexible(
+          child: Text(
+            title,
+            style: const TextStyle(
+              fontSize: 13.5,
+              fontWeight: FontWeight.w700,
+              color: AppColors.ink900,
+              letterSpacing: 0.1,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildReasonRow({
+    required IconData icon,
+    required String title,
+    required String explanation,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 16, color: AppColors.ink500),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.ink900,
+                ),
+              ),
+              Text(
+                explanation,
+                style: const TextStyle(
+                  fontSize: 11.5,
+                  color: AppColors.ink500,
+                  height: 1.35,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildLangChip(String langCode, String label) {
     final isSelected = widget.currentLang == langCode;
     return GestureDetector(
@@ -432,3 +658,4 @@ class _AdvisoryDetailScreenState extends State<AdvisoryDetailScreen> {
     );
   }
 }
+
