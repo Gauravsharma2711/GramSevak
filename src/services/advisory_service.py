@@ -40,6 +40,8 @@ from src.advisory.advisory_engine import (
     RULE_VERSION,
 )
 
+from backend.app.models.panchayat import Panchayat
+
 logger = logging.getLogger(__name__)
 
 
@@ -64,10 +66,23 @@ def _resolve_panchayat_spatial_names(
     db: Optional[Session] = None,
 ) -> Dict[str, str]:
     """
-    Look up panchayat_name and block_name for a given panchayat_id.
+    Look up panchayat_name, block_name, and district_name for a given panchayat_id
+    using the normalized administrative hierarchy, with safe fallback to legacy tables.
     """
     if db is not None:
         try:
+            # 1. Primary: Query normalized Panchayat model (with Block and District relationships)
+            p = db.query(Panchayat).filter(Panchayat.id == panchayat_id).first()
+            if p:
+                b_name = p.block.name if p.block else "Unknown Block"
+                d_name = p.district.name if p.district else "Maharashtra"
+                return {
+                    "panchayat_name": str(p.name),
+                    "block_name": str(b_name),
+                    "district_name": str(d_name),
+                }
+
+            # 2. Secondary: Fallback to legacy panchayat_weather_data
             query = text("""
                 SELECT panchayat_name, block_name, district_name
                 FROM panchayat_weather_data
@@ -78,16 +93,16 @@ def _resolve_panchayat_spatial_names(
             if result:
                 return {
                     "panchayat_name": str(result.get("panchayat_name") or f"Panchayat-{panchayat_id}"),
-                    "block_name": str(result.get("block_name") or "Nashik Block"),
-                    "district_name": str(result.get("district_name") or "Nashik"),
+                    "block_name": str(result.get("block_name") or "Unknown Block"),
+                    "district_name": str(result.get("district_name") or "Maharashtra"),
                 }
         except Exception as e:
             logger.warning(f"Failed to lookup spatial names for panchayat_id {panchayat_id}: {e}")
 
     return {
         "panchayat_name": f"Panchayat-{panchayat_id}",
-        "block_name": "Nashik Block",
-        "district_name": "Nashik",
+        "block_name": "Unknown Block",
+        "district_name": "Maharashtra",
     }
 
 

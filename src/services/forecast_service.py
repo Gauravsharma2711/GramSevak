@@ -6,7 +6,7 @@ from typing import Dict, Any, Optional, Union
 import numpy as np
 import pandas as pd
 from sqlalchemy.orm import Session
-from sqlalchemy import text
+from sqlalchemy import text, func, case
 
 # Add project root to sys.path
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
@@ -79,11 +79,101 @@ def parse_date(date_val: Union[str, date, datetime]) -> date:
 def get_panchayat_record_from_db(
     panchayat_id: int,
     forecast_date: date,
-    db: Session
+    db: Session,
+    forecast_issue_date: Optional[date] = None,
+    block_forecast_rainfall_mm: Optional[float] = None,
 ) -> Optional[Dict[str, Any]]:
     """
     Query database for Panchayat spatial attributes and block forecast.
+    First resolves authoritative metadata from the Phase 3 administrative hierarchy
+    (Panchayat -> Block -> District) and looks up block-level forecasts in 'block_forecasts'.
+    Falls back to legacy 'panchayat_weather_data' if not present in the normalized hierarchy.
     """
+    try:
+        from backend.services.hierarchy_service import (
+            HierarchyService,
+            PanchayatNotFoundError as HierarchyPanchayatNotFoundError,
+        )
+        from backend.app.models.block_forecast import BlockForecast
+
+        hierarchy_svc = HierarchyService()
+        spatial_ctx = None
+        try:
+            spatial_ctx = hierarchy_svc.resolve_panchayat_spatial_context(panchayat_id, db=db)
+        except (HierarchyPanchayatNotFoundError, Exception) as ctx_err:
+            logger.debug(f"Hierarchy resolution skipped/failed for panchayat_id={panchayat_id}: {ctx_err}")
+            spatial_ctx = None
+
+        if spatial_ctx:
+            b_name = spatial_ctx.get("block_name", "")
+            d_name = spatial_ctx.get("district_name", "")
+
+            # 1. Resolve block-level forecast if not explicitly supplied
+            bf_rain = block_forecast_rainfall_mm
+            if bf_rain is None and b_name:
+                bf_q = db.query(BlockForecast).filter(
+                    func.lower(BlockForecast.block_name) == b_name.lower(),
+                    func.lower(BlockForecast.district_name) == d_name.lower(),
+                    BlockForecast.forecast_date == forecast_date,
+                )
+                if forecast_issue_date:
+                    bf_rec = bf_q.order_by(
+                        case((BlockForecast.forecast_issue_date == forecast_issue_date, 0), else_=1),
+                        BlockForecast.forecast_issue_date.desc(),
+                        BlockForecast.id.desc(),
+                    ).first()
+                else:
+                    bf_rec = bf_q.order_by(
+                        BlockForecast.forecast_issue_date.desc(),
+                        BlockForecast.id.desc(),
+                    ).first()
+
+                if bf_rec is not None:
+                    bf_rain = float(bf_rec.rainfall_mm)
+
+            # 2. Check legacy table for station distance or fallback block forecast
+            station_dist = 5.0
+            try:
+                p_weather = db.execute(
+                    text("""
+                        SELECT block_forecast_rainfall_mm, station_distance_km, date
+                        FROM panchayat_weather_data
+                        WHERE panchayat_id = :pid
+                        ORDER BY CASE WHEN date = :fdate THEN 0 ELSE 1 END, date DESC
+                        LIMIT 1;
+                    """),
+                    {"pid": panchayat_id, "fdate": forecast_date},
+                ).mappings().first()
+
+                if p_weather:
+                    # Never use block forecast from an unrelated date
+                    if bf_rain is None and p_weather.get("block_forecast_rainfall_mm") is not None:
+                        row_date = p_weather.get("date")
+                        if row_date and str(row_date) == str(forecast_date):
+                            bf_rain = float(p_weather["block_forecast_rainfall_mm"])
+                    if p_weather.get("station_distance_km") is not None:
+                        station_dist = float(p_weather["station_distance_km"])
+            except Exception as w_err:
+                logger.debug(f"Weather lookup fallback skipped: {w_err}")
+
+            return {
+                "panchayat_id": spatial_ctx["panchayat_id"],
+                "lgd_code": spatial_ctx.get("lgd_code"),
+                "panchayat_name": spatial_ctx["panchayat_name"],
+                "block_name": spatial_ctx["block_name"],
+                "district_name": spatial_ctx["district_name"],
+                "panchayat_latitude": spatial_ctx["latitude"],
+                "panchayat_longitude": spatial_ctx["longitude"],
+                "elevation_m": spatial_ctx["elevation_m"],
+                "date": forecast_date,
+                "forecast_issue_date": forecast_issue_date or forecast_date,
+                "block_forecast_rainfall_mm": bf_rain,
+                "station_distance_km": station_dist,
+            }
+    except Exception as e:
+        logger.warning(f"Authoritative hierarchy query failed for panchayat_id={panchayat_id}: {e}")
+
+    # Fallback to legacy panchayat_weather_data query
     try:
         query = text("""
             SELECT 
@@ -98,10 +188,15 @@ def get_panchayat_record_from_db(
         """)
         result = db.execute(query, {"pid": panchayat_id, "fdate": forecast_date}).mappings().first()
         if result:
-            return dict(result)
+            res_dict = dict(result)
+            if str(res_dict.get("date")) != str(forecast_date) and block_forecast_rainfall_mm is None:
+                res_dict["block_forecast_rainfall_mm"] = None
+            elif block_forecast_rainfall_mm is not None:
+                res_dict["block_forecast_rainfall_mm"] = block_forecast_rainfall_mm
+            return res_dict
         return None
     except Exception as e:
-        logger.warning(f"Database query failed for panchayat_id={panchayat_id}: {e}")
+        logger.warning(f"Legacy database query failed for panchayat_id={panchayat_id}: {e}")
         return None
 
 
@@ -180,7 +275,13 @@ def generate_panchayat_forecast(
     # 2. Retrieve Panchayat record (DB first, fallback to registry dataset)
     panchayat_record = None
     if db is not None:
-        panchayat_record = get_panchayat_record_from_db(panchayat_id, f_date, db)
+        panchayat_record = get_panchayat_record_from_db(
+            panchayat_id=panchayat_id,
+            forecast_date=f_date,
+            db=db,
+            forecast_issue_date=issue_date,
+            block_forecast_rainfall_mm=block_forecast_rainfall_mm,
+        )
         
     if panchayat_record is None:
         panchayat_record = get_panchayat_record_from_dataset(panchayat_id, f_date, dataset_path)

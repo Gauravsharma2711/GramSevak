@@ -22,10 +22,23 @@ from backend.app.schemas.panchayat import (
     PanchayatItem,
     PanchayatPagination,
     PanchayatDetailResponse,
+    DistrictResponse,
     DistrictItem,
+    DistrictListResponse,
+    BlockResponse,
     BlockItem,
+    BlockListResponse,
+    PanchayatResponse,
     BlockPanchayatItem,
+    PanchayatListResponse,
     BlockPanchayatPagination,
+)
+from backend.services.hierarchy_service import (
+    HierarchyService,
+    get_hierarchy_service,
+    DistrictNotFoundError,
+    BlockNotFoundError,
+    PanchayatNotFoundError,
 )
 
 logger = logging.getLogger(__name__)
@@ -302,18 +315,19 @@ def get_panchayat_by_id(
         examples=[1001],
     ),
     db: Session = Depends(get_db),
+    service: HierarchyService = Depends(get_hierarchy_service),
 ) -> PanchayatDetailResponse:
     """
     Fetch a single Gram Panchayat by ID from Supabase PostgreSQL database.
     Returns HTTP 404 if the Panchayat is not found.
     """
     logger.info(
-        f"[REQUEST] request_type=GET /api/v1/panchayats/{{panchayat_id}} panchayat_id={panchayat_id}"
+        f"[REQUEST] request_type=GET /api/v1/panchayats/{panchayat_id} panchayat_id={panchayat_id}"
     )
     try:
-        # 1. Query normalized Panchayat model (with block and district relationships)
-        p_row = db.query(Panchayat).filter(Panchayat.id == panchayat_id).first()
-        if p_row is not None:
+        # 1. Query normalized Panchayat model via HierarchyService
+        try:
+            p_row = service.get_panchayat_detail(panchayat_id=panchayat_id, db=db)
             b_name = p_row.block.name if p_row.block else "Unknown"
             d_name = p_row.district.name if p_row.district else "Unknown"
             log_db_operation(
@@ -326,7 +340,7 @@ def get_panchayat_by_id(
             )
             return PanchayatDetailResponse(
                 panchayat_id=int(p_row.id),
-                lgd_code=int(p_row.lgd_code),
+                lgd_code=int(p_row.lgd_code) if p_row.lgd_code is not None else int(p_row.id),
                 panchayat_name=str(p_row.name),
                 block_name=str(b_name),
                 district_name=str(d_name),
@@ -338,6 +352,8 @@ def get_panchayat_by_id(
                 block_id=int(p_row.block_id) if p_row.block_id is not None else None,
                 district_id=int(p_row.district_id) if p_row.district_id is not None else None,
             )
+        except PanchayatNotFoundError:
+            pass
 
         # 2. Query legacy panchayat_weather_data table
         row = (
@@ -432,43 +448,167 @@ def get_panchayat_by_id(
 
 @router.get(
     "/districts",
-    response_model=List[DistrictItem],
+    response_model=DistrictListResponse,
     summary="List All Administrative Districts",
-    description="Retrieves list of all configured districts (e.g. Nashik, Pune).",
+    description=(
+        "Retrieves a paginated list of configured districts (e.g. Nashik, Pune) in deterministic "
+        "alphabetical order with optional server-side search."
+    ),
     tags=["Panchayats"],
 )
-def get_districts(db: Session = Depends(get_db)) -> List[DistrictItem]:
-    districts = db.query(District).order_by(District.name.asc()).all()
-    if not districts:
-        rows = db.query(PanchayatWeatherData.district_name).distinct().all()
-        return [DistrictItem(id=i + 1, name=r[0], state="Maharashtra") for i, r in enumerate(rows) if r[0]]
-    return [DistrictItem(id=d.id, name=d.name, state=d.state) for d in districts]
+def get_districts(
+    search: Optional[str] = Query(
+        None,
+        min_length=1,
+        max_length=100,
+        description="Optional search query matching district name (case-insensitive).",
+        examples=["Nashik"],
+    ),
+    page: int = Query(
+        1,
+        ge=1,
+        description="Page number (1-indexed). Must be greater than or equal to 1.",
+        examples=[1],
+    ),
+    page_size: int = Query(
+        20,
+        ge=1,
+        le=100,
+        description="Number of records to return per page (1 to 100). Default is 20.",
+        examples=[20],
+    ),
+    db: Session = Depends(get_db),
+    service: HierarchyService = Depends(get_hierarchy_service),
+) -> DistrictListResponse:
+    """
+    Fetch paginated administrative districts from the database via HierarchyService.
+    Supports case-insensitive search and bounded pagination.
+    """
+    try:
+        districts, total = service.list_districts(
+            page=page,
+            page_size=page_size,
+            search=search,
+            db=db,
+        )
+        if total == 0 and not search:
+            rows = db.query(PanchayatWeatherData.district_name).distinct().all()
+            fallback_items = [
+                DistrictResponse(id=i + 1, name=r[0], code=None, state="Maharashtra")
+                for i, r in enumerate(rows) if r[0]
+            ]
+            return DistrictListResponse(
+                total=len(fallback_items),
+                page=1,
+                page_size=page_size,
+                total_pages=1 if fallback_items else 0,
+                items=fallback_items,
+            )
+        total_pages = math.ceil(total / page_size) if total > 0 else 0
+        items = [
+            DistrictResponse(
+                id=d.id,
+                name=d.name,
+                code=d.code,
+                state=d.state,
+            )
+            for d in districts
+        ]
+        return DistrictListResponse(
+            total=total,
+            page=page,
+            page_size=page_size,
+            total_pages=total_pages,
+            items=items,
+        )
+    except Exception as exc:
+        logger.error(f"Error fetching districts: {exc}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to retrieve administrative districts.",
+        )
 
 
 @router.get(
     "/districts/{district_id}/blocks",
-    response_model=List[BlockItem],
+    response_model=BlockListResponse,
     summary="List Blocks for a Specific District",
-    description="Retrieves all administrative blocks / tehsils belonging to a specific district ID.",
+    description=(
+        "Retrieves a paginated list of administrative blocks / tehsils belonging to a specific district ID "
+        "with optional server-side search strictly scoped to the district."
+    ),
     tags=["Panchayats"],
 )
 def get_district_blocks(
     district_id: int = FastAPIPath(..., ge=1, description="Unique District identifier"),
+    search: Optional[str] = Query(
+        None,
+        min_length=1,
+        max_length=100,
+        description="Optional search query matching block name (case-insensitive).",
+        examples=["Baglan"],
+    ),
+    page: int = Query(
+        1,
+        ge=1,
+        description="Page number (1-indexed). Must be greater than or equal to 1.",
+        examples=[1],
+    ),
+    page_size: int = Query(
+        20,
+        ge=1,
+        le=100,
+        description="Number of records to return per page (1 to 100). Default is 20.",
+        examples=[20],
+    ),
     db: Session = Depends(get_db),
-) -> List[BlockItem]:
-    dist = db.query(District).filter(District.id == district_id).first()
-    if not dist:
+    service: HierarchyService = Depends(get_hierarchy_service),
+) -> BlockListResponse:
+    """
+    Fetch paginated blocks scoped to a district via HierarchyService.
+    Returns 404 if the district does not exist.
+    """
+    try:
+        blocks, total = service.list_blocks_by_district(
+            district_id=district_id,
+            page=page,
+            page_size=page_size,
+            search=search,
+            db=db,
+        )
+        total_pages = math.ceil(total / page_size) if total > 0 else 0
+        items = [
+            BlockResponse(
+                id=b.id,
+                district_id=b.district_id,
+                name=b.name,
+                code=b.code,
+            )
+            for b in blocks
+        ]
+        return BlockListResponse(
+            total=total,
+            page=page,
+            page_size=page_size,
+            total_pages=total_pages,
+            items=items,
+        )
+    except DistrictNotFoundError as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"District with ID {district_id} not found.",
+            detail=str(e),
         )
-    blocks = db.query(Block).filter(Block.district_id == district_id).order_by(Block.name.asc()).all()
-    return [BlockItem(id=b.id, district_id=b.district_id, name=b.name) for b in blocks]
+    except Exception as exc:
+        logger.error(f"Error fetching blocks for district {district_id}: {exc}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to retrieve blocks for district ID {district_id}.",
+        )
 
 
 @router.get(
     "/blocks/{block_id}/panchayats",
-    response_model=BlockPanchayatPagination,
+    response_model=PanchayatListResponse,
     summary="List Panchayats for a Specific Block",
     description=(
         "Retrieves a paginated list of Gram Panchayats belonging to a specific administrative Block ID. "
@@ -499,61 +639,55 @@ def get_block_panchayats(
         examples=[50],
     ),
     db: Session = Depends(get_db),
-) -> BlockPanchayatPagination:
+    service: HierarchyService = Depends(get_hierarchy_service),
+) -> PanchayatListResponse:
     """
-    Fetch paginated Gram Panchayats for a specific block using the normalized hierarchy.
+    Fetch paginated Gram Panchayats for a specific block using the normalized hierarchy via HierarchyService.
     """
-    block = db.query(Block).filter(Block.id == block_id).first()
-    if not block:
+    try:
+        results, total = service.list_panchayats_by_block(
+            block_id=block_id,
+            page=page,
+            page_size=page_size,
+            search=search,
+            db=db,
+        )
+        total_pages = math.ceil(total / page_size) if total > 0 else 0
+
+        items = [
+            PanchayatResponse(
+                id=int(p.id),
+                lgd_code=int(p.lgd_code) if p.lgd_code is not None else None,
+                name=str(p.name),
+                block_id=int(p.block_id),
+                district_id=int(p.district_id) if p.district_id else int(p.block.district_id if p.block else 0),
+                latitude=float(p.latitude) if p.latitude is not None else None,
+                longitude=float(p.longitude) if p.longitude is not None else None,
+                elevation_m=float(p.elevation_m) if p.elevation_m is not None else None,
+                panchayat_id=int(p.id),
+                panchayat_name=str(p.name),
+            )
+            for p in results
+        ]
+
+        return PanchayatListResponse(
+            total=total,
+            page=page,
+            page_size=page_size,
+            total_pages=total_pages,
+            items=items,
+        )
+    except BlockNotFoundError as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Block with ID {block_id} not found.",
+            detail=str(e),
         )
-
-    query = db.query(Panchayat).filter(Panchayat.block_id == block_id)
-
-    if search and search.strip():
-        search_pattern = f"%{search.strip().lower()}%"
-        query = query.filter(
-            or_(
-                func.lower(Panchayat.name).ilike(search_pattern),
-                cast(Panchayat.lgd_code, String).ilike(search_pattern),
-                cast(Panchayat.id, String).ilike(search_pattern),
-            )
+    except Exception as exc:
+        logger.error(f"Error fetching panchayats for block {block_id}: {exc}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to retrieve panchayats for block ID {block_id}.",
         )
-
-    # Deterministic ordering leveraging composite index (block_id, name)
-    query = query.order_by(Panchayat.name.asc(), Panchayat.id.asc())
-
-    total = query.count()
-    total_pages = math.ceil(total / page_size) if total > 0 else 0
-
-    offset = (page - 1) * page_size
-    results = query.offset(offset).limit(page_size).all()
-
-    items = [
-        BlockPanchayatItem(
-            id=int(p.id),
-            lgd_code=int(p.lgd_code),
-            name=str(p.name),
-            block_id=int(p.block_id),
-            district_id=int(p.district_id) if p.district_id else int(block.district_id),
-            latitude=float(p.latitude) if p.latitude is not None else None,
-            longitude=float(p.longitude) if p.longitude is not None else None,
-            elevation_m=float(p.elevation_m) if p.elevation_m is not None else None,
-            panchayat_id=int(p.id),
-            panchayat_name=str(p.name),
-        )
-        for p in results
-    ]
-
-    return BlockPanchayatPagination(
-        total=total,
-        page=page,
-        page_size=page_size,
-        total_pages=total_pages,
-        items=items,
-    )
 
 
 @router.get(

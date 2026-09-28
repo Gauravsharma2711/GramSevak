@@ -105,7 +105,8 @@ class _FarmerAppMainScreenState extends State<FarmerAppMainScreen> {
       if (mounted) {
         setState(() {
           _loading = false;
-          _errorMessage = 'Unable to connect to weather advisory service. Please check connection and try again.';
+          _errorMessage =
+              'Unable to connect to weather advisory service. Please check connection and try again.';
         });
       }
     }
@@ -149,11 +150,17 @@ class _FarmerAppMainScreenState extends State<FarmerAppMainScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => PanchayatPickerSheet(
-        panchayats: _panchayats.isNotEmpty ? _panchayats : FarmerRepository.fallbackPanchayats,
+        panchayats: _panchayats.isNotEmpty
+            ? _panchayats
+            : FarmerRepository.fallbackPanchayats,
         selectedPanchayatId: _selectedPanchayatId,
         onSelect: (panchayat) {
           setState(() {
             _selectedPanchayatId = panchayat.panchayatId;
+            if (!_panchayats
+                .any((p) => p.panchayatId == panchayat.panchayatId)) {
+              _panchayats.insert(0, panchayat);
+            }
           });
           _reloadForecast();
         },
@@ -165,7 +172,9 @@ class _FarmerAppMainScreenState extends State<FarmerAppMainScreen> {
   Widget build(BuildContext context) {
     final currentP = _panchayats.firstWhere(
       (p) => p.panchayatId == _selectedPanchayatId,
-      orElse: () => _panchayats.isNotEmpty ? _panchayats.first : FarmerRepository.fallbackPanchayats.first,
+      orElse: () => _panchayats.isNotEmpty
+          ? _panchayats.first
+          : FarmerRepository.fallbackPanchayats.first,
     );
 
     return FarmerScaffold(

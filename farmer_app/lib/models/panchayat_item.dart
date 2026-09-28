@@ -22,11 +22,18 @@ class PanchayatItem {
 
   factory PanchayatItem.fromJson(Map<String, dynamic> json) {
     return PanchayatItem(
-      panchayatId: json['panchayat_id'] as int? ?? 1001,
+      panchayatId: (json['id'] ?? json['panchayat_id']) as int? ?? 0,
       lgdCode: json['lgd_code'] as int? ?? 0,
-      panchayatName: json['panchayat_name'] as String? ?? 'Unknown',
-      blockName: json['block_name'] as String? ?? 'Baglan',
-      districtName: json['district_name'] as String? ?? 'Nashik',
+      panchayatName:
+          (json['name'] ?? json['panchayat_name']) as String? ?? 'Unknown',
+      blockName: (json['block'] is Map
+              ? json['block']['name']
+              : json['block_name']) as String? ??
+          'Block',
+      districtName: (json['district'] is Map
+              ? json['district']['name']
+              : json['district_name']) as String? ??
+          'District',
       latitude: (json['latitude'] as num?)?.toDouble() ?? 20.6,
       longitude: (json['longitude'] as num?)?.toDouble() ?? 74.1,
       elevationM: (json['elevation_m'] as num?)?.toDouble() ?? 550.0,
