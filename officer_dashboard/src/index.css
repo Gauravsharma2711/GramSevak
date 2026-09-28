@@ -44,30 +44,37 @@ html, body {
 /* Typography Utility Classes */
 /* Typography Utility Classes with Responsive Fluid Scaling */
 .text-display {
-  font-size: clamp(24px, 5vw, var(--text-display));
+  font-size: clamp(20px, 3.5vw, var(--text-display));
   font-weight: var(--weight-display);
-  line-height: 1.15;
+  line-height: var(--line-display);
   color: var(--ink-900);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.015em;
+}
+
+.text-metric {
+  font-size: var(--text-metric);
+  font-weight: var(--weight-metric);
+  line-height: var(--line-metric);
+  letter-spacing: -0.01em;
 }
 
 .text-page-title {
-  font-size: clamp(18px, 4vw, var(--text-page-title));
+  font-size: clamp(17px, 3vw, var(--text-page-title));
   font-weight: var(--weight-page-title);
-  line-height: 1.25;
+  line-height: var(--line-page-title);
   color: var(--ink-900);
   letter-spacing: -0.01em;
 }
 
 .text-section-title {
-  font-size: clamp(15px, 3.5vw, var(--text-section-title));
+  font-size: clamp(14px, 2.5vw, var(--text-section-title));
   font-weight: var(--weight-section-title);
   line-height: var(--line-section-title);
   color: var(--ink-900);
 }
 
 .text-card-title {
-  font-size: clamp(14px, 3vw, var(--text-card-title));
+  font-size: var(--text-card-title);
   font-weight: var(--weight-card-title);
   line-height: var(--line-card-title);
   color: var(--ink-900);
@@ -80,13 +87,19 @@ html, body {
   color: var(--ink-700);
 }
 
+.text-secondary {
+  font-size: var(--text-secondary);
+  font-weight: var(--weight-secondary);
+  line-height: var(--line-secondary);
+  color: var(--ink-500);
+}
+
 .text-label {
   font-size: var(--text-label);
   font-weight: var(--weight-label);
   line-height: var(--line-label);
   color: var(--ink-500);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
 }
 
 .text-caption {
@@ -94,6 +107,12 @@ html, body {
   font-weight: var(--weight-caption);
   line-height: var(--line-caption);
   color: var(--ink-500);
+}
+
+.text-nav {
+  font-size: var(--text-nav);
+  font-weight: var(--weight-nav);
+  line-height: var(--line-nav);
 }
 
 /* Common UI Components */
@@ -357,13 +376,82 @@ html, body {
   display: none;
 }
 
+/* Dashboard Layout: Independent Sidebar & Main Dashboard Dual-Pane Scroll */
+.app-shell-layout {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+  background-color: var(--canvas);
+}
+
+.desktop-sidebar {
+  width: 260px;
+  height: 100vh;
+  background-color: var(--surface);
+  border-right: var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  z-index: 30;
+}
+
+.main-content-wrapper {
+  flex: 1;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  width: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  position: relative;
+}
+
+.app-header {
+  min-height: 60px;
+  background-color: var(--surface);
+  border-bottom: var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 8px 20px;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  flex-shrink: 0;
+}
+
+.app-main-content {
+  flex: 1;
+  padding: clamp(14px, 2.5vw, 28px);
+  max-width: 1440px;
+  width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
 /* Responsive Breakpoints */
 @media (max-width: 1024px) {
+  .app-shell-layout {
+    height: auto;
+    min-height: 100vh;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
   .desktop-sidebar {
     display: none !important;
   }
   .header-menu-btn {
     display: inline-flex !important;
+  }
+  .main-content-wrapper {
+    height: auto;
+    min-height: 100vh;
+    overflow-y: visible;
   }
 }
 

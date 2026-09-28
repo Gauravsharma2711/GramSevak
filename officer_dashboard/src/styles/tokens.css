@@ -33,40 +33,52 @@
   --sun-500: #F6C744;
   --sun-100: #FEF9E7;
 
-  /* Typography Scale */
+  /* Typography Scale (Universal Farmer Product Design System - Restrained & Professional) */
   --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   
-  --text-display: 32px;
+  --text-display: 24px;
   --weight-display: 700;
-  --line-display: 40px;
+  --line-display: 30px;
 
-  --text-page-title: 24px;
+  --text-metric: 24px;
+  --weight-metric: 700;
+  --line-metric: 28px;
+
+  --text-page-title: 20px;
   --weight-page-title: 700;
-  --line-page-title: 32px;
+  --line-page-title: 26px;
 
-  --text-section-title: 18px;
-  --weight-section-title: 700;
-  --line-section-title: 24px;
+  --text-section-title: 15px;
+  --weight-section-title: 650;
+  --line-section-title: 21px;
 
-  --text-card-title: 16px;
-  --weight-card-title: 650;
-  --line-card-title: 22px;
+  --text-card-title: 14px;
+  --weight-card-title: 600;
+  --line-card-title: 19px;
 
-  --text-body: 14px;
+  --text-body: 13px;
   --weight-body: 400;
-  --line-body: 20px;
+  --line-body: 19px;
 
-  --text-label: 12px;
+  --text-secondary: 12px;
+  --weight-secondary: 400;
+  --line-secondary: 16px;
+
+  --text-label: 11px;
   --weight-label: 600;
-  --line-label: 16px;
+  --line-label: 15px;
 
   --text-caption: 11px;
   --weight-caption: 400;
   --line-caption: 14px;
 
-  --text-button: 14px;
-  --weight-button: 650;
-  --line-button: 20px;
+  --text-nav: 13px;
+  --weight-nav: 500;
+  --line-nav: 18px;
+
+  --text-button: 13px;
+  --weight-button: 600;
+  --line-button: 18px;
 
   /* Spacing Scale (4px base) */
   --space-1: 4px;

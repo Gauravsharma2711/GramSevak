@@ -63,7 +63,7 @@ export const WeatherHeroCard: React.FC<WeatherHeroCardProps> = ({
               Forecast Date: <strong>2026-09-09</strong>
             </span>
           </div>
-          <h2 style={{ fontSize: '17px', fontWeight: 700, color: 'var(--ink-900)' }}>
+          <h2 className="text-page-title">
             Spatial Downscaling vs IMD Block Baseline
           </h2>
         </div>
@@ -110,7 +110,7 @@ export const WeatherHeroCard: React.FC<WeatherHeroCardProps> = ({
             <div className="text-label" style={{ color: 'var(--ink-500)', marginBottom: '4px' }}>
               Reference Baseline
             </div>
-            <div style={{ fontSize: '15px', fontWeight: 650, color: 'var(--ink-900)' }}>
+            <div style={{ fontSize: 'var(--text-section-title)', fontWeight: 650, color: 'var(--ink-900)' }}>
               {blockName} Block (Coarse IMD)
             </div>
             <div style={{ fontSize: '11px', color: 'var(--ink-500)', marginTop: '2px' }}>
@@ -119,8 +119,8 @@ export const WeatherHeroCard: React.FC<WeatherHeroCardProps> = ({
           </div>
 
           <div style={{ margin: '16px 0' }}>
-            <div style={{ fontSize: '32px', fontWeight: 700, color: 'var(--ink-700)', lineHeight: '36px' }}>
-              {blockForecastMm} <span style={{ fontSize: '15px', fontWeight: 500, color: 'var(--ink-500)' }}>mm</span>
+            <div className="text-metric" style={{ color: 'var(--ink-700)' }}>
+              {blockForecastMm} <span style={{ fontSize: '13px', fontWeight: 500, color: 'var(--ink-500)' }}>mm</span>
             </div>
             <div style={{ fontSize: '12px', color: 'var(--ink-500)', marginTop: '4px' }}>
               Uniform across whole block
@@ -164,7 +164,7 @@ export const WeatherHeroCard: React.FC<WeatherHeroCardProps> = ({
                   {maxRain.status}
                 </span>
               </div>
-              <div style={{ fontSize: '15px', fontWeight: 650, color: 'var(--ink-900)' }}>
+              <div style={{ fontSize: 'var(--text-section-title)', fontWeight: 650, color: 'var(--ink-900)' }}>
                 {maxRain.panchayat_name} Gram Panchayat
               </div>
               <div style={{ fontSize: '11px', color: 'var(--ink-500)', marginTop: '2px' }}>
@@ -173,8 +173,8 @@ export const WeatherHeroCard: React.FC<WeatherHeroCardProps> = ({
             </div>
 
             <div style={{ margin: '16px 0' }}>
-              <div style={{ fontSize: '32px', fontWeight: 700, color: 'var(--danger-600)', lineHeight: '36px' }}>
-                {maxRain.rainfall_mm} <span style={{ fontSize: '15px', fontWeight: 500 }}>mm</span>
+              <div className="text-metric" style={{ color: 'var(--danger-600)' }}>
+                {maxRain.rainfall_mm} <span style={{ fontSize: '13px', fontWeight: 500 }}>mm</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: 'var(--ink-700)', marginTop: '4px', flexWrap: 'wrap' }}>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
@@ -224,7 +224,7 @@ export const WeatherHeroCard: React.FC<WeatherHeroCardProps> = ({
                   {minRain.status}
                 </span>
               </div>
-              <div style={{ fontSize: '15px', fontWeight: 650, color: 'var(--ink-900)' }}>
+              <div style={{ fontSize: 'var(--text-section-title)', fontWeight: 650, color: 'var(--ink-900)' }}>
                 {minRain.panchayat_name} Gram Panchayat
               </div>
               <div style={{ fontSize: '11px', color: 'var(--ink-500)', marginTop: '2px' }}>
@@ -233,8 +233,8 @@ export const WeatherHeroCard: React.FC<WeatherHeroCardProps> = ({
             </div>
 
             <div style={{ margin: '16px 0' }}>
-              <div style={{ fontSize: '32px', fontWeight: 700, color: 'var(--primary-700)', lineHeight: '36px' }}>
-                {minRain.rainfall_mm} <span style={{ fontSize: '15px', fontWeight: 500 }}>mm</span>
+              <div className="text-metric" style={{ color: 'var(--primary-700)' }}>
+                {minRain.rainfall_mm} <span style={{ fontSize: '13px', fontWeight: 500 }}>mm</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: 'var(--ink-700)', marginTop: '4px', flexWrap: 'wrap' }}>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>

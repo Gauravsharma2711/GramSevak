@@ -43,13 +43,13 @@ export const MetricCard: React.FC<MetricCardProps> = ({
       </div>
 
       <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-        <span className="text-display" style={{ color: 'var(--ink-900)' }}>
+        <span className="text-metric" style={{ color: 'var(--ink-900)' }}>
           {value}
         </span>
       </div>
 
       {trend && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: 'var(--text-secondary)' }}>
           <span
             style={{
               fontWeight: 600,
@@ -63,7 +63,7 @@ export const MetricCard: React.FC<MetricCardProps> = ({
       )}
 
       {!trend && subtext && (
-        <div style={{ fontSize: '12px', color: 'var(--ink-500)' }}>{subtext}</div>
+        <div className="text-secondary">{subtext}</div>
       )}
     </div>
   );
