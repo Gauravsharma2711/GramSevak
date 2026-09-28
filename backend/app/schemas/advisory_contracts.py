@@ -592,3 +592,47 @@ class FullAdvisoryPipelineEnvelope(BaseModel):
     draft_content: Optional[AIAdvisoryOutputContract] = None
     validation_report: Optional[SafetyValidationReport] = None
     traceability: AdvisoryTraceabilityContract
+
+
+class AdvisoryContext(BaseModel):
+    """
+    Canonical internal advisory context for the Phase 5 advisory pipeline.
+    Combines authoritative Panchayat information, validated Panchayat-level forecast data,
+    deterministic rule-engine results, baseline recommendations, and end-to-end traceability.
+    """
+    model_config = ConfigDict(from_attributes=True, extra="forbid")
+
+    panchayat: PanchayatContext = Field(
+        ...,
+        description="Authoritative Panchayat spatial and administrative hierarchy context",
+    )
+    forecast: ForecastContext = Field(
+        ...,
+        description="Validated numerical downscaled weather forecast context",
+    )
+    risks: List[AgriculturalRiskItem] = Field(
+        default_factory=list,
+        description="Structured agricultural risks evaluated by the deterministic rule engine",
+    )
+    recommendations: DeterministicRecommendationContext = Field(
+        ...,
+        description="Baseline actionable recommendations and operational guidance",
+    )
+    traceability: AdvisoryTraceabilityContract = Field(
+        ...,
+        description="End-to-end auditability and provenance metadata",
+    )
+    validation_errors: List[str] = Field(
+        default_factory=list,
+        description="Non-blocking validation notices or metadata observations",
+    )
+
+    def to_ai_input(self, target_language: str = "en") -> AIAdvisoryInputContract:
+        """Converts canonical AdvisoryContext into AIAdvisoryInputContract for future AI layer."""
+        return AIAdvisoryInputContract(
+            panchayat_context=self.panchayat,
+            forecast_context=self.forecast,
+            risks=self.risks,
+            deterministic_recommendations=self.recommendations,
+            target_language=target_language,
+        )

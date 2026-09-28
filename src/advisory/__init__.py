@@ -32,6 +32,24 @@ from src.advisory.rule_engine import (
     RuleEngineValidationError,
 )
 
+from src.advisory.context_builder import (
+    AdvisoryContextService,
+    default_advisory_context_service,
+    AdvisoryContextError,
+    PanchayatNotFoundError,
+    HierarchyMismatchError,
+    ForecastNotFoundError,
+    ForecastPanchayatMismatchError,
+    InvalidForecastDataError,
+    RuleEvaluationError,
+    build_panchayat_context,
+    build_forecast_context,
+    build_deterministic_risk_and_recommendations,
+    build_traceability_record,
+    build_ai_advisory_input,
+)
+from backend.app.schemas.advisory_contracts import AdvisoryContext
+
 __all__ = [
     "classify_rainfall",
     "RainfallCategory",
@@ -54,4 +72,19 @@ __all__ = [
     "default_rule_engine",
     "RULE_ENGINE_VERSION",
     "RuleEngineValidationError",
+    "AdvisoryContext",
+    "AdvisoryContextService",
+    "default_advisory_context_service",
+    "AdvisoryContextError",
+    "PanchayatNotFoundError",
+    "HierarchyMismatchError",
+    "ForecastNotFoundError",
+    "ForecastPanchayatMismatchError",
+    "InvalidForecastDataError",
+    "RuleEvaluationError",
+    "build_panchayat_context",
+    "build_forecast_context",
+    "build_deterministic_risk_and_recommendations",
+    "build_traceability_record",
+    "build_ai_advisory_input",
 ]

@@ -34,6 +34,17 @@ from src.advisory.localization import (
     LANGUAGE_METADATA,
     DEFAULT_LANGUAGE,
 )
+from backend.app.schemas.advisory_contracts import AdvisoryContext
+from src.advisory.context_builder import (
+    default_advisory_context_service,
+    AdvisoryContextError,
+    PanchayatNotFoundError as CtxPanchayatNotFoundError,
+    ForecastNotFoundError as CtxForecastNotFoundError,
+    ForecastPanchayatMismatchError as CtxForecastMismatchError,
+    HierarchyMismatchError as CtxHierarchyMismatchError,
+    InvalidForecastDataError as CtxInvalidForecastDataError,
+    RuleEvaluationError as CtxRuleEvaluationError,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -277,3 +288,84 @@ def get_approved_panchayat_advisory(
         available_languages=ALL_SUPPORTED_LANGUAGES.copy(),
         language_status=language_status,
     )
+
+
+@router.get(
+    "/advisory/context/{panchayat_id}",
+    response_model=AdvisoryContext,
+    status_code=status.HTTP_200_OK,
+    summary="Get Structured Advisory Context for Panchayat",
+    description="""
+    Retrieves the canonical, validated AdvisoryContext combining authoritative Panchayat metadata,
+    validated numerical downscaled forecast, deterministic agricultural rule risks/recommendations,
+    and end-to-end traceability metadata.
+
+    Serves as the internal data ingestion layer for the future AI advisory generator and officer review.
+    Does NOT invoke AI, publish advisories, or alter numerical weather predictions.
+    """,
+    responses={
+        200: {
+            "description": "Structured advisory context successfully retrieved.",
+            "model": AdvisoryContext,
+        },
+        404: {
+            "description": "Panchayat or forecast record not found.",
+            "content": {"application/json": {"example": {"detail": "No downscaled forecast found for Panchayat ID '1001'."}}},
+        },
+        422: {
+            "description": "Validation error, hierarchy mismatch, or invalid forecast data.",
+            "content": {"application/json": {"example": {"detail": "Forecast contains negative rainfall value."}}},
+        },
+        500: {
+            "description": "Internal server error during context assembly.",
+            "content": {"application/json": {"example": {"detail": "Internal error assembling advisory context."}}},
+        },
+    },
+)
+def get_advisory_context_endpoint(
+    panchayat_id: int = Path(..., ge=1, description="Unique Gram Panchayat database identifier"),
+    forecast_id: Optional[int] = Query(None, description="Optional specific forecast record identifier"),
+    forecast_date: Optional[date] = Query(None, description="Optional target forecast date (YYYY-MM-DD)"),
+    db: Session = Depends(get_db),
+) -> Any:
+    """
+    HTTP GET handler to assemble and return the canonical AdvisoryContext.
+    """
+    try:
+        context = default_advisory_context_service.build_advisory_context(
+            panchayat_id=panchayat_id,
+            forecast_id=forecast_id,
+            forecast_date=forecast_date,
+            db=db,
+        )
+        return context
+    except CtxPanchayatNotFoundError as err:
+        logger.warning(f"[ADVISORY_CONTEXT_PANCHAYAT_NOT_FOUND] {err}")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=err.message,
+        )
+    except CtxForecastNotFoundError as err:
+        logger.warning(f"[ADVISORY_CONTEXT_FORECAST_NOT_FOUND] {err}")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=err.message,
+        )
+    except (CtxForecastMismatchError, CtxHierarchyMismatchError, CtxInvalidForecastDataError, CtxRuleEvaluationError) as err:
+        logger.warning(f"[ADVISORY_CONTEXT_VALIDATION_ERROR] {err}")
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=err.message,
+        )
+    except AdvisoryContextError as err:
+        logger.warning(f"[ADVISORY_CONTEXT_GENERIC_ERROR] {err}")
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=err.message,
+        )
+    except Exception as exc:
+        logger.error(f"[ADVISORY_CONTEXT_UNHANDLED_EXCEPTION] panchayat_id={panchayat_id}: {exc}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal error assembling advisory context.",
+        )

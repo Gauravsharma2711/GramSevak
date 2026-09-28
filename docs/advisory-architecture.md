@@ -209,3 +209,48 @@ Implemented in `src.advisory.rule_engine` (`DeterministicRuleEngine`):
 ### 8.6 Known Limitations
 - Current ML forecasts downscaled rainfall only; thermal and moisture index rules remain conditional prototypes until multi-variable sensors/models are added.
 - General agronomic rules apply at the Panchayat level; crop-specific phenological thresholds require farm-level crop profile inputs.
+
+---
+
+## 9. Canonical Advisory Context & Risk Generation (Phase 5.3)
+
+Implemented in `src.advisory.context_builder` (`AdvisoryContextService`) and `backend.app.schemas.advisory_contracts` (`AdvisoryContext`):
+
+### 9.1 AdvisoryContext Canonical Contract
+The internal pipeline envelope uniting authoritative spatial metadata, numerical forecasts, and deterministic risk outputs:
+```text
+AdvisoryContext
+├── panchayat: PanchayatContext
+├── forecast: ForecastContext
+├── risks: List[AgriculturalRiskItem]
+├── recommendations: DeterministicRecommendationContext
+├── traceability: AdvisoryTraceabilityContract
+└── validation_errors: List[str]
+```
+
+### 9.2 Data Sources & Performance Optimization
+- **Spatial Metadata:** Queried via `HierarchyRepository.get_panchayat_by_id(eager_load_parents=True)` in a single indexed join across `panchayats`, `blocks`, and `districts`. Avoids multi-query round-trips.
+- **Forecast Ingestion:** Queried directly from `downscaled_forecasts` table preserving original Phase 2 model names, versions, issue dates, and downscaled rainfall.
+
+### 9.3 Validation Rules & Freshness Policy
+- **Panchayat Existence & Parentage:** Confirms valid database identifier; optional `expected_block_id` and `expected_district_id` prevent cross-jurisdiction routing errors.
+- **Forecast Ownership:** Enforces `forecast.panchayat_id == panchayat_id`. Mismatches raise `ForecastPanchayatMismatchError`.
+- **Temporal Integrity:** Enforces `forecast_issue_date <= forecast_date`. Issue dates later than forecast dates raise `InvalidForecastDataError`.
+- **Physical Numerical Range:** Validates that `downscaled_rainfall_mm` and `block_forecast_rainfall_mm` are finite, non-negative numbers. Rejects `NaN`, `Inf`, and negative values.
+- **Deterministic Multi-Record Resolution:** When multiple forecast records exist for the same Panchayat and target date, the engine resolves deterministically via:
+  `ORDER BY forecast_issue_date DESC, created_at DESC, id DESC`.
+
+### 9.4 Error Handling Taxonomy
+Structured exceptions subclassing `AdvisoryContextError`:
+- `PanchayatNotFoundError`: HTTP 404
+- `ForecastNotFoundError`: HTTP 404
+- `HierarchyMismatchError`: HTTP 422
+- `ForecastPanchayatMismatchError`: HTTP 422
+- `InvalidForecastDataError`: HTTP 422
+- `RuleEvaluationError`: HTTP 422
+
+### 9.5 Internal API Integration
+Exposed as `GET /api/v1/advisory/context/{panchayat_id}`:
+- Query parameters: `forecast_id` (optional), `forecast_date` (optional).
+- Returns the complete strongly-typed `AdvisoryContext`.
+- Operates strictly as a read-only context preparation layer (does not call LLMs, publish advisories, or alter forecasts).
