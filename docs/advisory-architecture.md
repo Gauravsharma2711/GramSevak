@@ -254,3 +254,75 @@ Exposed as `GET /api/v1/advisory/context/{panchayat_id}`:
 - Query parameters: `forecast_id` (optional), `forecast_date` (optional).
 - Returns the complete strongly-typed `AdvisoryContext`.
 - Operates strictly as a read-only context preparation layer (does not call LLMs, publish advisories, or alter forecasts).
+
+---
+
+## 10. AI Advisory Service & Provider Abstraction (Phase 5.4)
+
+Implemented in `src.advisory.ai_service` (`AIAdvisoryService`, `AIAdvisoryProvider`, `MockAIAdvisoryProvider`, `HttpAIAdvisoryProvider`, `AdvisoryPromptBuilder`) and configured via `backend.app.core.config`:
+
+### 10.1 AI Service Boundary
+The AI layer converts validated structured `AdvisoryContext` into farmer-understandable advisory text. It acts as an explanation and synthesis layer, strictly bounded by the following invariants:
+- **No Numerical Weather Prediction:** It cannot calculate, alter, round, or reinterpret numerical weather predictions.
+- **No Risk Invention:** It cannot invent agricultural risks or recommendations outside the supplied deterministic rule evaluation.
+- **No Direct Publishing:** AI advisory generation is an intermediate internal step; advisories are not delivered directly to farmers and require downstream safety validation (Phase 5.5) and officer approval (Phase 5.6).
+- **Forecast Groundedness Verification:** The service actively verifies that the generated advisory's `supporting_forecast_reference` matches the input downscaled rainfall within 0.05 mm tolerance. Mismatches raise `ForecastGroundednessViolationError`.
+
+### 10.2 Provider-Neutral Abstraction
+The system decouples core business logic from vendor SDKs via `AIAdvisoryProvider`:
+```text
+AdvisoryContext
+      ↓
+AdvisoryPromptBuilder (Versioned v1.0.0)
+      ↓
+AIAdvisoryProvider (generate_advisory_text)
+ ├── MockAIAdvisoryProvider (Deterministic, Zero-API-key dev & test)
+ └── HttpAIAdvisoryProvider (JSON-schema HTTP REST for Gemini/OpenAI/Ollama)
+      ↓
+Strict JSON Parser & Schema Validator
+      ↓
+Forecast Groundedness Check
+      ↓
+AIAdvisoryOutputContract + AIExecutionMetadata
+```
+
+### 10.3 Configuration Requirements
+Defined in `backend.app.core.config.Settings`:
+- `AI_ADVISORY_PROVIDER`: Provider name (`"mock"` default, or `"http"`).
+- `AI_ADVISORY_MODEL`: Model identifier (default `"mock-agricultural-advisor-v1"`).
+- `AI_ADVISORY_API_KEY`: Secret API key (optional/None by default; never committed or logged).
+- `AI_ADVISORY_ENDPOINT`: Custom HTTP endpoint URL (optional).
+- `AI_ADVISORY_TIMEOUT_SECONDS`: Request timeout (default `15.0` s).
+- `AI_ADVISORY_MAX_RETRIES`: Bounded retry count (default `2`).
+- `AI_ADVISORY_TEMPERATURE`: Generation temperature (default `0.2`).
+
+### 10.4 Input & Output Contracts
+- **Input Contract:** Exclusively consumes `AdvisoryContext` containing `PanchayatContext`, `ForecastContext`, `AgriculturalRiskItem` list, and `DeterministicRecommendationContext`. No raw database entities, secrets, or unbounded app state are passed.
+- **Output Contract:** Strictly parses and validates provider output into `backend.app.schemas.advisory_contracts.AIAdvisoryOutputContract`:
+  - `summary`: One-sentence overview.
+  - `what_is_happening`: Weather explanation tied to exact forecast.
+  - `why_it_matters`: Agronomic implications grounded in deterministic risks.
+  - `recommended_actions`: Action items derived from deterministic recommendations.
+  - `timing`: Timing window derived from rule outputs.
+  - `severity`: Overall advisory severity matching contract enum.
+  - `warnings`: Actionable warnings.
+  - `supporting_forecast_reference`: Exact rainfall reference.
+  - `audit_metadata`: Execution metadata (`provider`, `model`, `prompt_version`, `latency_ms`, `context_fingerprint`, `is_mock`).
+
+### 10.5 Prompt Versioning
+Constructed by `AdvisoryPromptBuilder` with explicit prompt version `v1.0.0`. Enforces 3 tiers of communication (What is happening, Why it matters, Recommended actions), safety constraints (no ungrounded disease diagnosis, no ungrounded chemical dosage, no emergency alarms), and strict JSON schema output matching `AIAdvisoryOutputContract`.
+
+### 10.6 Failure Behavior & Bounded Retries
+The service handles failure gracefully through a structured exception taxonomy:
+- `AIProviderTimeoutError`: HTTP/socket timeout after `AI_ADVISORY_TIMEOUT_SECONDS`. Retried up to `max_retries`.
+- `AIProviderUnavailableError`: Network or 5xx server error. Retried up to `max_retries`.
+- `AIProviderRateLimitError`: HTTP 429 response. Retried up to `max_retries`.
+- `AIProviderAuthError`: HTTP 401/403 or missing API keys. Permanent; never retried.
+- `AIOutputValidationError`: Malformed JSON or schema violation. Never retried.
+- `ForecastGroundednessViolationError`: AI hallucinated or mutated forecast rainfall. Never retried.
+
+### 10.7 Deterministic Development Mode
+`MockAIAdvisoryProvider` provides deterministic, reliable mock generation for local development and CI testing without external internet access or API credentials. It synthesizes compliant output from the input `AdvisoryContext`, strictly preserves exact rainfall numbers, and tags all output with `is_mock=True`.
+
+### 10.8 Real-Provider Verification Status
+In the current development environment, no live external LLM API credentials (`GEMINI_API_KEY`, `OPENAI_API_KEY`, or `AI_ADVISORY_API_KEY`) were configured. In accordance with Section 16 instructions, tests and verification were performed via the deterministic mock provider; live provider verification was not performed and no mock outputs are presented as real AI inferences.

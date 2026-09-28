@@ -50,6 +50,27 @@ from src.advisory.context_builder import (
 )
 from backend.app.schemas.advisory_contracts import AdvisoryContext
 
+from src.advisory.ai_service import (
+    AIAdvisoryProvider,
+    MockAIAdvisoryProvider,
+    HttpAIAdvisoryProvider,
+    AdvisoryPromptBuilder,
+    AIAdvisoryService,
+    default_ai_advisory_service,
+    AIExecutionMetadata,
+    AIAdvisoryResult,
+    PROMPT_VERSION,
+    AIAdvisoryServiceError,
+    AIProviderConfigError,
+    AIProviderTimeoutError,
+    AIProviderUnavailableError,
+    AIProviderAuthError,
+    AIProviderRateLimitError,
+    AIOutputValidationError,
+    ForecastGroundednessViolationError,
+    get_ai_advisory_provider,
+)
+
 __all__ = [
     "classify_rainfall",
     "RainfallCategory",
@@ -87,4 +108,22 @@ __all__ = [
     "build_deterministic_risk_and_recommendations",
     "build_traceability_record",
     "build_ai_advisory_input",
+    "AIAdvisoryProvider",
+    "MockAIAdvisoryProvider",
+    "HttpAIAdvisoryProvider",
+    "AdvisoryPromptBuilder",
+    "AIAdvisoryService",
+    "default_ai_advisory_service",
+    "AIExecutionMetadata",
+    "AIAdvisoryResult",
+    "PROMPT_VERSION",
+    "AIAdvisoryServiceError",
+    "AIProviderConfigError",
+    "AIProviderTimeoutError",
+    "AIProviderUnavailableError",
+    "AIProviderAuthError",
+    "AIProviderRateLimitError",
+    "AIOutputValidationError",
+    "ForecastGroundednessViolationError",
+    "get_ai_advisory_provider",
 ]

@@ -1,7 +1,7 @@
 import os
 import re
 import urllib.parse
-from typing import List, Union, Any
+from typing import List, Union, Any, Optional
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -17,6 +17,15 @@ class Settings(BaseSettings):
     
     # PostgreSQL Database URL loaded from .env or environment
     DATABASE_URL: str = "postgresql://postgres:postgres@localhost:5432/sih26074_db"
+
+    # AI Advisory Provider Settings (Phase 5.4)
+    AI_ADVISORY_PROVIDER: str = "mock"  # "mock", "ollama", "gemini", "openai"
+    AI_ADVISORY_MODEL: str = "mock-agricultural-advisor-v1"
+    AI_ADVISORY_API_KEY: Optional[str] = None
+    AI_ADVISORY_ENDPOINT: Optional[str] = None
+    AI_ADVISORY_TIMEOUT_SECONDS: float = 15.0
+    AI_ADVISORY_MAX_RETRIES: int = 2
+    AI_ADVISORY_TEMPERATURE: float = 0.2
 
     @field_validator("DATABASE_URL", mode="before")
     @classmethod
