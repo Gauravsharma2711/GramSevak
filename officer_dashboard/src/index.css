@@ -44,30 +44,37 @@ html, body {
 /* Typography Utility Classes */
 /* Typography Utility Classes with Responsive Fluid Scaling */
 .text-display {
-  font-size: clamp(24px, 5vw, var(--text-display));
+  font-size: clamp(20px, 3.5vw, var(--text-display));
   font-weight: var(--weight-display);
-  line-height: 1.15;
+  line-height: var(--line-display);
   color: var(--ink-900);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.015em;
+}
+
+.text-metric {
+  font-size: var(--text-metric);
+  font-weight: var(--weight-metric);
+  line-height: var(--line-metric);
+  letter-spacing: -0.01em;
 }
 
 .text-page-title {
-  font-size: clamp(18px, 4vw, var(--text-page-title));
+  font-size: clamp(17px, 3vw, var(--text-page-title));
   font-weight: var(--weight-page-title);
-  line-height: 1.25;
+  line-height: var(--line-page-title);
   color: var(--ink-900);
   letter-spacing: -0.01em;
 }
 
 .text-section-title {
-  font-size: clamp(15px, 3.5vw, var(--text-section-title));
+  font-size: clamp(14px, 2.5vw, var(--text-section-title));
   font-weight: var(--weight-section-title);
   line-height: var(--line-section-title);
   color: var(--ink-900);
 }
 
 .text-card-title {
-  font-size: clamp(14px, 3vw, var(--text-card-title));
+  font-size: var(--text-card-title);
   font-weight: var(--weight-card-title);
   line-height: var(--line-card-title);
   color: var(--ink-900);
@@ -80,13 +87,19 @@ html, body {
   color: var(--ink-700);
 }
 
+.text-secondary {
+  font-size: var(--text-secondary);
+  font-weight: var(--weight-secondary);
+  line-height: var(--line-secondary);
+  color: var(--ink-500);
+}
+
 .text-label {
   font-size: var(--text-label);
   font-weight: var(--weight-label);
   line-height: var(--line-label);
   color: var(--ink-500);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
 }
 
 .text-caption {
@@ -96,6 +109,12 @@ html, body {
   color: var(--ink-500);
 }
 
+.text-nav {
+  font-size: var(--text-nav);
+  font-weight: var(--weight-nav);
+  line-height: var(--line-nav);
+}
+
 /* Common UI Components */
 .app-card {
   background-color: var(--surface);
@@ -103,13 +122,65 @@ html, body {
   border: var(--border-subtle);
   box-shadow: var(--shadow-card);
   padding: var(--space-5);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.18s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.18s ease;
   min-width: 0; /* Prevents flex/grid blowouts on small screens */
 }
 
+.app-card-interactive {
+  cursor: pointer;
+}
+
 .app-card-interactive:hover {
+  transform: translateY(-2px);
   box-shadow: 0 4px 14px rgba(30, 40, 35, 0.08);
   border-color: var(--ink-300);
+}
+
+.app-card-interactive:active {
+  transform: translateY(0) scale(0.99);
+}
+
+/* Purposeful Micro-Interactions & Animations */
+@keyframes fadeInSubtle {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulseSubtle {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(0.98);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeInSubtle 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-pulse-subtle {
+  animation: pulseSubtle 2.8s ease-in-out infinite;
+}
+
+.interactive-hover {
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.interactive-hover:hover {
+  transform: translateY(-2px);
+}
+
+.interactive-hover:active {
+  transform: translateY(0) scale(0.98);
 }
 
 /* Primary Button with Accessible Tap Target */
@@ -357,13 +428,82 @@ html, body {
   display: none;
 }
 
+/* Dashboard Layout: Independent Sidebar & Main Dashboard Dual-Pane Scroll */
+.app-shell-layout {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+  background-color: var(--canvas);
+}
+
+.desktop-sidebar {
+  width: 260px;
+  height: 100vh;
+  background-color: var(--surface);
+  border-right: var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  z-index: 30;
+}
+
+.main-content-wrapper {
+  flex: 1;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  width: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  position: relative;
+}
+
+.app-header {
+  min-height: 60px;
+  background-color: var(--surface);
+  border-bottom: var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 8px 20px;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  flex-shrink: 0;
+}
+
+.app-main-content {
+  flex: 1;
+  padding: clamp(14px, 2.5vw, 28px);
+  max-width: 1440px;
+  width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
 /* Responsive Breakpoints */
 @media (max-width: 1024px) {
+  .app-shell-layout {
+    height: auto;
+    min-height: 100vh;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
   .desktop-sidebar {
     display: none !important;
   }
   .header-menu-btn {
     display: inline-flex !important;
+  }
+  .main-content-wrapper {
+    height: auto;
+    min-height: 100vh;
+    overflow-y: visible;
   }
 }
 
@@ -388,11 +528,63 @@ html, body {
 }
 
 @media (max-width: 480px) {
+  .app-header {
+    padding: 8px 12px !important;
+  }
+  .app-main-content {
+    padding: 12px 10px !important;
+  }
   .app-card {
     padding: 12px !important;
   }
   .btn-primary, .btn-secondary, .btn-danger {
-    padding: 8px 14px;
+    padding: 8px 12px;
     font-size: 13px;
+    min-height: 44px;
+  }
+  .hierarchy-selector-panel {
+    position: fixed !important;
+    top: 60px !important;
+    left: 8px !important;
+    right: 8px !important;
+    width: auto !important;
+    max-width: calc(100vw - 16px) !important;
+    max-height: 80vh !important;
   }
 }
+
+/* Touch Device Ergonomics: Standard 44px Minimum Touch Targets */
+@media (pointer: coarse) {
+  button,
+  .btn-primary,
+  .btn-secondary,
+  .btn-danger {
+    min-height: 44px;
+  }
+}
+
+/* Accessibility: High-contrast focus indicator for keyboard navigation */
+:focus-visible {
+  outline: 2px solid var(--primary-600) !important;
+  outline-offset: 2px !important;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--primary-600) !important;
+  outline-offset: 2px !important;
+}
+
+/* Accessibility: Respect Reduced Motion Preferences */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/farmer_forecast.dart';
 import '../theme/app_theme.dart';
 import '../l10n/app_localizations.dart';
+import 'agricultural_illustrations.dart';
 
 class WeatherHeroCard extends StatelessWidget {
   final FarmerForecast forecast;
@@ -71,24 +72,31 @@ class WeatherHeroCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  const Icon(
-                    Icons.calendar_today_outlined,
-                    size: 14,
-                    color: AppColors.ink500,
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    '${l10n.tomorrow} • ${forecast.forecastDate}',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.ink700,
+              Flexible(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.calendar_today_outlined,
+                      size: 14,
+                      color: AppColors.ink500,
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: Text(
+                        '${l10n.tomorrow} • ${forecast.forecastDate}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.ink700,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
               ),
+              const SizedBox(width: 6),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                 decoration: BoxDecoration(
@@ -109,15 +117,16 @@ class WeatherHeroCard extends StatelessWidget {
 
           const SizedBox(height: 16),
 
-          // Main Display: Rainfall Metric & Weather Icon
+          // Main Display: Rainfall Metric & Weather Condition Illustration
           Semantics(
             label: '${l10n.panchayatRainfall}: ${forecast.rainfallMm.toStringAsFixed(1)} millimeters, $categoryLabel',
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       l10n.panchayatRainfall,
@@ -136,18 +145,18 @@ class WeatherHeroCard extends StatelessWidget {
                         Text(
                           forecast.rainfallMm.toStringAsFixed(1),
                           style: TextStyle(
-                            fontSize: 42,
+                            fontSize: 30,
                             fontWeight: FontWeight.w800,
                             color: categoryColor,
-                            height: 1.0,
-                            letterSpacing: -1,
+                            height: 1.1,
+                            letterSpacing: -0.5,
                           ),
                         ),
                         const SizedBox(width: 4),
                         const Text(
                           'mm',
                           style: TextStyle(
-                            fontSize: 18,
+                            fontSize: 14,
                             fontWeight: FontWeight.w600,
                             color: AppColors.ink700,
                           ),
@@ -156,36 +165,12 @@ class WeatherHeroCard extends StatelessWidget {
                     ),
                   ],
                 ),
+              ),
 
-                // Weather Icon Illustration
-                Container(
-                  width: 68,
-                  height: 68,
-                  decoration: BoxDecoration(
-                    color: isHeavy
-                        ? AppColors.danger100
-                        : isModerate
-                            ? AppColors.primary050
-                            : AppColors.info100,
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(
-                      color: isHeavy
-                          ? const Color(0xFFF5C6CB)
-                          : isModerate
-                              ? AppColors.primary100
-                              : const Color(0xFFCCE5FF),
-                    ),
-                  ),
-                  child: Icon(
-                    isHeavy
-                        ? Icons.thunderstorm_outlined
-                        : isModerate
-                            ? Icons.water_drop_outlined
-                            : Icons.wb_sunny_outlined,
-                    color: categoryColor,
-                    size: 36,
-                    semanticLabel: categoryLabel,
-                  ),
+              // Weather Condition Illustration
+                WeatherConditionIllustration(
+                  rainfallMm: forecast.rainfallMm,
+                  size: 56,
                 ),
               ],
             ),
@@ -195,3 +180,4 @@ class WeatherHeroCard extends StatelessWidget {
     );
   }
 }
+

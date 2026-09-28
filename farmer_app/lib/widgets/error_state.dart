@@ -6,12 +6,16 @@ class FarmerErrorState extends StatelessWidget {
   final String title;
   final String message;
   final VoidCallback onRetry;
+  final IconData icon;
+  final Widget? illustration;
 
   const FarmerErrorState({
     super.key,
     this.title = 'Unable to Load Forecast',
     this.message = 'Please check your mobile connection or try refreshing the forecast.',
     required this.onRetry,
+    this.icon = Icons.wifi_off_rounded,
+    this.illustration,
   });
 
   @override
@@ -23,20 +27,23 @@ class FarmerErrorState extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Container(
-              width: 64,
-              height: 64,
-              decoration: BoxDecoration(
-                color: AppColors.danger100,
-                shape: BoxShape.circle,
-                border: Border.all(color: const Color(0xFFF5C6CB)),
+            if (illustration != null)
+              illustration!
+            else
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: AppColors.danger100,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: const Color(0xFFF5C6CB)),
+                ),
+                child: Icon(
+                  icon,
+                  color: AppColors.danger600,
+                  size: 32,
+                ),
               ),
-              child: const Icon(
-                Icons.wifi_off_rounded,
-                color: AppColors.danger600,
-                size: 32,
-              ),
-            ),
             const SizedBox(height: 16),
             Text(
               title,

@@ -88,6 +88,19 @@ class AppLocalizations {
   String get actionableGuidance => _lookup('actionable_guidance');
   String get verifiedByOfficer => _lookup('verified_by_officer');
 
+  // 3-Tier Advisory Experience
+  String get whatIsHappening => _lookup('what_is_happening');
+  String get whyItMatters => _lookup('why_it_matters');
+  String get whatYouCanDo => _lookup('what_you_can_do');
+  String get recommendedAction => _lookup('recommended_action');
+  String get timingOutlook => _lookup('timing_outlook');
+  String get imdRainfallScale => _lookup('imd_rainfall_scale');
+  String get alertHighRain => _lookup('alert_high_rain');
+  String get alertHighRainDesc => _lookup('alert_high_rain_desc');
+  String get primaryForecastDay => _lookup('primary_forecast_day');
+  String get hourlyBreakdown => _lookup('hourly_breakdown');
+  String get forecastBasis => _lookup('forecast_basis');
+
   // Voice Audio & Helpline
   String get audioAdvisory => _lookup('audio_advisory');
   String get tapToListen => _lookup('tap_to_listen');
@@ -102,6 +115,19 @@ class AppLocalizations {
   String get connectionErrorMessage => _lookup('connection_error_msg');
   String get noForecastTitle => _lookup('no_forecast_title');
   String get noForecastDescription => _lookup('no_forecast_desc');
+
+  // Onboarding
+  String get onboardingWelcomeTitle => _lookup('onboarding_welcome_title');
+  String get onboardingWelcomeSub => _lookup('onboarding_welcome_sub');
+  String get onboardingLocationTitle => _lookup('onboarding_location_title');
+  String get onboardingLocationSub => _lookup('onboarding_location_sub');
+  String get onboardingSelectionTitle => _lookup('onboarding_selection_title');
+  String get onboardingSelectionSub => _lookup('onboarding_selection_sub');
+  String get btnChooseVillage => _lookup('btn_choose_village');
+  String get btnUseDemoVillage => _lookup('btn_use_demo_village');
+  String get btnGetStarted => _lookup('btn_get_started');
+  String get btnNext => _lookup('btn_next');
+  String get btnSkip => _lookup('btn_skip');
 
   // --- LOCALIZED DICTIONARIES ---
 
@@ -146,6 +172,18 @@ class AppLocalizations {
     'actionable_guidance': 'Actionable Guidance for Farmers:',
     'verified_by_officer':
         'Verified by Agricultural Extension Officer • District Agromet Unit',
+    'what_is_happening': 'What is happening?',
+    'why_it_matters': 'Why it matters for your field',
+    'what_you_can_do': 'What you can do (Recommended Actions)',
+    'recommended_action': 'Recommended Action',
+    'timing_outlook': 'Timing & Validity',
+    'imd_rainfall_scale': 'IMD Rainfall Classification',
+    'alert_high_rain': 'Heavy Rain Weather Advisory',
+    'alert_high_rain_desc':
+        'High rainfall predicted for this Gram Panchayat. Clear drainage channels and secure harvested produce.',
+    'primary_forecast_day': 'Primary Forecast',
+    'hourly_breakdown': 'Time-of-Day Outlook',
+    'forecast_basis': 'Downscaled Weather Basis',
     'audio_advisory': 'Audio Advisory / व्हॉइस सल्ला',
     'tap_to_listen': 'Tap to listen to verified guidance',
     'listen_audio': 'Listen',
@@ -160,6 +198,20 @@ class AppLocalizations {
     'no_forecast_title': 'No Forecast Available',
     'no_forecast_desc':
         'No weather forecast recorded for this village yet.',
+    'onboarding_welcome_title': 'Village-Level Weather & Farm Guidance',
+    'onboarding_welcome_sub':
+        'Accurate micro-climate forecasts downscaled specifically to your Gram Panchayat.',
+    'onboarding_location_title': 'Weather Changes Every 5 km',
+    'onboarding_location_sub':
+        'Mountain ridges and valleys have different rainfall. Choose your exact Gram Panchayat for village-level guidance.',
+    'onboarding_selection_title': 'Select Your Gram Panchayat',
+    'onboarding_selection_sub':
+        'Choose your District, Block, and Village to receive verified agro-advisory.',
+    'btn_choose_village': 'Choose Gram Panchayat',
+    'btn_use_demo_village': 'Start with Pilot Village (Ajmer Saundane)',
+    'btn_get_started': 'Open My Farm Dashboard',
+    'btn_next': 'Next',
+    'btn_skip': 'Skip',
   };
 
   static const Map<String, String> _marathiStrings = {
@@ -203,6 +255,18 @@ class AppLocalizations {
     'actionable_guidance': 'शेतकऱ्यांसाठी कृषी सूचना:',
     'verified_by_officer':
         'कृषी विस्तार अधिकाऱ्यांद्वारे प्रमाणित • जिल्हा कृषी हवामान केंद्र',
+    'what_is_happening': 'काय घडत आहे?',
+    'why_it_matters': 'तुमच्या शेतासाठी हे का महत्त्वाचे आहे',
+    'what_you_can_do': 'तुम्ही काय करू शकता (शिफारस केलेल्या कृती)',
+    'recommended_action': 'शिफारस केलेली मुख्य कृती',
+    'timing_outlook': 'वेळ आणि वैधता',
+    'imd_rainfall_scale': 'IMD पर्जन्यमान वर्गीकरण',
+    'alert_high_rain': 'मुसळधार पाऊस सतर्कता सूचना',
+    'alert_high_rain_desc':
+        'या ग्रामपंचायतीसाठी मुसळधार पावसाचा अंदाज आहे. पाण्याचा निचरा करा व काढणी केलेला माल सुरक्षित ठेवा.',
+    'primary_forecast_day': 'मुख्य अंदाज',
+    'hourly_breakdown': 'वेळेनुसार हवामान अंदाज',
+    'forecast_basis': 'हवामान अंदाजाचा आधार',
     'audio_advisory': 'व्हॉइस सल्ला',
     'tap_to_listen': 'प्रमाणित सल्ला ऐकण्यासाठी टॅप करा',
     'listen_audio': 'ऐका',
@@ -217,6 +281,20 @@ class AppLocalizations {
     'no_forecast_title': 'अंदाज उपलब्ध नाही',
     'no_forecast_desc':
         'या गावासाठी हवामान अंदाज उपलब्ध नाही.',
+    'onboarding_welcome_title': 'गाव पातळीवरील हवामान व कृषी सल्ला',
+    'onboarding_welcome_sub':
+        'तुमच्या शेतासाठी अचूक ग्रामपंचायत पातळीवरील हवामान अंदाज.',
+    'onboarding_location_title': 'दर ५ किमीवर हवामान बदलते',
+    'onboarding_location_sub':
+        'डोंगराळ आणि सपाट भागात पाऊस वेगवेगळा असतो. योग्य निर्णय घेण्यासाठी तुमची ग्रामपंचायत निवडा.',
+    'onboarding_selection_title': 'तुमची ग्रामपंचायत निवडा',
+    'onboarding_selection_sub':
+        'प्रमाणित कृषी सल्ला मिळवण्यासाठी जिल्हा, तालुका आणि गाव निवडा.',
+    'btn_choose_village': 'ग्रामपंचायत निवडा',
+    'btn_use_demo_village': 'पायलट गावापासून सुरू करा (अजमेर सौंदाणे)',
+    'btn_get_started': 'माझे शेत डॅशबोर्ड उघडा',
+    'btn_next': 'पुढे',
+    'btn_skip': 'वगळा',
   };
 
   static const Map<String, String> _hindiStrings = {
@@ -260,6 +338,18 @@ class AppLocalizations {
     'actionable_guidance': 'किसानों के लिए आवश्यक निर्देश:',
     'verified_by_officer':
         'कृषि विस्तार अधिकारी द्वारा सत्यापित • जिला कृषि मौसम केंद्र',
+    'what_is_happening': 'क्या हो रहा है?',
+    'why_it_matters': 'आपके खेत के लिए यह क्यों महत्वपूर्ण है',
+    'what_you_can_do': 'आप क्या कर सकते हैं (अनुशंसित कार्रवाई)',
+    'recommended_action': 'अनुशंसित मुख्य कार्रवाई',
+    'timing_outlook': 'समय और वैधता',
+    'imd_rainfall_scale': 'IMD वर्षा वर्गीकरण',
+    'alert_high_rain': 'भारी वर्षा मौसम चेतावनी',
+    'alert_high_rain_desc':
+        'इस ग्राम पंचायत के लिए भारी वर्षा का पूर्वानुमान है। जल निकासी की व्यवस्था करें और फसल सुरक्षित रखें।',
+    'primary_forecast_day': 'मुख्य पूर्वानुमान',
+    'hourly_breakdown': 'समयानुसार मौसम पूर्वानुमान',
+    'forecast_basis': 'मौसम पूर्वानुमान का आधार',
     'audio_advisory': 'ऑडियो सलाह',
     'tap_to_listen': 'सत्यापित सलाह सुनने के लिए टैप करें',
     'listen_audio': 'सुनें',
@@ -274,6 +364,20 @@ class AppLocalizations {
     'no_forecast_title': 'पूर्वानुमान उपलब्ध नहीं',
     'no_forecast_desc':
         'इस गांव के लिए पूर्वानुमान उपलब्ध नहीं है।',
+    'onboarding_welcome_title': 'ग्राम पंचायत स्तर का मौसम व कृषि सलाह',
+    'onboarding_welcome_sub':
+        'आपके खेत के लिए अति-स्थानीय मौसम पूर्वानुमान और प्रमाणित कृषि सलाह।',
+    'onboarding_location_title': 'हर 5 किमी पर मौसम बदलता है',
+    'onboarding_location_sub':
+        'पहाड़ी और घाटी क्षेत्रों में वर्षा भिन्न होती है। सटीक निर्णयों के लिए अपनी पंचायत चुनें।',
+    'onboarding_selection_title': 'अपनी ग्राम पंचायत चुनें',
+    'onboarding_selection_sub':
+        'प्रमाणित कृषि सलाह प्राप्त करने के लिए जिला, ब्लॉक और गांव चुनें।',
+    'btn_choose_village': 'ग्राम पंचायत चुनें',
+    'btn_use_demo_village': 'पायलट गांव से शुरू करें (अजमेर सौंदाने)',
+    'btn_get_started': 'मेरा खेत डैशबोर्ड खोलें',
+    'btn_next': 'आगे बढ़ें',
+    'btn_skip': 'छोड़ें',
   };
 }
 

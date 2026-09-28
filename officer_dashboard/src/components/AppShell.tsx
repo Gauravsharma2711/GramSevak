@@ -97,7 +97,7 @@ export const AppShell: React.FC<AppShellProps> = ({
             <CloudRain size={22} strokeWidth={2.2} />
           </div>
           <div>
-            <div style={{ fontWeight: 700, fontSize: '18px', color: 'var(--primary-700)', lineHeight: '22px' }}>
+            <div style={{ fontWeight: 700, fontSize: '17px', color: 'var(--primary-700)', lineHeight: '22px' }}>
               GramSevak
             </div>
             <div style={{ fontSize: '11px', color: 'var(--ink-500)', fontWeight: 500 }}>
@@ -132,14 +132,14 @@ export const AppShell: React.FC<AppShellProps> = ({
         >
           <MapPin size={16} color="var(--primary-600)" style={{ flexShrink: 0 }} />
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: '10px', color: 'var(--ink-500)', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.04em' }}>
+            <div style={{ fontSize: '11px', color: 'var(--ink-500)', fontWeight: 600 }}>
               Jurisdiction Scope
             </div>
-            <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--ink-900)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <div style={{ fontSize: '13px', fontWeight: 650, color: 'var(--ink-900)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {selectedDistrictName} • {selectedBlockName ? `${selectedBlockName} Block` : 'All Blocks'}
             </div>
             {selectedPanchayatName && (
-              <div style={{ fontSize: '11px', color: 'var(--primary-700)', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              <div style={{ fontSize: '12px', color: 'var(--primary-700)', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 › {selectedPanchayatName} GP
               </div>
             )}
@@ -148,25 +148,25 @@ export const AppShell: React.FC<AppShellProps> = ({
       </div>
 
       {/* Navigation Items */}
-      <nav style={{ flex: 1, padding: '12px', display: 'flex', flexDirection: 'column', gap: '4px', overflowY: 'auto' }}>
+      <nav style={{ flex: 1, padding: '12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
         <button
           onClick={() => handleNavClick('dashboard')}
           style={{
             display: 'flex',
             alignItems: 'center',
             gap: '12px',
-            padding: '12px 14px',
+            padding: '10px 14px',
             borderRadius: 'var(--radius-sm)',
             border: 'none',
             backgroundColor: currentTab === 'dashboard' ? 'var(--primary-050)' : 'transparent',
             color: currentTab === 'dashboard' ? 'var(--primary-700)' : 'var(--ink-700)',
-            fontWeight: currentTab === 'dashboard' ? 700 : 500,
-            fontSize: '14px',
+            fontWeight: currentTab === 'dashboard' ? 650 : 500,
+            fontSize: 'var(--text-nav)',
             cursor: 'pointer',
             textAlign: 'left',
             width: '100%',
             transition: 'all 0.15s ease',
-            minHeight: '44px',
+            minHeight: '40px',
           }}
           aria-current={currentTab === 'dashboard' ? 'page' : undefined}
           aria-label="Dashboard Overview"
@@ -181,18 +181,18 @@ export const AppShell: React.FC<AppShellProps> = ({
             display: 'flex',
             alignItems: 'center',
             gap: '12px',
-            padding: '12px 14px',
+            padding: '10px 14px',
             borderRadius: 'var(--radius-sm)',
             border: 'none',
             backgroundColor: currentTab === 'forecasts' ? 'var(--primary-050)' : 'transparent',
             color: currentTab === 'forecasts' ? 'var(--primary-700)' : 'var(--ink-700)',
-            fontWeight: currentTab === 'forecasts' ? 700 : 500,
-            fontSize: '14px',
+            fontWeight: currentTab === 'forecasts' ? 650 : 500,
+            fontSize: 'var(--text-nav)',
             cursor: 'pointer',
             textAlign: 'left',
             width: '100%',
             transition: 'all 0.15s ease',
-            minHeight: '44px',
+            minHeight: '40px',
           }}
           aria-current={currentTab === 'forecasts' ? 'page' : undefined}
           aria-label="Panchayat Forecasts"
@@ -207,17 +207,17 @@ export const AppShell: React.FC<AppShellProps> = ({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: '12px 14px',
+            padding: '10px 14px',
             borderRadius: 'var(--radius-sm)',
             border: 'none',
             backgroundColor: currentTab === 'review' ? 'var(--primary-050)' : 'transparent',
             color: currentTab === 'review' ? 'var(--primary-700)' : 'var(--ink-700)',
-            fontWeight: currentTab === 'review' ? 700 : 500,
-            fontSize: '14px',
+            fontWeight: currentTab === 'review' ? 650 : 500,
+            fontSize: 'var(--text-nav)',
             cursor: 'pointer',
             width: '100%',
             transition: 'all 0.15s ease',
-            minHeight: '44px',
+            minHeight: '40px',
           }}
           aria-current={currentTab === 'review' ? 'page' : undefined}
           aria-label="Advisory Review"
@@ -232,7 +232,7 @@ export const AppShell: React.FC<AppShellProps> = ({
                 backgroundColor: 'var(--warning-100)',
                 color: 'var(--warning-600)',
                 fontSize: '11px',
-                fontWeight: 700,
+                fontWeight: 650,
                 padding: '2px 8px',
                 borderRadius: 'var(--radius-pill)',
                 border: '1px solid rgba(199, 131, 24, 0.3)',
@@ -249,18 +249,18 @@ export const AppShell: React.FC<AppShellProps> = ({
             display: 'flex',
             alignItems: 'center',
             gap: '12px',
-            padding: '12px 14px',
+            padding: '10px 14px',
             borderRadius: 'var(--radius-sm)',
             border: 'none',
             backgroundColor: currentTab === 'panchayats' ? 'var(--primary-050)' : 'transparent',
             color: currentTab === 'panchayats' ? 'var(--primary-700)' : 'var(--ink-700)',
-            fontWeight: currentTab === 'panchayats' ? 700 : 500,
-            fontSize: '14px',
+            fontWeight: currentTab === 'panchayats' ? 650 : 500,
+            fontSize: 'var(--text-nav)',
             cursor: 'pointer',
             textAlign: 'left',
             width: '100%',
             transition: 'all 0.15s ease',
-            minHeight: '44px',
+            minHeight: '40px',
           }}
           aria-current={currentTab === 'panchayats' ? 'page' : undefined}
           aria-label="Panchayat Directory"
@@ -275,18 +275,18 @@ export const AppShell: React.FC<AppShellProps> = ({
             display: 'flex',
             alignItems: 'center',
             gap: '12px',
-            padding: '12px 14px',
+            padding: '10px 14px',
             borderRadius: 'var(--radius-sm)',
             border: 'none',
             backgroundColor: currentTab === 'audit' ? 'var(--primary-050)' : 'transparent',
             color: currentTab === 'audit' ? 'var(--primary-700)' : 'var(--ink-700)',
-            fontWeight: currentTab === 'audit' ? 700 : 500,
-            fontSize: '14px',
+            fontWeight: currentTab === 'audit' ? 650 : 500,
+            fontSize: 'var(--text-nav)',
             cursor: 'pointer',
             textAlign: 'left',
             width: '100%',
             transition: 'all 0.15s ease',
-            minHeight: '44px',
+            minHeight: '40px',
           }}
           aria-current={currentTab === 'audit' ? 'page' : undefined}
           aria-label="Approval Audit Log"
@@ -295,7 +295,7 @@ export const AppShell: React.FC<AppShellProps> = ({
           <span>Approval Audit Log</span>
         </button>
 
-        <div style={{ margin: '16px 8px 8px 8px', borderTop: 'var(--border-subtle)' }} />
+        <div style={{ margin: '12px 8px 6px 8px', borderTop: 'var(--border-subtle)' }} />
 
         {/* Quick Action: Trigger On-Demand ML Downscaling */}
         <button
@@ -307,11 +307,11 @@ export const AppShell: React.FC<AppShellProps> = ({
           style={{
             justifyContent: 'flex-start',
             padding: '10px 14px',
-            fontSize: '13px',
+            fontSize: 'var(--text-button)',
             color: 'var(--primary-700)',
             borderColor: 'var(--primary-100)',
             backgroundColor: 'var(--primary-050)',
-            minHeight: '44px',
+            minHeight: '40px',
           }}
         >
           <Sparkles size={16} color="var(--primary-600)" />
@@ -322,7 +322,7 @@ export const AppShell: React.FC<AppShellProps> = ({
       {/* Officer Identity Footer */}
       <div
         style={{
-          padding: '16px 20px',
+          padding: '14px 18px',
           borderTop: 'var(--border-subtle)',
           backgroundColor: 'var(--surface-subtle)',
           display: 'flex',
@@ -361,22 +361,10 @@ export const AppShell: React.FC<AppShellProps> = ({
   );
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', position: 'relative', width: '100%', overflowX: 'hidden' }}>
+    <div className="app-shell-layout">
       {/* 1. Desktop Sidebar (>= 1024px) */}
       <aside
         className="desktop-sidebar"
-        style={{
-          width: '260px',
-          backgroundColor: 'var(--surface)',
-          borderRight: 'var(--border-subtle)',
-          display: 'flex',
-          flexDirection: 'column',
-          position: 'sticky',
-          top: 0,
-          height: '100vh',
-          zIndex: 30,
-          flexShrink: 0,
-        }}
         aria-label="Officer Portal Sidebar Navigation"
       >
         {renderNavContent()}
@@ -427,22 +415,9 @@ export const AppShell: React.FC<AppShellProps> = ({
       )}
 
       {/* 3. Main Content Wrapper */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, width: '100%' }}>
+      <div className="main-content-wrapper">
         {/* Top Header Bar */}
-        <header
-          style={{
-            minHeight: '64px',
-            backgroundColor: 'var(--surface)',
-            borderBottom: 'var(--border-subtle)',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            padding: '10px 16px',
-            position: 'sticky',
-            top: 0,
-            zIndex: 20,
-          }}
-        >
+        <header className="app-header">
           <div
             style={{
               display: 'flex',
@@ -469,10 +444,10 @@ export const AppShell: React.FC<AppShellProps> = ({
               </button>
 
               <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: '10px', color: 'var(--ink-500)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <div style={{ fontSize: '11px', color: 'var(--ink-500)', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   MoES • IMD Agromet Protocol
                 </div>
-                <h1 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--ink-900)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <h1 className="text-page-title" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {currentTab === 'dashboard' && 'District Agromet Overview'}
                   {currentTab === 'forecasts' && 'Panchayat Micro-Forecasts'}
                   {currentTab === 'review' && 'Advisory Approval Queue'}
@@ -494,7 +469,7 @@ export const AppShell: React.FC<AppShellProps> = ({
                   borderRadius: 'var(--radius-pill)',
                   backgroundColor: 'var(--surface-subtle)',
                   border: '1px solid var(--ink-300)',
-                  fontSize: '11px',
+                  fontSize: '12px',
                   color: 'var(--ink-700)',
                   fontWeight: 600,
                   whiteSpace: 'nowrap',
@@ -531,17 +506,7 @@ export const AppShell: React.FC<AppShellProps> = ({
         </header>
 
         {/* Page Content Container */}
-        <main
-          style={{
-            flex: 1,
-            padding: 'clamp(14px, 2.5vw, 32px)',
-            maxWidth: '1440px',
-            width: '100%',
-            margin: '0 auto',
-            boxSizing: 'border-box',
-          }}
-          tabIndex={-1}
-        >
+        <main className="app-main-content" tabIndex={-1}>
           {children}
         </main>
       </div>

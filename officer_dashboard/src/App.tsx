@@ -269,77 +269,146 @@ export const App: React.FC = () => {
           {/* TAB 1: DASHBOARD OVERVIEW */}
           {currentTab === 'dashboard' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }} className="fade-in">
-              {/* Workflow Pipeline Diagram */}
-              <WorkflowPipeline />
+              {/* 1. Location Context & Priority Action Banner */}
+              <section aria-label="Jurisdiction Status & Operational Metrics">
+                {/* Priority Operational Alert Callout */}
+                {draftCount > 0 ? (
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      flexWrap: 'wrap',
+                      gap: '12px',
+                      backgroundColor: 'var(--warning-100)',
+                      border: '1px solid rgba(199, 131, 24, 0.3)',
+                      padding: '12px 18px',
+                      borderRadius: 'var(--radius-md)',
+                      marginBottom: '16px',
+                    }}
+                    role="alert"
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <Clock size={18} color="var(--warning-600)" style={{ flexShrink: 0 }} />
+                      <div>
+                        <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--ink-900)' }}>
+                          {draftCount} Advisory Recommendation{draftCount > 1 ? 's' : ''} Awaiting Officer Verification
+                        </div>
+                        <div style={{ fontSize: '11px', color: 'var(--ink-700)', marginTop: '2px' }}>
+                          Downscaled predictions generated. Human approval required before farmer mobile distribution.
+                        </div>
+                      </div>
+                    </div>
 
-              {/* Overview Metrics Cards */}
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(min(160px, 100%), 1fr))',
-                  gap: '14px',
-                }}
-              >
-                {/* 1. District & Jurisdiction */}
-                <MetricCard
-                  label="Active District"
-                  value={selectedDistrictName}
-                  subtext={selectedBlockName ? `${selectedBlockName} Block Jurisdiction` : 'All District Blocks'}
-                  icon={<MapPin size={20} />}
-                  accentColor="var(--primary-700)"
-                />
+                    <button
+                      onClick={() => setCurrentTab('review')}
+                      className="btn-primary"
+                      style={{
+                        padding: '6px 14px',
+                        fontSize: '12px',
+                        backgroundColor: 'var(--warning-600)',
+                        minHeight: '34px',
+                      }}
+                    >
+                      Inspect Queue ({draftCount})
+                    </button>
+                  </div>
+                ) : (
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      flexWrap: 'wrap',
+                      gap: '12px',
+                      backgroundColor: 'var(--surface)',
+                      border: 'var(--border-subtle)',
+                      padding: '10px 16px',
+                      borderRadius: 'var(--radius-md)',
+                      marginBottom: '16px',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <CheckCircle2 size={16} color="var(--primary-600)" />
+                      <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--ink-900)' }}>
+                        All Advisories Cleared & Active on Farmer App
+                      </span>
+                    </div>
+                    <span style={{ fontSize: '11px', color: 'var(--ink-500)' }}>
+                      100% units synchronized for {forecastDate}
+                    </span>
+                  </div>
+                )}
 
-                {/* 2. Forecast Date & Availability */}
-                <MetricCard
-                  label="Forecast Date"
-                  value={forecastDate}
-                  subtext={`${totalForecastsAvailable} Monitored Units`}
-                  icon={<Calendar size={20} />}
-                  trend={{
-                    text: '100% Synced',
-                    isPositive: true,
+                {/* KPI Metrics Cards */}
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(min(160px, 100%), 1fr))',
+                    gap: '14px',
                   }}
-                  accentColor="var(--primary-600)"
-                />
+                >
+                  {/* 1. District & Jurisdiction */}
+                  <MetricCard
+                    label="Active District"
+                    value={selectedDistrictName}
+                    subtext={selectedBlockName ? `${selectedBlockName} Block Jurisdiction` : 'All District Blocks'}
+                    icon={<MapPin size={20} />}
+                    accentColor="var(--primary-700)"
+                  />
 
-                {/* 3. Panchayat Count */}
-                <MetricCard
-                  label="Panchayats in Scope"
-                  value={panchayats.length}
-                  subtext={selectedBlockName ? `Active in ${selectedBlockName} Block` : `Monitored in ${selectedDistrictName}`}
-                  icon={<Building2 size={20} />}
-                  accentColor="var(--primary-700)"
-                />
+                  {/* 2. Forecast Date & Availability */}
+                  <MetricCard
+                    label="Forecast Date"
+                    value={forecastDate}
+                    subtext={`${totalForecastsAvailable} Monitored Units`}
+                    icon={<Calendar size={20} />}
+                    trend={{
+                      text: '100% Synced',
+                      isPositive: true,
+                    }}
+                    accentColor="var(--primary-600)"
+                  />
 
-                {/* 4. Advisories Pending Review */}
-                <MetricCard
-                  label="Pending Review"
-                  value={draftCount}
-                  subtext="Officer approval needed"
-                  icon={<Clock size={20} />}
-                  trend={{
-                    text: draftCount > 0 ? `${draftCount} Pending` : 'All Clear',
-                    isPositive: draftCount === 0,
-                    color: draftCount > 0 ? 'var(--warning-600)' : 'var(--primary-700)',
-                  }}
-                  accentColor="var(--warning-600)"
-                />
+                  {/* 3. Panchayat Count */}
+                  <MetricCard
+                    label="Panchayats in Scope"
+                    value={panchayats.length}
+                    subtext={selectedBlockName ? `Active in ${selectedBlockName} Block` : `Monitored in ${selectedDistrictName}`}
+                    icon={<Building2 size={20} />}
+                    accentColor="var(--primary-700)"
+                  />
 
-                {/* 5. Approved Advisories */}
-                <MetricCard
-                  label="Approved Advisories"
-                  value={approvedCount}
-                  subtext="Active on Farmer App"
-                  icon={<CheckCircle2 size={20} />}
-                  trend={{
-                    text: 'Verified by Officer',
-                    isPositive: true,
-                  }}
-                  accentColor="var(--primary-700)"
-                />
-              </div>
+                  {/* 4. Advisories Pending Review */}
+                  <MetricCard
+                    label="Pending Review"
+                    value={draftCount}
+                    subtext="Officer approval needed"
+                    icon={<Clock size={20} />}
+                    trend={{
+                      text: draftCount > 0 ? `${draftCount} Pending` : 'All Clear',
+                      isPositive: draftCount === 0,
+                      color: draftCount > 0 ? 'var(--warning-600)' : 'var(--primary-700)',
+                    }}
+                    accentColor="var(--warning-600)"
+                  />
 
-              {/* Weather Downscaling Hero Card */}
+                  {/* 5. Approved Advisories */}
+                  <MetricCard
+                    label="Approved Advisories"
+                    value={approvedCount}
+                    subtext="Active on Farmer App"
+                    icon={<CheckCircle2 size={20} />}
+                    trend={{
+                      text: 'Verified by Officer',
+                      isPositive: true,
+                    }}
+                    accentColor="var(--primary-700)"
+                  />
+                </div>
+              </section>
+
+              {/* 2. Key Forecast Summary: Downscaling Variance Centerpiece */}
               <WeatherHeroCard
                 advisories={advisories}
                 blockName={selectedBlockName || (panchayats[0]?.block_name) || 'All Blocks'}
@@ -348,8 +417,8 @@ export const App: React.FC = () => {
                 }}
               />
 
-              {/* Quick Jump: Priority Review Queue Preview */}
-              <div>
+              {/* 3. Agricultural / Advisory Information: Priority Review Queue */}
+              <section aria-label="Priority Advisory Review Queue">
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', marginBottom: '16px' }}>
                   <div>
                     <h2 className="text-section-title">Priority Advisory Review Queue</h2>
@@ -382,7 +451,10 @@ export const App: React.FC = () => {
                   onApproveAdvisory={handleApproveAdvisory}
                   onRejectAdvisory={handleRejectAdvisory}
                 />
-              </div>
+              </section>
+
+              {/* 4. Supporting Information: Methodology & Protocol Pipeline (Quiet / Collapsible) */}
+              <WorkflowPipeline />
             </div>
           )}
 
@@ -394,6 +466,9 @@ export const App: React.FC = () => {
                 advisories={advisories}
                 onReviewAdvisory={(a) => {
                   setSelectedAdvisoryForDetail(a);
+                }}
+                onSelectPanchayat={(p) => {
+                  setSelectedPanchayatDetail(p);
                 }}
                 onGenerateForecast={(p) => {
                   setPreselectedPanchayatForGen(p);

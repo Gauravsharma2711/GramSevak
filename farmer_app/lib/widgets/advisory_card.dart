@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/farmer_forecast.dart';
 import '../theme/app_theme.dart';
 import '../l10n/app_localizations.dart';
+import 'agricultural_illustrations.dart';
 
 class AdvisoryCard extends StatelessWidget {
   final FarmerForecast forecast;
@@ -108,24 +109,30 @@ class AdvisoryCard extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    Icon(
-                      Icons.verified_user,
-                      size: 18,
-                      color: bannerTextColor,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      l10n.officerVerifiedAdvisory,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
+                Expanded(
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.verified_user,
+                        size: 18,
                         color: bannerTextColor,
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          l10n.officerVerifiedAdvisory,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: bannerTextColor,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
+                const SizedBox(width: 8),
 
                 // Audio Read-Aloud / Voice Button for Farmers
                 Semantics(
@@ -144,12 +151,17 @@ class AdvisoryCard extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(
-                            isPlayingAudio ? Icons.volume_up : Icons.volume_mute_outlined,
-                            size: 16,
-                            color: AppColors.primary700,
-                          ),
-                          const SizedBox(width: 6),
+                          if (isPlayingAudio) ...[
+                            const AudioWaveformIllustration(isPlaying: true),
+                            const SizedBox(width: 6),
+                          ] else ...[
+                            const Icon(
+                              Icons.volume_up_outlined,
+                              size: 16,
+                              color: AppColors.primary700,
+                            ),
+                            const SizedBox(width: 6),
+                          ],
                           Text(
                             isPlayingAudio ? l10n.listeningAudio : l10n.listenAudio,
                             style: const TextStyle(
@@ -181,6 +193,34 @@ class AdvisoryCard extends StatelessWidget {
                       fontWeight: FontWeight.w700,
                       color: AppColors.ink900,
                       height: 1.3,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary050,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppColors.primary100),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.water_drop_outlined,
+                            size: 13, color: AppColors.primary700),
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            '${l10n.forecastBasis}: ${forecast.rainfallMm.toStringAsFixed(1)} mm • ${forecast.rainfallCategory.replaceAll('_', ' ')}',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.primary700,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 14),

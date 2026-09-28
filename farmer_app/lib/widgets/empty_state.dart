@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import 'agricultural_illustrations.dart';
 
-/// Clean Empty State for Farmer Mobile App
+/// Clean Empty State for Farmer Mobile App with agricultural illustrations
 class FarmerEmptyState extends StatelessWidget {
   final String title;
   final String description;
   final String? actionText;
   final VoidCallback? onAction;
-  final IconData icon;
+  final IconData? icon;
+  final Widget? illustration;
 
   const FarmerEmptyState({
     super.key,
@@ -15,11 +17,30 @@ class FarmerEmptyState extends StatelessWidget {
     required this.description,
     this.actionText,
     this.onAction,
-    this.icon = Icons.cloud_off_outlined,
+    this.icon,
+    this.illustration,
   });
 
   @override
   Widget build(BuildContext context) {
+    final Widget visual = illustration ??
+        (icon != null
+            ? Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: AppColors.primary050,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.primary100),
+                ),
+                child: Icon(
+                  icon,
+                  color: AppColors.primary700,
+                  size: 32,
+                ),
+              )
+            : const CropSproutIllustration(size: 100));
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(28.0),
@@ -27,20 +48,7 @@ class FarmerEmptyState extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Container(
-              width: 64,
-              height: 64,
-              decoration: BoxDecoration(
-                color: AppColors.primary050,
-                shape: BoxShape.circle,
-                border: Border.all(color: AppColors.primary100),
-              ),
-              child: Icon(
-                icon,
-                color: AppColors.primary700,
-                size: 32,
-              ),
-            ),
+            visual,
             const SizedBox(height: 16),
             Text(
               title,

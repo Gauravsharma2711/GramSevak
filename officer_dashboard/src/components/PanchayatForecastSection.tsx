@@ -17,6 +17,7 @@ interface PanchayatForecastSectionProps {
   advisories: AdvisoryItem[];
   onReviewAdvisory: (advisory: AdvisoryItem) => void;
   onGenerateForecast: (panchayat: PanchayatItem) => void;
+  onSelectPanchayat?: (panchayat: PanchayatItem) => void;
 }
 
 export const PanchayatForecastSection: React.FC<PanchayatForecastSectionProps> = ({
@@ -24,6 +25,7 @@ export const PanchayatForecastSection: React.FC<PanchayatForecastSectionProps> =
   advisories,
   onReviewAdvisory,
   onGenerateForecast,
+  onSelectPanchayat,
 }) => {
   const [search, setSearch] = useState('');
   const [selectedBlock, setSelectedBlock] = useState('ALL');
@@ -253,9 +255,31 @@ export const PanchayatForecastSection: React.FC<PanchayatForecastSectionProps> =
                     >
                       {/* Panchayat Name with Elevation */}
                       <td style={{ padding: '14px 18px' }}>
-                        <div style={{ fontWeight: 700, color: 'var(--ink-900)' }}>
-                          {row.panchayat.panchayat_name}
-                        </div>
+                        {onSelectPanchayat ? (
+                          <button
+                            type="button"
+                            onClick={() => onSelectPanchayat(row.panchayat)}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              padding: 0,
+                              textAlign: 'left',
+                              cursor: 'pointer',
+                              fontWeight: 700,
+                              color: 'var(--primary-700)',
+                              fontSize: '13px',
+                              textDecoration: 'underline',
+                              textUnderlineOffset: '2px',
+                            }}
+                            aria-label={`View downscaled forecast profile for ${row.panchayat.panchayat_name}`}
+                          >
+                            {row.panchayat.panchayat_name}
+                          </button>
+                        ) : (
+                          <div style={{ fontWeight: 700, color: 'var(--ink-900)' }}>
+                            {row.panchayat.panchayat_name}
+                          </div>
+                        )}
                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: 'var(--ink-500)', marginTop: '2px' }}>
                           <Mountain size={12} color="var(--primary-600)" aria-hidden="true" />
                           <span>{row.panchayat.elevation_m}m elevation</span>
@@ -381,9 +405,31 @@ export const PanchayatForecastSection: React.FC<PanchayatForecastSectionProps> =
                 {/* Top Row: Panchayat name, Block, Status */}
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
                   <div>
-                    <div style={{ fontWeight: 700, fontSize: '16px', color: 'var(--ink-900)' }}>
-                      {row.panchayat.panchayat_name}
-                    </div>
+                    {onSelectPanchayat ? (
+                      <button
+                        type="button"
+                        onClick={() => onSelectPanchayat(row.panchayat)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          padding: 0,
+                          textAlign: 'left',
+                          cursor: 'pointer',
+                          fontWeight: 700,
+                          fontSize: '15px',
+                          color: 'var(--primary-700)',
+                          textDecoration: 'underline',
+                          textUnderlineOffset: '2px',
+                        }}
+                        aria-label={`View downscaled forecast profile for ${row.panchayat.panchayat_name}`}
+                      >
+                        {row.panchayat.panchayat_name}
+                      </button>
+                    ) : (
+                      <div style={{ fontWeight: 700, fontSize: '15px', color: 'var(--ink-900)' }}>
+                        {row.panchayat.panchayat_name}
+                      </div>
+                    )}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--ink-500)', marginTop: '2px' }}>
                       <span>{row.panchayat.block_name} Block</span>
                       <span>•</span>
