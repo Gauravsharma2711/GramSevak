@@ -1,6 +1,7 @@
 import React from 'react';
 import { CloudRain, TrendingUp, Compass, Mountain, CheckCircle2 } from 'lucide-react';
 import { AdvisoryItem } from '../types';
+import { TopographyDownscalingIllustration, WeatherStateIllustration } from './illustrations/AgriculturalIllustrations';
 
 interface WeatherHeroCardProps {
   advisories: AdvisoryItem[];
@@ -96,6 +97,7 @@ export const WeatherHeroCard: React.FC<WeatherHeroCardProps> = ({
       >
         {/* 1. Official IMD Block Level Baseline */}
         <div
+          className="interactive-hover"
           style={{
             backgroundColor: 'var(--surface-subtle)',
             borderRadius: 'var(--radius-md)',
@@ -118,32 +120,27 @@ export const WeatherHeroCard: React.FC<WeatherHeroCardProps> = ({
             </div>
           </div>
 
-          <div style={{ margin: '16px 0' }}>
-            <div className="text-metric" style={{ color: 'var(--ink-700)' }}>
-              {blockForecastMm} <span style={{ fontSize: '13px', fontWeight: 500, color: 'var(--ink-500)' }}>mm</span>
+          <div style={{ margin: '14px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div>
+              <div className="text-metric" style={{ color: 'var(--ink-700)' }}>
+                {blockForecastMm} <span style={{ fontSize: '13px', fontWeight: 500, color: 'var(--ink-500)' }}>mm</span>
+              </div>
+              <div style={{ fontSize: '12px', color: 'var(--ink-500)', marginTop: '4px' }}>
+                Uniform across whole block
+              </div>
             </div>
-            <div style={{ fontSize: '12px', color: 'var(--ink-500)', marginTop: '4px' }}>
-              Uniform across whole block
-            </div>
+            <WeatherStateIllustration rainfallMm={blockForecastMm} size={46} />
           </div>
 
-          <div
-            style={{
-              fontSize: '11px',
-              color: 'var(--ink-700)',
-              backgroundColor: 'var(--surface)',
-              padding: '8px 10px',
-              borderRadius: 'var(--radius-sm)',
-              border: 'var(--border-subtle)',
-            }}
-          >
-            Lacks localized orographic ridge resolution.
+          <div style={{ marginTop: '8px' }}>
+            <TopographyDownscalingIllustration width={220} height={70} style={{ width: '100%', height: 'auto', display: 'block' } as React.CSSProperties} />
           </div>
         </div>
 
         {/* 2. High Elevation Panchayat (Mulher) */}
         {maxRain.panchayat_name && (
           <div
+            className="interactive-hover"
             style={{
               backgroundColor: 'var(--surface)',
               borderRadius: 'var(--radius-md)',
@@ -172,19 +169,22 @@ export const WeatherHeroCard: React.FC<WeatherHeroCardProps> = ({
               </div>
             </div>
 
-            <div style={{ margin: '16px 0' }}>
-              <div className="text-metric" style={{ color: 'var(--danger-600)' }}>
-                {maxRain.rainfall_mm} <span style={{ fontSize: '13px', fontWeight: 500 }}>mm</span>
+            <div style={{ margin: '14px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div>
+                <div className="text-metric" style={{ color: 'var(--danger-600)' }}>
+                  {maxRain.rainfall_mm} <span style={{ fontSize: '13px', fontWeight: 500 }}>mm</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: 'var(--ink-700)', marginTop: '4px', flexWrap: 'wrap' }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                    <Mountain size={13} color="var(--ink-500)" />
+                    <strong>{maxRain.elevation_m}m</strong>
+                  </span>
+                  <span style={{ color: 'var(--danger-600)', fontWeight: 600 }}>
+                    (+{(maxRain.rainfall_mm - blockForecastMm).toFixed(1)} mm delta)
+                  </span>
+                </div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: 'var(--ink-700)', marginTop: '4px', flexWrap: 'wrap' }}>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-                  <Mountain size={13} color="var(--ink-500)" />
-                  <strong>{maxRain.elevation_m}m</strong>
-                </span>
-                <span style={{ color: 'var(--danger-600)', fontWeight: 600 }}>
-                  (+{(maxRain.rainfall_mm - blockForecastMm).toFixed(1)} mm delta)
-                </span>
-              </div>
+              <WeatherStateIllustration rainfallMm={maxRain.rainfall_mm} size={46} />
             </div>
 
             <button
@@ -205,6 +205,7 @@ export const WeatherHeroCard: React.FC<WeatherHeroCardProps> = ({
         {/* 3. Low Rainfall / Plain Panchayat (Dhandri) */}
         {minRain.panchayat_name && (
           <div
+            className="interactive-hover"
             style={{
               backgroundColor: 'var(--surface)',
               borderRadius: 'var(--radius-md)',
@@ -232,19 +233,22 @@ export const WeatherHeroCard: React.FC<WeatherHeroCardProps> = ({
               </div>
             </div>
 
-            <div style={{ margin: '16px 0' }}>
-              <div className="text-metric" style={{ color: 'var(--primary-700)' }}>
-                {minRain.rainfall_mm} <span style={{ fontSize: '13px', fontWeight: 500 }}>mm</span>
+            <div style={{ margin: '14px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div>
+                <div className="text-metric" style={{ color: 'var(--primary-700)' }}>
+                  {minRain.rainfall_mm} <span style={{ fontSize: '13px', fontWeight: 500 }}>mm</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: 'var(--ink-700)', marginTop: '4px', flexWrap: 'wrap' }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                    <Compass size={13} color="var(--ink-500)" />
+                    <strong>{minRain.elevation_m}m</strong>
+                  </span>
+                  <span style={{ color: 'var(--primary-700)', fontWeight: 600 }}>
+                    ({(minRain.rainfall_mm - blockForecastMm).toFixed(1)} mm delta)
+                  </span>
+                </div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: 'var(--ink-700)', marginTop: '4px', flexWrap: 'wrap' }}>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-                  <Compass size={13} color="var(--ink-500)" />
-                  <strong>{minRain.elevation_m}m</strong>
-                </span>
-                <span style={{ color: 'var(--primary-700)', fontWeight: 600 }}>
-                  ({(minRain.rainfall_mm - blockForecastMm).toFixed(1)} mm delta)
-                </span>
-              </div>
+              <WeatherStateIllustration rainfallMm={minRain.rainfall_mm} size={46} />
             </div>
 
             <button
@@ -261,6 +265,7 @@ export const WeatherHeroCard: React.FC<WeatherHeroCardProps> = ({
           </div>
         )}
       </div>
+
 
       {/* Downscaling Explanation Note: Grounded & Calm */}
       <div

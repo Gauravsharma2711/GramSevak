@@ -450,8 +450,8 @@ class _AdvisoryDetailScreenState extends State<AdvisoryDetailScreen> {
                 child: Column(
                   children: [
                     Container(
-                      width: 56,
-                      height: 56,
+                      width: 48,
+                      height: 48,
                       decoration: const BoxDecoration(
                         color: AppColors.warning100,
                         shape: BoxShape.circle,
@@ -459,9 +459,11 @@ class _AdvisoryDetailScreenState extends State<AdvisoryDetailScreen> {
                       child: const Icon(
                         Icons.hourglass_empty,
                         color: AppColors.warning600,
-                        size: 28,
+                        size: 24,
                       ),
                     ),
+                    const SizedBox(height: 12),
+                    const CropSproutIllustration(size: 80),
                     const SizedBox(height: 16),
                     Text(
                       l10n.advisoryUnderReview,

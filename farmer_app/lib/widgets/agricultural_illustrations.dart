@@ -515,3 +515,192 @@ class RainfallGaugeIllustration extends StatelessWidget {
   }
 }
 
+/// Sprouting seedling in rich soil - ideal for empty advisory/forecast states.
+class CropSproutIllustration extends StatelessWidget {
+  final double size;
+
+  const CropSproutIllustration({
+    super.key,
+    this.size = 120,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: size,
+      height: size,
+      child: CustomPaint(
+        painter: _CropSproutPainter(),
+      ),
+    );
+  }
+}
+
+class _CropSproutPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width;
+    final h = size.height;
+
+    // Soft warm background circular pill
+    final bgPaint = Paint()
+      ..color = AppColors.primary050
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(Offset(w / 2, h / 2), w * 0.46, bgPaint);
+
+    final borderPaint = Paint()
+      ..color = AppColors.primary100
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5;
+    canvas.drawCircle(Offset(w / 2, h / 2), w * 0.46, borderPaint);
+
+    // Fertile soil mound at bottom
+    final soilPaint = Paint()
+      ..color = const Color(0xFF6B4226).withValues(alpha: 0.18)
+      ..style = PaintingStyle.fill;
+    final soilPath = Path()
+      ..moveTo(w * 0.20, h * 0.76)
+      ..quadraticBezierTo(w * 0.50, h * 0.68, w * 0.80, h * 0.76)
+      ..quadraticBezierTo(w * 0.82, h * 0.82, w * 0.75, h * 0.84)
+      ..lineTo(w * 0.25, h * 0.84)
+      ..close();
+    canvas.drawPath(soilPath, soilPaint);
+
+    // Central Stem
+    final stemPaint = Paint()
+      ..color = AppColors.primary600
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3.5
+      ..strokeCap = StrokeCap.round;
+
+    final stemPath = Path()
+      ..moveTo(w * 0.50, h * 0.74)
+      ..quadraticBezierTo(w * 0.48, h * 0.52, w * 0.50, h * 0.38);
+    canvas.drawPath(stemPath, stemPaint);
+
+    // Left Leaf
+    final leafPaint = Paint()
+      ..color = AppColors.primary500
+      ..style = PaintingStyle.fill;
+
+    final leftLeaf = Path()
+      ..moveTo(w * 0.49, h * 0.52)
+      ..cubicTo(w * 0.32, h * 0.48, w * 0.26, h * 0.38, w * 0.30, h * 0.34)
+      ..cubicTo(w * 0.40, h * 0.34, w * 0.46, h * 0.44, w * 0.49, h * 0.50)
+      ..close();
+    canvas.drawPath(leftLeaf, leafPaint);
+
+    // Right Leaf
+    final rightLeafPaint = Paint()
+      ..color = AppColors.primary700
+      ..style = PaintingStyle.fill;
+
+    final rightLeaf = Path()
+      ..moveTo(w * 0.51, h * 0.44)
+      ..cubicTo(w * 0.68, h * 0.40, w * 0.74, h * 0.30, w * 0.70, h * 0.26)
+      ..cubicTo(w * 0.60, h * 0.26, w * 0.54, h * 0.36, w * 0.51, h * 0.42)
+      ..close();
+    canvas.drawPath(rightLeaf, rightLeafPaint);
+
+    // Fresh Dew Drop accent
+    final dewPaint = Paint()
+      ..color = AppColors.info600.withValues(alpha: 0.85)
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(Offset(w * 0.31, h * 0.34), 3.0, dewPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+/// Subtle pulsing alert badge for active weather warnings.
+/// Automatically respects reduced-motion settings.
+class WeatherAlertPulseIllustration extends StatefulWidget {
+  final IconData icon;
+  final Color color;
+  final double size;
+
+  const WeatherAlertPulseIllustration({
+    super.key,
+    this.icon = Icons.warning_amber_rounded,
+    this.color = AppColors.warning600,
+    this.size = 40,
+  });
+
+  @override
+  State<WeatherAlertPulseIllustration> createState() => _WeatherAlertPulseIllustrationState();
+}
+
+class _WeatherAlertPulseIllustrationState extends State<WeatherAlertPulseIllustration>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.15).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+
+    _pulse();
+  }
+
+  void _pulse() async {
+    try {
+      for (int i = 0; i < 2; i++) {
+        if (!mounted) return;
+        await _controller.forward();
+        if (!mounted) return;
+        await _controller.reverse();
+      }
+    } catch (_) {}
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final reducedMotion = MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+
+    if (reducedMotion) {
+      return Container(
+        width: widget.size,
+        height: widget.size,
+        decoration: BoxDecoration(
+          color: widget.color.withValues(alpha: 0.15),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(widget.icon, color: widget.color, size: widget.size * 0.6),
+      );
+    }
+
+    return AnimatedBuilder(
+      animation: _scaleAnimation,
+      builder: (context, child) {
+        return Transform.scale(
+          scale: _scaleAnimation.value,
+          child: Container(
+            width: widget.size,
+            height: widget.size,
+            decoration: BoxDecoration(
+              color: widget.color.withValues(alpha: 0.16),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(widget.icon, color: widget.color, size: widget.size * 0.6),
+          ),
+        );
+      },
+    );
+  }
+}
+

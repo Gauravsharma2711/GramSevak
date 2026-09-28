@@ -161,8 +161,11 @@ class _ForecastDetailScreenState extends State<ForecastDetailScreen> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(Icons.warning_amber_rounded,
-                        color: AppColors.danger600, size: 22),
+                    const WeatherAlertPulseIllustration(
+                      icon: Icons.warning_amber_rounded,
+                      color: AppColors.danger600,
+                      size: 26,
+                    ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Column(
