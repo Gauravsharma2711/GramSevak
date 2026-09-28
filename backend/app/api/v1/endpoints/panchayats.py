@@ -24,8 +24,10 @@ from backend.app.schemas.panchayat import (
     PanchayatDetailResponse,
     DistrictResponse,
     DistrictItem,
+    DistrictListResponse,
     BlockResponse,
     BlockItem,
+    BlockListResponse,
     PanchayatResponse,
     BlockPanchayatItem,
     PanchayatListResponse,
@@ -446,24 +448,64 @@ def get_panchayat_by_id(
 
 @router.get(
     "/districts",
-    response_model=List[DistrictResponse],
+    response_model=DistrictListResponse,
     summary="List All Administrative Districts",
-    description="Retrieves list of all configured districts (e.g. Nashik, Pune) in deterministic alphabetical order.",
+    description=(
+        "Retrieves a paginated list of configured districts (e.g. Nashik, Pune) in deterministic "
+        "alphabetical order with optional server-side search."
+    ),
     tags=["Panchayats"],
 )
 def get_districts(
+    search: Optional[str] = Query(
+        None,
+        min_length=1,
+        max_length=100,
+        description="Optional search query matching district name (case-insensitive).",
+        examples=["Nashik"],
+    ),
+    page: int = Query(
+        1,
+        ge=1,
+        description="Page number (1-indexed). Must be greater than or equal to 1.",
+        examples=[1],
+    ),
+    page_size: int = Query(
+        20,
+        ge=1,
+        le=100,
+        description="Number of records to return per page (1 to 100). Default is 20.",
+        examples=[20],
+    ),
     db: Session = Depends(get_db),
     service: HierarchyService = Depends(get_hierarchy_service),
-) -> List[DistrictResponse]:
+) -> DistrictListResponse:
     """
-    Fetch all administrative districts from the database via HierarchyService.
+    Fetch paginated administrative districts from the database via HierarchyService.
+    Supports case-insensitive search and bounded pagination.
     """
     try:
-        districts = service.list_districts(db=db)
-        if not districts:
+        districts, total = service.list_districts(
+            page=page,
+            page_size=page_size,
+            search=search,
+            db=db,
+        )
+        if total == 0 and not search:
             rows = db.query(PanchayatWeatherData.district_name).distinct().all()
-            return [DistrictResponse(id=i + 1, name=r[0], code=None, state="Maharashtra") for i, r in enumerate(rows) if r[0]]
-        return [
+            fallback_items = [
+                DistrictResponse(id=i + 1, name=r[0], code=None, state="Maharashtra")
+                for i, r in enumerate(rows) if r[0]
+            ]
+            return DistrictListResponse(
+                total=len(fallback_items),
+                page=1,
+                page_size=page_size,
+                total_pages=1 if fallback_items else 0,
+                items=fallback_items,
+            )
+        total_pages = math.ceil(total / page_size) if total > 0 else 0
+        items = [
             DistrictResponse(
                 id=d.id,
                 name=d.name,
@@ -472,6 +514,13 @@ def get_districts(
             )
             for d in districts
         ]
+        return DistrictListResponse(
+            total=total,
+            page=page,
+            page_size=page_size,
+            total_pages=total_pages,
+            items=items,
+        )
     except Exception as exc:
         logger.error(f"Error fetching districts: {exc}")
         raise HTTPException(
@@ -482,23 +531,53 @@ def get_districts(
 
 @router.get(
     "/districts/{district_id}/blocks",
-    response_model=List[BlockResponse],
+    response_model=BlockListResponse,
     summary="List Blocks for a Specific District",
-    description="Retrieves all administrative blocks / tehsils belonging to a specific district ID.",
+    description=(
+        "Retrieves a paginated list of administrative blocks / tehsils belonging to a specific district ID "
+        "with optional server-side search strictly scoped to the district."
+    ),
     tags=["Panchayats"],
 )
 def get_district_blocks(
     district_id: int = FastAPIPath(..., ge=1, description="Unique District identifier"),
+    search: Optional[str] = Query(
+        None,
+        min_length=1,
+        max_length=100,
+        description="Optional search query matching block name (case-insensitive).",
+        examples=["Baglan"],
+    ),
+    page: int = Query(
+        1,
+        ge=1,
+        description="Page number (1-indexed). Must be greater than or equal to 1.",
+        examples=[1],
+    ),
+    page_size: int = Query(
+        20,
+        ge=1,
+        le=100,
+        description="Number of records to return per page (1 to 100). Default is 20.",
+        examples=[20],
+    ),
     db: Session = Depends(get_db),
     service: HierarchyService = Depends(get_hierarchy_service),
-) -> List[BlockResponse]:
+) -> BlockListResponse:
     """
-    Fetch blocks scoped to a district via HierarchyService.
+    Fetch paginated blocks scoped to a district via HierarchyService.
     Returns 404 if the district does not exist.
     """
     try:
-        blocks = service.list_blocks_by_district(district_id=district_id, db=db)
-        return [
+        blocks, total = service.list_blocks_by_district(
+            district_id=district_id,
+            page=page,
+            page_size=page_size,
+            search=search,
+            db=db,
+        )
+        total_pages = math.ceil(total / page_size) if total > 0 else 0
+        items = [
             BlockResponse(
                 id=b.id,
                 district_id=b.district_id,
@@ -507,6 +586,13 @@ def get_district_blocks(
             )
             for b in blocks
         ]
+        return BlockListResponse(
+            total=total,
+            page=page,
+            page_size=page_size,
+            total_pages=total_pages,
+            items=items,
+        )
     except DistrictNotFoundError as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

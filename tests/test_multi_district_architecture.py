@@ -103,9 +103,9 @@ def test_api_districts_endpoint():
     response = client.get("/api/v1/districts")
     assert response.status_code == 200
     data = response.json()
-    assert isinstance(data, list)
-    assert len(data) >= 2
-    names = [d["name"] for d in data]
+    items = data["items"] if isinstance(data, dict) and "items" in data else data
+    assert len(items) >= 2
+    names = [d["name"] for d in items]
     assert "Nashik" in names
     assert "Pune" in names
 

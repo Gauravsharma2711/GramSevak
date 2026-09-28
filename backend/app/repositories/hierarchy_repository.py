@@ -42,7 +42,34 @@ class HierarchyRepository:
         """
         Retrieve all configured administrative districts, ordered deterministically by name.
         """
-        return db.query(District).order_by(District.name.asc()).all()
+        return db.query(District).order_by(District.name.asc(), District.id.asc()).all()
+
+    @staticmethod
+    def get_districts_paginated(
+        db: Session,
+        offset: int = 0,
+        limit: int = 20,
+        search: Optional[str] = None,
+    ) -> Tuple[List[District], int]:
+        """
+        Retrieve a paginated, searchable list of administrative districts.
+        Ordered deterministically by name ASC, id ASC.
+        Returns a tuple of (items, total_count).
+        """
+        query = db.query(District)
+        if search and search.strip():
+            pattern = f"%{search.strip().lower()}%"
+            query = query.filter(
+                or_(
+                    func.lower(District.name).ilike(pattern),
+                    cast(District.id, String).ilike(pattern),
+                    func.lower(District.state).ilike(pattern),
+                )
+            )
+        query = query.order_by(District.name.asc(), District.id.asc())
+        total = query.count()
+        items = query.offset(offset).limit(limit).all()
+        return items, total
 
     @staticmethod
     def get_district_by_id(db: Session, district_id: int) -> Optional[District]:
@@ -76,9 +103,36 @@ class HierarchyRepository:
         return (
             db.query(Block)
             .filter(Block.district_id == district_id)
-            .order_by(Block.name.asc())
+            .order_by(Block.name.asc(), Block.id.asc())
             .all()
         )
+
+    @staticmethod
+    def get_blocks_by_district_paginated(
+        db: Session,
+        district_id: int,
+        offset: int = 0,
+        limit: int = 20,
+        search: Optional[str] = None,
+    ) -> Tuple[List[Block], int]:
+        """
+        Retrieve a paginated, searchable list of blocks scoped strictly to a district ID.
+        Ordered deterministically by name ASC, id ASC.
+        Returns a tuple of (items, total_count).
+        """
+        query = db.query(Block).filter(Block.district_id == district_id)
+        if search and search.strip():
+            pattern = f"%{search.strip().lower()}%"
+            query = query.filter(
+                or_(
+                    func.lower(Block.name).ilike(pattern),
+                    cast(Block.id, String).ilike(pattern),
+                )
+            )
+        query = query.order_by(Block.name.asc(), Block.id.asc())
+        total = query.count()
+        items = query.offset(offset).limit(limit).all()
+        return items, total
 
     @staticmethod
     def get_block_by_id(db: Session, block_id: int, eager_district: bool = False) -> Optional[Block]:

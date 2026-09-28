@@ -111,7 +111,11 @@ DistrictItem = DistrictResponse
 
 
 class DistrictListResponse(BaseModel):
-    """Collection envelope for administrative districts."""
+    """Collection envelope for administrative districts with pagination."""
+    total: int = Field(..., description="Total number of districts matching criteria", examples=[2])
+    page: int = Field(..., description="Current page number (1-indexed)", examples=[1])
+    page_size: int = Field(..., description="Number of items per page", examples=[20])
+    total_pages: int = Field(..., description="Total number of available pages", examples=[1])
     items: List[DistrictResponse] = Field(..., description="List of administrative districts")
 
 
@@ -127,7 +131,11 @@ BlockItem = BlockResponse
 
 
 class BlockListResponse(BaseModel):
-    """Collection envelope for administrative blocks."""
+    """Collection envelope for administrative blocks with pagination."""
+    total: int = Field(..., description="Total number of blocks matching criteria", examples=[15])
+    page: int = Field(..., description="Current page number (1-indexed)", examples=[1])
+    page_size: int = Field(..., description="Number of items per page", examples=[20])
+    total_pages: int = Field(..., description="Total number of available pages", examples=[1])
     items: List[BlockResponse] = Field(..., description="List of administrative blocks")
 
 

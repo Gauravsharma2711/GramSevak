@@ -57,16 +57,29 @@ class HierarchyService:
     def __init__(self, repository: Optional[HierarchyRepository] = None):
         self.repo = repository or HierarchyRepository()
 
-    def list_districts(self, db: Optional[Session] = None) -> List[District]:
+    def list_districts(
+        self,
+        page: int = 1,
+        page_size: int = 20,
+        search: Optional[str] = None,
+        db: Optional[Session] = None,
+    ) -> Tuple[List[District], int]:
         """
-        Retrieve all configured administrative districts, ordered deterministically by name.
+        Retrieve paginated, searchable administrative districts, ordered deterministically by name and ID.
+        Returns a tuple of (items, total_count).
         """
         local_db = False
         if db is None:
             db = SessionLocal()
             local_db = True
         try:
-            return self.repo.get_districts(db)
+            offset = max(0, (page - 1) * page_size)
+            return self.repo.get_districts_paginated(
+                db=db,
+                offset=offset,
+                limit=page_size,
+                search=search,
+            )
         finally:
             if local_db:
                 db.close()
@@ -85,10 +98,18 @@ class HierarchyService:
             if local_db:
                 db.close()
 
-    def list_blocks_by_district(self, district_id: int, db: Optional[Session] = None) -> List[Block]:
+    def list_blocks_by_district(
+        self,
+        district_id: int,
+        page: int = 1,
+        page_size: int = 20,
+        search: Optional[str] = None,
+        db: Optional[Session] = None,
+    ) -> Tuple[List[Block], int]:
         """
-        Retrieve all blocks belonging to a specific district ID.
+        Retrieve paginated, searchable blocks belonging to a specific district ID.
         Raises DistrictNotFoundError if the district does not exist.
+        Returns a tuple of (items, total_count).
         """
         local_db = False
         if db is None:
@@ -98,7 +119,14 @@ class HierarchyService:
             dist = self.repo.get_district_by_id(db, district_id)
             if not dist:
                 raise DistrictNotFoundError(f"District with ID {district_id} not found.")
-            return self.repo.get_blocks_by_district(db, district_id)
+            offset = max(0, (page - 1) * page_size)
+            return self.repo.get_blocks_by_district_paginated(
+                db=db,
+                district_id=district_id,
+                offset=offset,
+                limit=page_size,
+                search=search,
+            )
         finally:
             if local_db:
                 db.close()

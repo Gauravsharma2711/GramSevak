@@ -46,15 +46,15 @@ def test_list_districts(client):
     response = client.get("/api/v1/districts")
     assert response.status_code == 200
     data = response.json()
-    assert isinstance(data, list)
-    assert len(data) >= 2
+    items = data["items"] if isinstance(data, dict) and "items" in data else data
+    assert len(items) >= 2
 
-    district_names = [d["name"] for d in data]
+    district_names = [d["name"] for d in items]
     assert "Nashik" in district_names
     assert "Pune" in district_names
 
     # Check payload cleanliness (no weather datasets leaked)
-    for dist in data:
+    for dist in items:
         assert "id" in dist
         assert "name" in dist
         assert "weather" not in dist
@@ -75,7 +75,8 @@ def test_district_blocks_nashik_and_pune(client, db_session):
     # 1. Nashik blocks
     resp_nashik = client.get(f"/api/v1/districts/{nashik.id}/blocks")
     assert resp_nashik.status_code == 200
-    nashik_blocks = resp_nashik.json()
+    nashik_data = resp_nashik.json()
+    nashik_blocks = nashik_data["items"] if isinstance(nashik_data, dict) and "items" in nashik_data else nashik_data
     assert len(nashik_blocks) == 15
     nashik_block_names = [b["name"] for b in nashik_blocks]
     assert "Baglan" in nashik_block_names
@@ -86,7 +87,8 @@ def test_district_blocks_nashik_and_pune(client, db_session):
     # 2. Pune blocks
     resp_pune = client.get(f"/api/v1/districts/{pune.id}/blocks")
     assert resp_pune.status_code == 200
-    pune_blocks = resp_pune.json()
+    pune_data = resp_pune.json()
+    pune_blocks = pune_data["items"] if isinstance(pune_data, dict) and "items" in pune_data else pune_data
     assert len(pune_blocks) == 13
     pune_block_names = [b["name"] for b in pune_blocks]
     assert "Haveli" in pune_block_names
