@@ -33,10 +33,10 @@ class DownscaleInferenceRequest(BaseModel):
     panchayat_id: Union[int, str] = Field(..., description="Unique identifier for Gram Panchayat")
     forecast_date: date = Field(..., description="Target calendar date for rainfall prediction")
     forecast_issue_date: date = Field(..., description="Date on which regional NWP forecast was issued")
-    block_forecast_rainfall_mm: float = Field(..., ge=0.0, description="Numerical block-level forecast rainfall in mm")
+    block_forecast_rainfall_mm: Optional[float] = Field(default=None, ge=0.0, description="Numerical block-level forecast rainfall in mm")
 
-    panchayat_latitude: float = Field(..., ge=8.0, le=38.0, description="Latitude centroid in decimal degrees")
-    panchayat_longitude: float = Field(..., ge=68.0, le=98.0, description="Longitude centroid in decimal degrees")
+    panchayat_latitude: Optional[float] = Field(default=None, ge=8.0, le=38.0, description="Latitude centroid in decimal degrees")
+    panchayat_longitude: Optional[float] = Field(default=None, ge=68.0, le=98.0, description="Longitude centroid in decimal degrees")
     elevation_m: Optional[float] = Field(default=None, ge=-100.0, le=9000.0, description="Elevation above sea level in meters")
 
     station_distance_km: Optional[float] = Field(default=None, ge=0.0, description="Distance to nearest AWS sensor in km")

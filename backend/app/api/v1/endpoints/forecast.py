@@ -96,6 +96,7 @@ def generate_forecast(
             panchayat_id=payload.panchayat_id,
             forecast_date=payload.forecast_date,
             forecast_issue_date=payload.forecast_issue_date,
+            block_forecast_rainfall_mm=payload.block_forecast_rainfall_mm,
             db=db,
         )
 
@@ -115,26 +116,41 @@ def generate_forecast(
             downscaled_rainfall_mm=float(validated_output.downscaled_rainfall_mm),
         )
 
-        # Persist downscaled prediction to database
+        # Persist downscaled prediction to database (idempotent: update if matching record exists, else insert)
         try:
-            # TODO (Day 5+): Implement statistical confidence/uncertainty calibration based on historical model residuals.
-            # Confidence is kept None on Day 4 to avoid arbitrary ungrounded percentages.
-            forecast_record = DownscaledForecast(
-                panchayat_id=result["panchayat_id"],
-                forecast_date=payload.forecast_date,
-                forecast_issue_date=payload.forecast_issue_date,
-                block_forecast_rainfall_mm=result["block_forecast_rainfall_mm"],
-                downscaled_rainfall_mm=validated_output.downscaled_rainfall_mm,
-                model_name=result["model_name"],
-                model_version=result["model_version"],
-                confidence=None,
+            forecast_record = (
+                db.query(DownscaledForecast)
+                .filter(
+                    DownscaledForecast.panchayat_id == result["panchayat_id"],
+                    DownscaledForecast.forecast_date == payload.forecast_date,
+                    DownscaledForecast.forecast_issue_date == payload.forecast_issue_date,
+                    DownscaledForecast.model_version == result["model_version"],
+                )
+                .order_by(DownscaledForecast.id.desc())
+                .first()
             )
-            db.add(forecast_record)
+            op = "UPDATE" if forecast_record else "INSERT"
+            if forecast_record:
+                forecast_record.block_forecast_rainfall_mm = result["block_forecast_rainfall_mm"]
+                forecast_record.downscaled_rainfall_mm = validated_output.downscaled_rainfall_mm
+                forecast_record.model_name = result["model_name"]
+            else:
+                forecast_record = DownscaledForecast(
+                    panchayat_id=result["panchayat_id"],
+                    forecast_date=payload.forecast_date,
+                    forecast_issue_date=payload.forecast_issue_date,
+                    block_forecast_rainfall_mm=result["block_forecast_rainfall_mm"],
+                    downscaled_rainfall_mm=validated_output.downscaled_rainfall_mm,
+                    model_name=result["model_name"],
+                    model_version=result["model_version"],
+                    confidence=None,
+                )
+                db.add(forecast_record)
             db.commit()
             db.refresh(forecast_record)
             log_db_operation(
                 logger=logger,
-                operation="INSERT",
+                operation=op,
                 table="downscaled_forecasts",
                 status="SUCCESS",
                 panchayat_id=result["panchayat_id"],
@@ -144,7 +160,7 @@ def generate_forecast(
             db.rollback()
             log_db_operation(
                 logger=logger,
-                operation="INSERT",
+                operation="UPSERT",
                 table="downscaled_forecasts",
                 status="FAILURE",
                 panchayat_id=result["panchayat_id"],
@@ -416,19 +432,34 @@ def get_panchayat_forecast(
 def downscale_panchayat_forecast(
     payload: DownscaleInferenceRequest,
     model_name: Optional[str] = Query(None, description="Optional override of active model ('xgboost', 'random_forest')"),
+    db: Session = Depends(get_db),
 ) -> DownscaleInferenceResponse:
     """
     Generate high-resolution micro-level rainfall forecast for Gram Panchayat:
     1. Validates strictly prediction-time information boundary (forecast_date >= forecast_issue_date).
     2. Rejects any ground truth target leakage variables.
-    3. Transforms inputs into 20 approved model features via FeatureBuilder.
-    4. Executes inference using cached model (XGBoost / Random Forest).
-    5. Enforces physical precipitation non-negativity constraint (>= 0.0 mm).
-    6. Falls back deterministically to raw block forecast if model is unavailable.
+    3. Resolves spatial metadata and block forecast from database if omitted from payload.
+    4. Transforms inputs into 20 approved model features via FeatureBuilder.
+    5. Executes inference using cached model (XGBoost / Random Forest).
+    6. Enforces physical precipitation non-negativity constraint (>= 0.0 mm).
+    7. Falls back deterministically to raw block forecast if model is unavailable.
     """
     service = MLPredictionService.get_instance()
     try:
-        return service.predict_rainfall(payload, model_name=model_name)
+        enriched_payload = service.resolve_and_enrich_request(payload, db=db)
+        if enriched_payload.panchayat_latitude is None or enriched_payload.panchayat_longitude is None:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=f"Geographic coordinates could not be resolved for Panchayat '{payload.panchayat_id}'.",
+            )
+        if enriched_payload.block_forecast_rainfall_mm is None:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=f"No block rainfall forecast found for Panchayat '{payload.panchayat_id}' on {payload.forecast_date}.",
+            )
+        return service.predict_rainfall(enriched_payload, model_name=model_name)
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Downscale inference endpoint error: {e}", exc_info=True)
         raise HTTPException(

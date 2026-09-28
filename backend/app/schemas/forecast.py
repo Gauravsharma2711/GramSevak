@@ -30,6 +30,12 @@ class ForecastGenerateRequest(BaseModel):
         description="Date on which the numerical weather forecast was issued (YYYY-MM-DD)",
         examples=["2026-05-09"],
     )
+    block_forecast_rainfall_mm: Optional[float] = Field(
+        default=None,
+        ge=0.0,
+        description="Optional block-level rainfall forecast override in mm",
+        examples=[18.5],
+    )
 
     @model_validator(mode="after")
     def validate_date_sequence(self) -> "ForecastGenerateRequest":
