@@ -24,7 +24,7 @@ class FarmerApiClient {
   /// Base API URL configurable via dart-define or default deployed Render FastAPI address
   static const String defaultBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'https://gramseva-0etv.onrender.com/api/v1',
+    defaultValue: 'https://gramsevak-backend-512883913933.asia-south1.run.app/api/v1',
   );
 
   final String baseUrl;

@@ -25,7 +25,7 @@ import { MOCK_PANCHAYATS, INITIAL_MOCK_ADVISORIES } from './mockData';
 
 // Base API URL from Vite environment or fallback default
 const RAW_API_BASE_URL =
-  (import.meta as any).env?.VITE_API_BASE_URL || 'https://gramseva-0etv.onrender.com/api/v1';
+  (import.meta as any).env?.VITE_API_BASE_URL || 'https://gramsevak-backend-512883913933.asia-south1.run.app/api/v1';
 const API_BASE_URL = RAW_API_BASE_URL.replace(/\/+$/, '');
 
 // Default timeout in milliseconds for API operations (accommodates cloud cold-start latency)

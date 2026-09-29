@@ -116,4 +116,6 @@ data/processed/normalized_*.csv
 data/parquet/
 data/ml/
 
+# Firebase cache
+.firebase/
 

@@ -259,5 +259,12 @@ class XGBoostDownscaler:
             elif hasattr(loaded_prep, "transform"):
                 self.imputer = loaded_prep
 
+            # Cross-version scikit-learn attribute bridge for SimpleImputer (_fit_dtype vs _fill_dtype)
+            if self.imputer is not None:
+                if hasattr(self.imputer, "_fit_dtype") and not hasattr(self.imputer, "_fill_dtype"):
+                    setattr(self.imputer, "_fill_dtype", getattr(self.imputer, "_fit_dtype"))
+                elif hasattr(self.imputer, "_fill_dtype") and not hasattr(self.imputer, "_fit_dtype"):
+                    setattr(self.imputer, "_fit_dtype", getattr(self.imputer, "_fill_dtype"))
+
         self.is_fitted = True
         return self
