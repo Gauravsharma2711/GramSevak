@@ -8,13 +8,20 @@ downscaled weather forecasts paired with validated agronomic guidance.
 import logging
 from datetime import date
 from typing import Any, Optional
-from fastapi import APIRouter, Depends, HTTPException, Query, Path, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Path, Header, status
 from sqlalchemy.orm import Session
+from sqlalchemy.sql import func
 
 from backend.app.core.database import get_db
 from backend.app.models.downscaled_forecast import DownscaledForecast
 from backend.app.models.advisory import Advisory
+from backend.app.models.panchayat import Panchayat
+from backend.app.models.farmer_preference import FarmerPreference
 from backend.app.schemas.farmer import FarmerForecastResponse
+from backend.app.schemas.farmer_preference import (
+    FarmerPreferenceUpdateRequest,
+    FarmerPreferenceResponse,
+)
 from src.services.advisory_service import _resolve_panchayat_spatial_names
 from src.advisory.rainfall_classifier import classify_rainfall
 from src.advisory.advisory_engine import ADVISORY_RULES_REGISTRY, AdvisorySeverity
@@ -236,3 +243,168 @@ def get_farmer_panchayat_forecast(
         available_languages=ALL_SUPPORTED_LANGUAGES.copy(),
         language_status=language_status,
     )
+
+
+# ---------------------------------------------------------------------------
+# Farmer Personalization & Preferences (Phase 6.3)
+# ---------------------------------------------------------------------------
+
+def get_authenticated_farmer_id(
+    authorization: Optional[str] = Header(None, alias="Authorization"),
+    x_farmer_id: Optional[str] = Header(None, alias="X-Farmer-Id"),
+) -> str:
+    """
+    Extracts and authenticates farmer identity from HTTP request context.
+
+    Accepts:
+    1. 'Authorization: Bearer <token_or_farmer_id>'
+    2. 'X-Farmer-Id: <farmer_id>'
+
+    Rejects:
+    - Missing or blank credentials (401 Unauthorized)
+    - Unauthorized or anonymous tokens (401 Unauthorized)
+    """
+    farmer_id: Optional[str] = None
+    if authorization:
+        parts = authorization.strip().split()
+        if len(parts) == 2 and parts[0].lower() == "bearer":
+            farmer_id = parts[1].strip()
+        elif len(parts) == 1:
+            farmer_id = parts[0].strip()
+
+    if not farmer_id and x_farmer_id:
+        farmer_id = x_farmer_id.strip()
+
+    if not farmer_id or farmer_id.upper() in ("ANONYMOUS", "UNAUTHORIZED", "NONE", "NULL", ""):
+        logger.warning("[FARMER_AUTH_REJECTED] Missing or invalid farmer authentication token.")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Farmer authentication required. Please provide a valid Authorization Bearer token or X-Farmer-Id header.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return farmer_id
+
+
+@router.get(
+    "/farmer/preferences",
+    response_model=FarmerPreferenceResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Retrieve Farmer Preferred Panchayat & Language",
+    description="""
+    Retrieves the authenticated farmer's saved Panchayat and language preferences
+    with authoritative spatial metadata (Panchayat, Block, District).
+    """,
+    tags=["Farmer Services"],
+)
+def get_farmer_preferences(
+    farmer_id: str = Depends(get_authenticated_farmer_id),
+    db: Session = Depends(get_db),
+) -> FarmerPreferenceResponse:
+    pref = db.query(FarmerPreference).filter(FarmerPreference.farmer_id == farmer_id).first()
+    if not pref:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"No saved preferences found for farmer '{farmer_id}'. Please complete setup.",
+        )
+
+    # Authoritative spatial metadata lookup
+    spatial = _resolve_panchayat_spatial_names(pref.panchayat_id, db)
+
+    return FarmerPreferenceResponse(
+        farmer_id=pref.farmer_id,
+        panchayat_id=pref.panchayat_id,
+        preferred_language=pref.preferred_language,
+        panchayat_name=spatial["panchayat_name"],
+        block_name=spatial["block_name"],
+        district_name=spatial["district_name"],
+        updated_at=pref.updated_at or pref.created_at or func.now(),
+        is_valid=True,
+        available_languages=ALL_SUPPORTED_LANGUAGES.copy(),
+    )
+
+
+@router.put(
+    "/farmer/preferences",
+    response_model=FarmerPreferenceResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Create or Update Farmer Preferred Panchayat & Language",
+    description="""
+    Saves or updates the authenticated farmer's preferred Panchayat and language.
+
+    Validation Guarantees:
+    - Farmer identity is derived exclusively from the authenticated context.
+    - If payload supplies a `farmer_id`, it MUST match authenticated identity (403 Forbidden otherwise).
+    - Panchayat ID must exist in the authoritative hierarchy (404 Not Found otherwise).
+    - Language must be supported ('en', 'mr', 'hi') (400 Bad Request otherwise).
+    - Never stores raw GPS coordinates or location history.
+    """,
+    tags=["Farmer Services"],
+)
+def update_farmer_preferences(
+    payload: FarmerPreferenceUpdateRequest,
+    farmer_id: str = Depends(get_authenticated_farmer_id),
+    db: Session = Depends(get_db),
+) -> FarmerPreferenceResponse:
+    # 1. Authorization check: farmer cannot modify another farmer's preferences
+    if payload.farmer_id and payload.farmer_id.strip() != farmer_id:
+        logger.warning(
+            f"[FARMER_AUTH_FORBIDDEN] Authenticated farmer '{farmer_id}' attempted to modify '{payload.farmer_id}'."
+        )
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Forbidden: Authenticated farmer '{farmer_id}' cannot modify preferences for '{payload.farmer_id}'.",
+        )
+
+    # 2. Validate Panchayat existence in authoritative hierarchy
+    panchayat = db.query(Panchayat).filter(Panchayat.id == payload.panchayat_id).first()
+    if not panchayat:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Panchayat with ID '{payload.panchayat_id}' does not exist.",
+        )
+
+    # 3. Validate language support
+    clean_lang = (payload.preferred_language or "").strip().lower()
+    if clean_lang not in ALL_SUPPORTED_LANGUAGES:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Language '{payload.preferred_language}' is not supported. Supported languages: {ALL_SUPPORTED_LANGUAGES}",
+        )
+
+    # 4. Upsert preference record
+    pref = db.query(FarmerPreference).filter(FarmerPreference.farmer_id == farmer_id).first()
+    if not pref:
+        pref = FarmerPreference(
+            farmer_id=farmer_id,
+            panchayat_id=payload.panchayat_id,
+            preferred_language=clean_lang,
+        )
+        db.add(pref)
+    else:
+        pref.panchayat_id = payload.panchayat_id
+        pref.preferred_language = clean_lang
+        pref.updated_at = func.now()
+
+    db.commit()
+    db.refresh(pref)
+
+    # 5. Retrieve authoritative spatial metadata
+    spatial = _resolve_panchayat_spatial_names(pref.panchayat_id, db)
+
+    logger.info(
+        f"[FARMER_PREFERENCES_SAVED] farmer_id='{farmer_id}' panchayat_id={pref.panchayat_id} "
+        f"lang='{pref.preferred_language}'"
+    )
+
+    return FarmerPreferenceResponse(
+        farmer_id=pref.farmer_id,
+        panchayat_id=pref.panchayat_id,
+        preferred_language=pref.preferred_language,
+        panchayat_name=spatial["panchayat_name"],
+        block_name=spatial["block_name"],
+        district_name=spatial["district_name"],
+        updated_at=pref.updated_at or pref.created_at or func.now(),
+        is_valid=True,
+        available_languages=ALL_SUPPORTED_LANGUAGES.copy(),
+    )
+

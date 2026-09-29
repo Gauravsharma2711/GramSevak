@@ -2,10 +2,14 @@ import '../api/farmer_api_client.dart';
 import '../models/farmer_forecast.dart';
 import '../models/panchayat_item.dart';
 import '../models/hierarchy_models.dart';
+import '../models/location_resolution.dart';
+import '../models/notification_item.dart';
+import '../models/farmer_preference.dart';
 
 /// Repository layer mediating weather forecast & advisory data retrieval for farmers.
 class FarmerRepository {
   final FarmerApiClient _apiClient;
+  FarmerPreferences? _cachedPreferences;
 
   FarmerRepository({FarmerApiClient? apiClient})
       : _apiClient = apiClient ?? FarmerApiClient();
@@ -301,5 +305,145 @@ class FarmerRepository {
     }
 
     throw FarmerApiException('Invalid response format from weather server');
+  }
+
+  /// Resolve Gram Panchayat by GPS coordinates via backend geospatial API
+  Future<LocationResolutionResponse> resolvePanchayatByLocation({
+    required double latitude,
+    required double longitude,
+    double? gpsAccuracyMeters,
+  }) async {
+    try {
+      final data = await _apiClient.post(
+        '/location/resolve-panchayat',
+        body: {
+          'latitude': latitude,
+          'longitude': longitude,
+          if (gpsAccuracyMeters != null) 'gps_accuracy_m': gpsAccuracyMeters,
+        },
+      );
+      if (data is Map<String, dynamic>) {
+        return LocationResolutionResponse.fromJson(data);
+      }
+      return LocationResolutionResponse.error('Invalid server response format');
+    } catch (e) {
+      return LocationResolutionResponse.error(e.toString());
+    }
+  }
+
+  /// Register farmer device token for push alerts scoped to active Panchayat
+  Future<bool> registerDeviceToken({
+    required String deviceToken,
+    required int panchayatId,
+    String platform = 'android',
+    String languagePreference = 'en',
+  }) async {
+    try {
+      final res = await _apiClient.post(
+        '/farmer/device-token',
+        body: {
+          'device_token': deviceToken,
+          'panchayat_id': panchayatId,
+          'platform': platform,
+          'language_preference': languagePreference,
+        },
+      );
+      if (res is Map && res['status'] == 'registered') {
+        return true;
+      }
+      return false;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Retrieve active notifications / alerts for a specific Panchayat
+  Future<List<FarmerNotification>> getPanchayatAlerts({
+    required int panchayatId,
+    int limit = 10,
+  }) async {
+    try {
+      final res = await _apiClient.get(
+        '/farmer/notifications',
+        queryParams: {
+          'panchayat_id': panchayatId.toString(),
+          'limit': limit.toString(),
+        },
+      );
+      if (res is List) {
+        return res
+            .map((item) => FarmerNotification.fromJson(item as Map<String, dynamic>))
+            .toList();
+      }
+      return [];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  /// Retrieve authenticated farmer preferences from backend with offline fallback
+  Future<FarmerPreferences?> getFarmerPreferences({required String farmerId}) async {
+    try {
+      final res = await _apiClient.get(
+        '/farmer/preferences',
+        headers: {'X-Farmer-Id': farmerId},
+      );
+      if (res is Map<String, dynamic>) {
+        final prefs = FarmerPreferences.fromJson(res);
+        _cachedPreferences = prefs;
+        return prefs;
+      }
+    } catch (e) {
+      if (e is FarmerApiException && e.statusCode == 404) {
+        return null;
+      }
+      if (_cachedPreferences != null && _cachedPreferences!.farmerId == farmerId) {
+        return _cachedPreferences;
+      }
+    }
+    return _cachedPreferences;
+  }
+
+  /// Create or update authenticated farmer preferences on backend
+  Future<FarmerPreferences> updateFarmerPreferences({
+    required String farmerId,
+    required int panchayatId,
+    required String language,
+  }) async {
+    try {
+      final res = await _apiClient.put(
+        '/farmer/preferences',
+        headers: {'X-Farmer-Id': farmerId},
+        body: {
+          'farmer_id': farmerId,
+          'panchayat_id': panchayatId,
+          'preferred_language': language,
+        },
+      );
+      if (res is Map<String, dynamic>) {
+        final prefs = FarmerPreferences.fromJson(res);
+        _cachedPreferences = prefs;
+        return prefs;
+      }
+    } catch (e) {
+      // Offline fallback: construct local preference using known hierarchy
+      final matchedP = fallbackPanchayats.firstWhere(
+        (p) => p.panchayatId == panchayatId,
+        orElse: () => fallbackPanchayats.first,
+      );
+      final localPrefs = FarmerPreferences(
+        farmerId: farmerId,
+        panchayatId: panchayatId,
+        preferredLanguage: language,
+        panchayatName: matchedP.panchayatName,
+        blockName: matchedP.blockName,
+        districtName: matchedP.districtName,
+        updatedAt: DateTime.now(),
+        hasCompletedSetup: true,
+      );
+      _cachedPreferences = localPrefs;
+      return localPrefs;
+    }
+    throw FarmerApiException('Invalid preference response from server');
   }
 }

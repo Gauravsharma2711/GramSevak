@@ -20,6 +20,17 @@ from backend.app.schemas.advisory import (
     AdvisoryResponse,
     PanchayatAdvisoryRetrievalResponse,
 )
+from backend.app.schemas.calling import (
+    AdvisoryCallRequest,
+    AdvisoryCallResponse,
+)
+from backend.services.calling_service import (
+    CallingService,
+    get_calling_service,
+    IneligibleAdvisoryCallError,
+    InvalidPhoneNumberError,
+    DuplicateCallError,
+)
 from src.services.advisory_service import (
     generate_advisory,
     InvalidForecastInputError,
@@ -369,3 +380,74 @@ def get_advisory_context_endpoint(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal error assembling advisory context.",
         )
+
+
+@router.post(
+    "/advisories/{advisory_id}/voice-call",
+    response_model=AdvisoryCallResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Dispatch Approved Advisory Outbound Voice Call (Phase 6.4 Optional Calling)",
+    description="""
+    Initiates an optional outbound voice call delivering approved advisory content:
+    - Enforces that the advisory status MUST be APPROVED or PUBLISHED.
+    - Validates recipient mobile phone format (+91 or 10-digit mobile).
+    - Idempotency: prevents duplicate spam calls within the cooldown window.
+    - Generates clean speech without markdown formatting.
+    """,
+    tags=["Advisories", "Voice Delivery"],
+)
+def dispatch_advisory_voice_call(
+    advisory_id: int = Path(..., ge=1, description="ID of the approved advisory to deliver"),
+    payload: AdvisoryCallRequest = ...,
+    db: Session = Depends(get_db),
+    calling_service: CallingService = Depends(get_calling_service),
+) -> AdvisoryCallResponse:
+    try:
+        result = calling_service.dispatch_advisory_call(
+            db=db,
+            advisory_id=advisory_id,
+            phone_number=payload.phone_number,
+            language=payload.language or "en",
+            farmer_id=payload.farmer_id,
+        )
+        if not result.success:
+            return AdvisoryCallResponse(
+                success=False,
+                status=result.status,
+                phone_number=result.phone_number,
+                advisory_id=advisory_id,
+                call_id=result.call_id,
+                message="Voice call could not be completed by telephony provider.",
+                error_message=result.error_message,
+            )
+
+        return AdvisoryCallResponse(
+            success=True,
+            status=result.status,
+            phone_number=result.phone_number,
+            advisory_id=advisory_id,
+            call_id=result.call_id,
+            message=f"Voice call initiated successfully for approved advisory {advisory_id}.",
+        )
+    except IneligibleAdvisoryCallError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(exc),
+        )
+    except InvalidPhoneNumberError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(exc),
+        )
+    except DuplicateCallError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(exc),
+        )
+    except Exception as exc:
+        logger.error(f"[ADVISORY_VOICE_CALL_ERROR] advisory_id={advisory_id}: {exc}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Unexpected failure initiating advisory voice call.",
+        )
+

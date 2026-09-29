@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/panchayat_item.dart';
 import '../models/hierarchy_models.dart';
+import '../models/location_resolution.dart';
+import '../services/device_location_service.dart';
 import '../repositories/farmer_repository.dart';
 import '../theme/app_theme.dart';
 import '../l10n/app_localizations.dart';
@@ -24,6 +26,7 @@ class PanchayatPickerSheet extends StatefulWidget {
   final BlockItem? initialBlock;
   final Function(PanchayatItem) onSelect;
   final FarmerRepository? repository;
+  final DeviceLocationService? locationService;
 
   const PanchayatPickerSheet({
     super.key,
@@ -33,6 +36,7 @@ class PanchayatPickerSheet extends StatefulWidget {
     this.initialBlock,
     required this.onSelect,
     this.repository,
+    this.locationService,
   });
 
   @override
@@ -41,6 +45,9 @@ class PanchayatPickerSheet extends StatefulWidget {
 
 class _PanchayatPickerSheetState extends State<PanchayatPickerSheet> {
   late final FarmerRepository _repo;
+  late final DeviceLocationService _locationService;
+  bool _resolvingLocation = false;
+  String? _locationFeedbackMessage;
 
   PickerStep _step = PickerStep.district;
 
@@ -87,6 +94,7 @@ class _PanchayatPickerSheetState extends State<PanchayatPickerSheet> {
   void initState() {
     super.initState();
     _repo = widget.repository ?? FarmerRepository();
+    _locationService = widget.locationService ?? DefaultDeviceLocationService();
 
     if (widget.initialDistrict != null) {
       _selectedDistrict = widget.initialDistrict;
@@ -497,6 +505,10 @@ class _PanchayatPickerSheetState extends State<PanchayatPickerSheet> {
               ),
             ),
             const SizedBox(height: 12),
+
+            // Optional GPS Auto-Detect Button (Phase 6.1)
+            _buildGpsQuickDetectPill(context),
+            const SizedBox(height: 10),
 
             // Search Field
             TextField(
@@ -1010,5 +1022,186 @@ class _PanchayatPickerSheetState extends State<PanchayatPickerSheet> {
         ],
       ),
     );
+  }
+
+  // --- PHASE 6.1: OPTIONAL GPS LOCATION AUTO-DETECT ---
+
+  Widget _buildGpsQuickDetectPill(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Semantics(
+          button: true,
+          label: 'Auto-detect village using GPS',
+          child: InkWell(
+            key: const Key('use_gps_location_button'),
+            onTap: _resolvingLocation ? null : _handleAutoDetectLocation,
+            borderRadius: BorderRadius.circular(10),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF0FDF4),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFFBBF7D0)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (_resolvingLocation)
+                    const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppColors.primary600,
+                      ),
+                    )
+                  else
+                    const Icon(Icons.my_location,
+                        size: 16, color: AppColors.primary700),
+                  const SizedBox(width: 8),
+                  Text(
+                    _resolvingLocation
+                        ? 'Resolving Panchayat via GPS...'
+                        : 'Auto-Detect Village via GPS',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primary700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        if (_locationFeedbackMessage != null) ...[
+          const SizedBox(height: 6),
+          Container(
+            key: const Key('gps_feedback_banner'),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFFBEB),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFFFDE68A)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.info_outline,
+                    size: 14, color: Color(0xFFB45309)),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    _locationFeedbackMessage!,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: Color(0xFF92400E),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Future<void> _handleAutoDetectLocation() async {
+    setState(() {
+      _resolvingLocation = true;
+      _locationFeedbackMessage = null;
+    });
+
+    try {
+      // 1. Verify GPS service enabled on device
+      final serviceEnabled = await _locationService.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        if (mounted) {
+          setState(() {
+            _resolvingLocation = false;
+            _locationFeedbackMessage =
+                'Device GPS is turned off. Please turn on location or select your village manually below.';
+          });
+        }
+        return;
+      }
+
+      // 2. Request permission safely
+      final permission = await _locationService.requestPermission();
+      if (permission == DeviceLocationPermission.denied) {
+        if (mounted) {
+          setState(() {
+            _resolvingLocation = false;
+            _locationFeedbackMessage =
+                'Location permission was denied. Please select your village manually below.';
+          });
+        }
+        return;
+      } else if (permission == DeviceLocationPermission.permanentlyDenied) {
+        if (mounted) {
+          setState(() {
+            _resolvingLocation = false;
+            _locationFeedbackMessage =
+                'Location permission permanently denied. Please enable in settings or choose manually below.';
+          });
+        }
+        return;
+      }
+
+      // 3. Acquire device coordinates
+      final coords = await _locationService.getCurrentCoordinates();
+      if (coords == null) {
+        if (mounted) {
+          setState(() {
+            _resolvingLocation = false;
+            _locationFeedbackMessage =
+                'Unable to acquire GPS coordinates. Please select your village manually below.';
+          });
+        }
+        return;
+      }
+
+      // 4. Query backend location resolver
+      final LocationResolutionResponse result = await _repo.resolvePanchayatByLocation(
+        latitude: coords.latitude,
+        longitude: coords.longitude,
+        gpsAccuracyMeters: coords.accuracyMeters,
+      );
+
+      if (result.matched && result.panchayat != null) {
+        final panchayatItem = result.panchayat!.toPanchayatItem();
+        if (mounted) {
+          widget.onSelect(panchayatItem);
+          Navigator.of(context).pop();
+        }
+      } else if (result.status == LocationResolutionStatus.error) {
+        if (mounted) {
+          setState(() {
+            _resolvingLocation = false;
+            _locationFeedbackMessage =
+                'Location service is temporarily unavailable. Please select your village manually below.';
+          });
+        }
+      } else {
+        if (mounted) {
+          setState(() {
+            _resolvingLocation = false;
+            _locationFeedbackMessage = result.message.isNotEmpty
+                ? result.message
+                : 'No Panchayat boundary matched. Please select your village manually below.';
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _resolvingLocation = false;
+          _locationFeedbackMessage =
+              'Location resolution unavailable. Please select your village manually below.';
+        });
+      }
+    }
   }
 }

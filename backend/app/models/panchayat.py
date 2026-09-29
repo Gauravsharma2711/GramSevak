@@ -25,6 +25,7 @@ class Panchayat(Base):
     block = relationship("Block", back_populates="panchayats")
     weather_observations = relationship("WeatherObservation", back_populates="panchayat")
     downscaled_forecasts = relationship("DownscaledForecast", back_populates="panchayat")
+    boundary = relationship("PanchayatBoundary", back_populates="panchayat", uselist=False, cascade="all, delete-orphan")
 
     def __repr__(self) -> str:
         return f"<Panchayat(id={self.id}, name='{self.name}', lgd_code={self.lgd_code})>"

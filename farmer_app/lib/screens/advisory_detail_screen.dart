@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/farmer_forecast.dart';
+import '../services/farmer_voice_service.dart';
 import '../theme/app_theme.dart';
 import '../l10n/app_localizations.dart';
 import '../widgets/agricultural_illustrations.dart';
@@ -14,6 +16,7 @@ class AdvisoryDetailScreen extends StatefulWidget {
   final VoidCallback onRefresh;
   final String currentLang;
   final Function(String) onLanguageChanged;
+  final FarmerVoiceService? voiceService;
 
   const AdvisoryDetailScreen({
     super.key,
@@ -21,6 +24,7 @@ class AdvisoryDetailScreen extends StatefulWidget {
     required this.onRefresh,
     required this.currentLang,
     required this.onLanguageChanged,
+    this.voiceService,
   });
 
   @override
@@ -28,25 +32,59 @@ class AdvisoryDetailScreen extends StatefulWidget {
 }
 
 class _AdvisoryDetailScreenState extends State<AdvisoryDetailScreen> {
-  bool _isPlayingAudio = false;
+  late final FarmerVoiceService _voiceService;
+  late final bool _ownsVoiceService;
+  StreamSubscription<VoiceState>? _voiceSub;
+  VoiceState _voiceState = VoiceState.idle;
 
-  void _handleAudioPlay() {
-    if (!widget.forecast.isApproved) return;
-    setState(() => _isPlayingAudio = true);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Playing verified voice advisory in ${widget.currentLang == 'mr' ? 'Marathi (मराठी)' : widget.currentLang == 'hi' ? 'Hindi (हिन्दी)' : 'English'}...',
-          style: const TextStyle(fontWeight: FontWeight.w600),
-        ),
-        backgroundColor: AppColors.primary700,
-        duration: const Duration(seconds: 3),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-    Future.delayed(const Duration(seconds: 3), () {
-      if (mounted) setState(() => _isPlayingAudio = false);
+  @override
+  void initState() {
+    super.initState();
+    if (widget.voiceService != null) {
+      _voiceService = widget.voiceService!;
+      _ownsVoiceService = false;
+    } else {
+      _voiceService = FarmerVoiceService();
+      _ownsVoiceService = true;
+    }
+    _voiceState = _voiceService.state;
+    _voiceSub = _voiceService.onStateChanged.listen((state) {
+      if (mounted) {
+        setState(() {
+          _voiceState = state;
+        });
+      }
     });
+  }
+
+  @override
+  void didUpdateWidget(covariant AdvisoryDetailScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.currentLang != widget.currentLang) {
+      if (_voiceState == VoiceState.playing || _voiceState == VoiceState.paused) {
+        _voiceService.stop();
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _voiceSub?.cancel();
+    if (_ownsVoiceService) {
+      _voiceService.dispose();
+    } else {
+      _voiceService.stop();
+    }
+    super.dispose();
+  }
+
+  Future<void> _handleAudioPlay() async {
+    if (!widget.forecast.isApproved) return;
+    if (_voiceState == VoiceState.paused) {
+      await _voiceService.resume();
+      return;
+    }
+    await _voiceService.playAdvisory(widget.forecast, language: widget.currentLang);
   }
 
   @override
@@ -186,59 +224,7 @@ class _AdvisoryDetailScreenState extends State<AdvisoryDetailScreen> {
               const SizedBox(height: 14),
 
               // 2. Audio Read-Aloud Voice Card
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFFE5EAE7)),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            l10n.audioAdvisory,
-                            style: const TextStyle(
-                              fontSize: 13.5,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.ink900,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            l10n.tapToListen,
-                            style: const TextStyle(
-                              fontSize: 11,
-                              color: AppColors.ink500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    ElevatedButton.icon(
-                      onPressed: _handleAudioPlay,
-                      icon: _isPlayingAudio
-                          ? const AudioWaveformIllustration(
-                              isPlaying: true, color: AppColors.surface)
-                          : const Icon(Icons.volume_up_outlined, size: 16),
-                      label: Text(
-                        _isPlayingAudio
-                            ? l10n.listeningAudio
-                            : l10n.listenAudio,
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: const Size(110, 40),
-                        backgroundColor: AppColors.primary500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              _buildAudioAdvisoryCard(l10n),
 
               const SizedBox(height: 16),
 
@@ -793,5 +779,217 @@ class _AdvisoryDetailScreenState extends State<AdvisoryDetailScreen> {
       ),
     );
   }
+
+  Widget _buildAudioAdvisoryCard(AppLocalizations l10n) {
+    String statusDesc;
+    switch (_voiceState) {
+      case VoiceState.playing:
+        statusDesc = l10n.listeningAudio;
+        break;
+      case VoiceState.paused:
+        statusDesc = l10n.ttsPaused;
+        break;
+      case VoiceState.completed:
+        statusDesc = l10n.ttsCompleted;
+        break;
+      case VoiceState.unsupportedLanguage:
+        statusDesc = l10n.ttsUnsupportedLanguage;
+        break;
+      case VoiceState.error:
+        statusDesc = 'Audio playback error';
+        break;
+      case VoiceState.idle:
+      case VoiceState.stopped:
+        statusDesc = l10n.tapToListen;
+        break;
+    }
+
+    final isPlaying = _voiceState == VoiceState.playing;
+    final isUnsupported = _voiceState == VoiceState.unsupportedLanguage;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isUnsupported ? const Color(0xFFFDE68A) : const Color(0xFFE5EAE7),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          l10n.audioAdvisory,
+                          style: const TextStyle(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.ink900,
+                          ),
+                        ),
+                        if (isPlaying) ...[
+                          const SizedBox(width: 8),
+                          const AudioWaveformIllustration(
+                            isPlaying: true,
+                            color: AppColors.primary700,
+                          ),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      statusDesc,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: isUnsupported ? const Color(0xFF92400E) : AppColors.ink500,
+                        fontWeight: isUnsupported ? FontWeight.w600 : FontWeight.normal,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              _buildVoiceControls(l10n),
+            ],
+          ),
+          if (isUnsupported) ...[
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFFBEB),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.info_outline, size: 14, color: Color(0xFFB45309)),
+                  SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      'Written guidance remains fully available below.',
+                      style: TextStyle(fontSize: 11, color: Color(0xFF92400E)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildVoiceControls(AppLocalizations l10n) {
+    if (_voiceState == VoiceState.playing) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Semantics(
+            button: true,
+            label: l10n.pauseAudio,
+            child: SizedBox(
+              width: 48,
+              height: 48,
+              child: IconButton(
+                icon: const Icon(Icons.pause, color: AppColors.primary700),
+                tooltip: l10n.pauseAudio,
+                onPressed: () => _voiceService.pause(),
+              ),
+            ),
+          ),
+          const SizedBox(width: 4),
+          Semantics(
+            button: true,
+            label: l10n.stopAudio,
+            child: SizedBox(
+              width: 48,
+              height: 48,
+              child: IconButton(
+                icon: const Icon(Icons.stop, color: AppColors.ink700),
+                tooltip: l10n.stopAudio,
+                onPressed: () => _voiceService.stop(),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    if (_voiceState == VoiceState.paused) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Semantics(
+            button: true,
+            label: l10n.resumeAudio,
+            child: SizedBox(
+              width: 48,
+              height: 48,
+              child: IconButton(
+                icon: const Icon(Icons.play_arrow, color: AppColors.primary700),
+                tooltip: l10n.resumeAudio,
+                onPressed: () => _voiceService.resume(),
+              ),
+            ),
+          ),
+          const SizedBox(width: 4),
+          Semantics(
+            button: true,
+            label: l10n.stopAudio,
+            child: SizedBox(
+              width: 48,
+              height: 48,
+              child: IconButton(
+                icon: const Icon(Icons.stop, color: AppColors.ink700),
+                tooltip: l10n.stopAudio,
+                onPressed: () => _voiceService.stop(),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    if (_voiceState == VoiceState.completed) {
+      return Semantics(
+        button: true,
+        label: l10n.replayAudio,
+        child: ElevatedButton.icon(
+          onPressed: () => _voiceService.replay(widget.forecast, language: widget.currentLang),
+          icon: const Icon(Icons.replay, size: 16),
+          label: Text(l10n.replayAudio),
+          style: ElevatedButton.styleFrom(
+            minimumSize: const Size(110, 48),
+            backgroundColor: AppColors.primary500,
+          ),
+        ),
+      );
+    }
+
+    // Default: Idle / Stopped / Error / Unsupported
+    return Semantics(
+      button: true,
+      label: l10n.listenAudio,
+      child: ElevatedButton.icon(
+        onPressed: _handleAudioPlay,
+        icon: const Icon(Icons.volume_up_outlined, size: 16),
+        label: Text(l10n.listenAudio),
+        style: ElevatedButton.styleFrom(
+          minimumSize: const Size(110, 48),
+          backgroundColor: AppColors.primary500,
+        ),
+      ),
+    );
+  }
 }
+
 

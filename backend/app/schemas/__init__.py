@@ -63,6 +63,19 @@ __all__ = [
     "ValidationStatusEnum",
     "ValidationSeverityEnum",
     "AdvisoryValidationResult",
+    "FarmerPreferenceUpdateRequest",
+    "FarmerPreferenceResponse",
+    "AdvisoryCallRequest",
+    "AdvisoryCallResponse",
 ]
+
+from backend.app.schemas.farmer_preference import (
+    FarmerPreferenceUpdateRequest,
+    FarmerPreferenceResponse,
+)
+from backend.app.schemas.calling import (
+    AdvisoryCallRequest,
+    AdvisoryCallResponse,
+)
 
 
