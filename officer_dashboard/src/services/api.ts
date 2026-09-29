@@ -18,6 +18,8 @@ import {
   AdvisoryItem,
   OfficerApprovePayload,
   OfficerRejectPayload,
+  OfficerEditPayload,
+  AdvisoryAuditLogItem,
   GenerateForecastPayload,
   DownscaledForecastDetail,
 } from '../types';
@@ -454,5 +456,66 @@ export class ApiService {
     );
 
     return updated;
+  }
+
+  /**
+   * Edit advisory content and recommendations (PUT /api/v1/officer/advisories/{advisory_id})
+   */
+  static async editAdvisory(
+    advisoryId: number,
+    payload: OfficerEditPayload
+  ): Promise<AdvisoryItem> {
+    const updated = await this.request<AdvisoryItem>(
+      `/officer/advisories/${advisoryId}`,
+      {
+        method: 'PUT',
+        body: JSON.stringify(payload),
+      },
+      () => {
+        const index = localAdvisories.findIndex((a) => a.id === advisoryId);
+        if (index === -1) throw new Error(`Advisory ${advisoryId} not found.`);
+        localAdvisories[index] = {
+          ...localAdvisories[index],
+          advisory_title: payload.advisory_title,
+          advisory_text: payload.advisory_text,
+          severity: (payload.severity as any) || localAdvisories[index].severity,
+          officer_id: payload.officer_id,
+          officer_comment: payload.officer_comment || null,
+          version: (localAdvisories[index].version || 1) + 1,
+          advisory_source: 'OFFICER_AMENDED',
+          status: 'NEEDS_REVIEW',
+          updated_at: new Date().toISOString(),
+        };
+        return localAdvisories[index];
+      }
+    );
+
+    return updated;
+  }
+
+  /**
+   * Retrieve immutable audit trail for an advisory (GET /api/v1/officer/advisories/{advisory_id}/audit-trail)
+   */
+  static async getAdvisoryAuditTrail(advisoryId: number): Promise<AdvisoryAuditLogItem[]> {
+    return this.request<AdvisoryAuditLogItem[]>(
+      `/officer/advisories/${advisoryId}/audit-trail`,
+      { method: 'GET' },
+      () => {
+        return [
+          {
+            id: 1,
+            advisory_id: advisoryId,
+            action: 'GENERATED',
+            officer_id: 'SYSTEM',
+            previous_status: null,
+            new_status: 'DRAFT',
+            version: 1,
+            reason: 'Initial advisory generation',
+            details: null,
+            created_at: new Date().toISOString(),
+          },
+        ];
+      }
+    );
   }
 }

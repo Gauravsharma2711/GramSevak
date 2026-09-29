@@ -32,6 +32,9 @@ ALLOWED_TRANSITIONS: Dict[AdvisoryStatus, Set[AdvisoryStatus]] = {
     AdvisoryStatus.DRAFT: {
         AdvisoryStatus.GENERATED,       # AI generation completed
         AdvisoryStatus.NEEDS_REVIEW,    # Deterministic rule path skips AI directly to review
+        AdvisoryStatus.APPROVED,        # Direct legacy approval
+        AdvisoryStatus.REJECTED,        # Direct legacy rejection
+        AdvisoryStatus.EDITED,          # Direct officer edit
     },
     AdvisoryStatus.GENERATED: {
         AdvisoryStatus.VALIDATED,          # Passed automated safety validation
@@ -47,6 +50,13 @@ ALLOWED_TRANSITIONS: Dict[AdvisoryStatus, Set[AdvisoryStatus]] = {
     AdvisoryStatus.NEEDS_REVIEW: {
         AdvisoryStatus.APPROVED,        # Officer approved
         AdvisoryStatus.REJECTED,        # Officer rejected
+        AdvisoryStatus.EDITED,          # Officer edited
+    },
+    AdvisoryStatus.EDITED: {
+        AdvisoryStatus.NEEDS_REVIEW,    # Re-queued for review after edit
+        AdvisoryStatus.APPROVED,        # Officer approved
+        AdvisoryStatus.REJECTED,        # Officer rejected
+        AdvisoryStatus.EDITED,          # Subsequent edit
     },
     AdvisoryStatus.APPROVED: {
         AdvisoryStatus.PUBLISHED,       # Released to farmer delivery endpoints
@@ -59,6 +69,9 @@ ALLOWED_TRANSITIONS: Dict[AdvisoryStatus, Set[AdvisoryStatus]] = {
 AUTHORIZED_TRANSITIONS: Set[Tuple[AdvisoryStatus, AdvisoryStatus, str]] = {
     (AdvisoryStatus.DRAFT, AdvisoryStatus.GENERATED, "AI_SERVICE"),
     (AdvisoryStatus.DRAFT, AdvisoryStatus.NEEDS_REVIEW, "RULE_ENGINE"),
+    (AdvisoryStatus.DRAFT, AdvisoryStatus.APPROVED, "EXTENSION_OFFICER"),
+    (AdvisoryStatus.DRAFT, AdvisoryStatus.REJECTED, "EXTENSION_OFFICER"),
+    (AdvisoryStatus.DRAFT, AdvisoryStatus.EDITED, "EXTENSION_OFFICER"),
     (AdvisoryStatus.GENERATED, AdvisoryStatus.VALIDATED, "SAFETY_VALIDATOR"),
     (AdvisoryStatus.GENERATED, AdvisoryStatus.FAILED_VALIDATION, "SAFETY_VALIDATOR"),
     (AdvisoryStatus.VALIDATED, AdvisoryStatus.NEEDS_REVIEW, "PIPELINE_ORCHESTRATOR"),
@@ -66,6 +79,11 @@ AUTHORIZED_TRANSITIONS: Set[Tuple[AdvisoryStatus, AdvisoryStatus, str]] = {
     (AdvisoryStatus.FAILED_VALIDATION, AdvisoryStatus.REJECTED, "PIPELINE_ORCHESTRATOR"),
     (AdvisoryStatus.NEEDS_REVIEW, AdvisoryStatus.APPROVED, "EXTENSION_OFFICER"),
     (AdvisoryStatus.NEEDS_REVIEW, AdvisoryStatus.REJECTED, "EXTENSION_OFFICER"),
+    (AdvisoryStatus.NEEDS_REVIEW, AdvisoryStatus.EDITED, "EXTENSION_OFFICER"),
+    (AdvisoryStatus.EDITED, AdvisoryStatus.NEEDS_REVIEW, "EXTENSION_OFFICER"),
+    (AdvisoryStatus.EDITED, AdvisoryStatus.APPROVED, "EXTENSION_OFFICER"),
+    (AdvisoryStatus.EDITED, AdvisoryStatus.REJECTED, "EXTENSION_OFFICER"),
+    (AdvisoryStatus.EDITED, AdvisoryStatus.EDITED, "EXTENSION_OFFICER"),
     (AdvisoryStatus.APPROVED, AdvisoryStatus.PUBLISHED, "PUBLICATION_SERVICE"),
 }
 

@@ -10,9 +10,10 @@ import {
   X,
   FileCheck2,
   Lock,
-  AlertCircle
+  AlertCircle,
+  Edit3
 } from 'lucide-react';
-import { AdvisoryItem } from '../types';
+import { AdvisoryItem, OfficerEditPayload } from '../types';
 import { StatusBadge } from './common/StatusBadge';
 import { SeverityBadge } from './common/SeverityBadge';
 import { ForecastValue } from './common/ForecastValue';
@@ -20,17 +21,20 @@ import { EmptyState } from './common/EmptyState';
 import { AdvisoryDetailModal } from './AdvisoryDetailModal';
 import { ApprovalConfirmModal } from './ApprovalConfirmModal';
 import { RejectionModal } from './RejectionModal';
+import { AdvisoryEditModal } from './AdvisoryEditModal';
 
 interface AdvisoryReviewQueueProps {
   advisories: AdvisoryItem[];
   onApproveAdvisory: (advisoryId: number, comment: string) => Promise<void>;
   onRejectAdvisory: (advisoryId: number, reason: string) => Promise<void>;
+  onEditAdvisory?: (advisoryId: number, payload: OfficerEditPayload) => Promise<void>;
 }
 
 export const AdvisoryReviewQueue: React.FC<AdvisoryReviewQueueProps> = ({
   advisories,
   onApproveAdvisory,
   onRejectAdvisory,
+  onEditAdvisory,
 }) => {
   const [activeStatus, setActiveStatus] = useState<'ALL' | 'DRAFT' | 'APPROVED' | 'REJECTED'>('DRAFT');
   const [search, setSearch] = useState('');
@@ -39,13 +43,18 @@ export const AdvisoryReviewQueue: React.FC<AdvisoryReviewQueueProps> = ({
   const [detailAdvisory, setDetailAdvisory] = useState<AdvisoryItem | null>(null);
   const [approvalAdvisory, setApprovalAdvisory] = useState<AdvisoryItem | null>(null);
   const [rejectionAdvisory, setRejectionAdvisory] = useState<AdvisoryItem | null>(null);
+  const [editAdvisory, setEditAdvisory] = useState<AdvisoryItem | null>(null);
 
-  const draftCount = advisories.filter((a) => a.status === 'DRAFT').length;
+  const draftCount = advisories.filter((a) => a.status === 'DRAFT' || a.status === 'NEEDS_REVIEW' || a.status === 'EDITED').length;
   const approvedCount = advisories.filter((a) => a.status === 'APPROVED').length;
   const rejectedCount = advisories.filter((a) => a.status === 'REJECTED').length;
 
   const filteredAdvisories = advisories.filter((a) => {
-    const matchesStatus = activeStatus === 'ALL' || a.status === activeStatus;
+    const matchesStatus =
+      activeStatus === 'ALL' ||
+      (activeStatus === 'DRAFT'
+        ? a.status === 'DRAFT' || a.status === 'NEEDS_REVIEW' || a.status === 'EDITED'
+        : a.status === activeStatus);
     const matchesSearch =
       (a.panchayat_name || '').toLowerCase().includes(search.toLowerCase()) ||
       (a.block_name || '').toLowerCase().includes(search.toLowerCase()) ||
@@ -63,6 +72,11 @@ export const AdvisoryReviewQueue: React.FC<AdvisoryReviewQueueProps> = ({
   const handleOpenRejectModal = (advisory: AdvisoryItem) => {
     setDetailAdvisory(null);
     setRejectionAdvisory(advisory);
+  };
+
+  const handleOpenEditModal = (advisory: AdvisoryItem) => {
+    setDetailAdvisory(null);
+    setEditAdvisory(advisory);
   };
 
   return (
@@ -382,7 +396,7 @@ export const AdvisoryReviewQueue: React.FC<AdvisoryReviewQueueProps> = ({
                     <span>View Detail</span>
                   </button>
 
-                  {advisory.status === 'DRAFT' && (
+                  {(advisory.status === 'DRAFT' || advisory.status === 'NEEDS_REVIEW' || advisory.status === 'EDITED') && (
                     <>
                       <button
                         onClick={() => handleOpenApproveModal(advisory)}
@@ -392,6 +406,16 @@ export const AdvisoryReviewQueue: React.FC<AdvisoryReviewQueueProps> = ({
                       >
                         <Check size={13} />
                         <span>Approve</span>
+                      </button>
+
+                      <button
+                        onClick={() => handleOpenEditModal(advisory)}
+                        className="btn-secondary"
+                        style={{ padding: '8px 12px', fontSize: '12px', minHeight: '36px' }}
+                        aria-label={`Edit advisory for ${advisory.panchayat_name}`}
+                      >
+                        <Edit3 size={13} />
+                        <span>Edit</span>
                       </button>
 
                       <button
@@ -438,6 +462,15 @@ export const AdvisoryReviewQueue: React.FC<AdvisoryReviewQueueProps> = ({
         onClose={() => setDetailAdvisory(null)}
         onRequestApprove={(adv) => handleOpenApproveModal(adv)}
         onRequestReject={(adv) => handleOpenRejectModal(adv)}
+        onRequestEdit={(adv) => handleOpenEditModal(adv)}
+      />
+
+      {/* Edit Advisory Modal */}
+      <AdvisoryEditModal
+        advisory={editAdvisory}
+        isOpen={Boolean(editAdvisory)}
+        onClose={() => setEditAdvisory(null)}
+        onSaveEdit={onEditAdvisory || (async () => {})}
       />
 
       {/* Approval Confirmation Dialog */}

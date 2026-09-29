@@ -12,7 +12,8 @@ import {
   Check, 
   X as XIcon,
   Layers,
-  Sparkles
+  Sparkles,
+  Edit3
 } from 'lucide-react';
 import { AdvisoryItem } from '../types';
 import { StatusBadge } from './common/StatusBadge';
@@ -24,6 +25,7 @@ interface AdvisoryDetailModalProps {
   onClose: () => void;
   onRequestApprove: (advisory: AdvisoryItem) => void;
   onRequestReject: (advisory: AdvisoryItem) => void;
+  onRequestEdit?: (advisory: AdvisoryItem) => void;
 }
 
 export const AdvisoryDetailModal: React.FC<AdvisoryDetailModalProps> = ({
@@ -32,6 +34,7 @@ export const AdvisoryDetailModal: React.FC<AdvisoryDetailModalProps> = ({
   onClose,
   onRequestApprove,
   onRequestReject,
+  onRequestEdit,
 }) => {
   if (!isOpen || !advisory) return null;
 
@@ -389,11 +392,35 @@ export const AdvisoryDetailModal: React.FC<AdvisoryDetailModalProps> = ({
               gap: '10px',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Sparkles size={16} color="var(--primary-700)" />
-              <h3 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--ink-900)' }}>
-                Agricultural Advisory Recommendation
-              </h3>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Sparkles size={16} color="var(--primary-700)" />
+                <h3 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--ink-900)', margin: 0 }}>
+                  Agricultural Advisory Recommendation
+                </h3>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px' }}>
+                <span style={{ backgroundColor: 'var(--primary-50)', color: 'var(--primary-800)', padding: '2px 8px', borderRadius: '4px', border: '1px solid var(--primary-200)', fontWeight: 600 }}>
+                  v{advisory.version || 1}
+                </span>
+                {advisory.advisory_source && (
+                  <span style={{ backgroundColor: 'var(--surface-subtle)', color: 'var(--ink-700)', padding: '2px 8px', borderRadius: '4px', border: '1px solid var(--ink-300)' }}>
+                    {advisory.advisory_source}
+                  </span>
+                )}
+                {advisory.validation_status && (
+                  <span style={{
+                    backgroundColor: advisory.validation_status === 'VALIDATED' ? '#ECFDF5' : '#FEF2F2',
+                    color: advisory.validation_status === 'VALIDATED' ? '#065F46' : '#991B1B',
+                    padding: '2px 8px',
+                    borderRadius: '4px',
+                    border: `1px solid ${advisory.validation_status === 'VALIDATED' ? '#A7F3D0' : '#FECACA'}`,
+                    fontWeight: 600
+                  }}>
+                    {advisory.validation_status}
+                  </span>
+                )}
+              </div>
             </div>
 
             <div
@@ -421,6 +448,32 @@ export const AdvisoryDetailModal: React.FC<AdvisoryDetailModalProps> = ({
                 {advisory.advisory_text}
               </div>
             </div>
+
+            {/* If edited, show original content reference */}
+            {advisory.original_content && advisory.original_content.advisory_text && (
+              <details
+                style={{
+                  backgroundColor: 'var(--surface-subtle)',
+                  border: '1px dashed var(--ink-300)',
+                  borderRadius: 'var(--radius-sm)',
+                  padding: '8px 12px',
+                  fontSize: '12px',
+                  color: 'var(--ink-600)',
+                }}
+              >
+                <summary style={{ cursor: 'pointer', fontWeight: 600, color: 'var(--ink-700)' }}>
+                  View Original System Generated Content (Prior to Officer Edits)
+                </summary>
+                <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid var(--ink-200)' }}>
+                  <div style={{ fontWeight: 600, color: 'var(--ink-800)', marginBottom: '4px' }}>
+                    {advisory.original_content.advisory_title}
+                  </div>
+                  <div style={{ whiteSpace: 'pre-line', lineHeight: '18px' }}>
+                    {advisory.original_content.advisory_text}
+                  </div>
+                </div>
+              </details>
+            )}
           </div>
 
           {/* Observation Note */}
@@ -458,8 +511,18 @@ export const AdvisoryDetailModal: React.FC<AdvisoryDetailModalProps> = ({
             Close
           </button>
 
-          {advisory.status === 'DRAFT' && (
+          {(advisory.status === 'DRAFT' || advisory.status === 'NEEDS_REVIEW' || advisory.status === 'EDITED') && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              {onRequestEdit && (
+                <button
+                  onClick={() => onRequestEdit(advisory)}
+                  className="btn-secondary"
+                  style={{ padding: '8px 14px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                >
+                  <Edit3 size={14} />
+                  <span>Edit Advisory</span>
+                </button>
+              )}
               <button
                 onClick={() => onRequestReject(advisory)}
                 className="btn-danger"
