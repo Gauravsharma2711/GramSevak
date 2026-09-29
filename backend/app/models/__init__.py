@@ -6,6 +6,7 @@ from backend.app.models.advisory import Advisory
 from backend.app.models.district import District
 from backend.app.models.block import Block
 from backend.app.models.panchayat import Panchayat
+from backend.app.models.panchayat_boundary import PanchayatBoundary
 from backend.app.models.station import StationMetadata
 from backend.app.models.weather_observation import WeatherObservation
 
@@ -17,6 +18,7 @@ __all__ = [
     "District",
     "Block",
     "Panchayat",
+    "PanchayatBoundary",
     "StationMetadata",
     "WeatherObservation",
 ]

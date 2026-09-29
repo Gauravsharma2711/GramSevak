@@ -2,6 +2,7 @@ import '../api/farmer_api_client.dart';
 import '../models/farmer_forecast.dart';
 import '../models/panchayat_item.dart';
 import '../models/hierarchy_models.dart';
+import '../models/location_resolution.dart';
 
 /// Repository layer mediating weather forecast & advisory data retrieval for farmers.
 class FarmerRepository {
@@ -301,5 +302,29 @@ class FarmerRepository {
     }
 
     throw FarmerApiException('Invalid response format from weather server');
+  }
+
+  /// Resolve Gram Panchayat by GPS coordinates via backend geospatial API
+  Future<LocationResolutionResponse> resolvePanchayatByLocation({
+    required double latitude,
+    required double longitude,
+    double? gpsAccuracyMeters,
+  }) async {
+    try {
+      final data = await _apiClient.post(
+        '/location/resolve-panchayat',
+        body: {
+          'latitude': latitude,
+          'longitude': longitude,
+          if (gpsAccuracyMeters != null) 'gps_accuracy_m': gpsAccuracyMeters,
+        },
+      );
+      if (data is Map<String, dynamic>) {
+        return LocationResolutionResponse.fromJson(data);
+      }
+      return LocationResolutionResponse.error('Invalid server response format');
+    } catch (e) {
+      return LocationResolutionResponse.error(e.toString());
+    }
   }
 }

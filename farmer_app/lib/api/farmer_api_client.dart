@@ -92,6 +92,51 @@ class FarmerApiClient {
     }
   }
 
+  /// Generic POST request with JSON payload, timeout, and structured error extraction
+  Future<dynamic> post(
+    String endpoint, {
+    Map<String, dynamic>? body,
+  }) async {
+    final Uri uri = Uri.parse('$baseUrl$endpoint');
+
+    try {
+      final response = await _httpClient
+          .post(
+            uri,
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+            },
+            body: body != null ? jsonEncode(body) : null,
+          )
+          .timeout(timeoutDuration);
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        final decoded = jsonDecode(utf8.decode(response.bodyBytes));
+        return decoded;
+      } else {
+        String errorMsg = 'Server error (${response.statusCode})';
+        try {
+          final errBody = jsonDecode(utf8.decode(response.bodyBytes));
+          if (errBody is Map && errBody['detail'] != null) {
+            errorMsg = errBody['detail'].toString();
+          }
+        } catch (_) {}
+        throw FarmerApiException(errorMsg, response.statusCode);
+      }
+    } on SocketException catch (e) {
+      throw FarmerApiException(
+          'Unable to reach GramSevak server. Please check your network connection: ${e.message}');
+    } on TimeoutException {
+      throw FarmerApiException('Location request timed out. Please try again.');
+    } on FormatException catch (e) {
+      throw FarmerApiException('Invalid response from server: ${e.message}');
+    } catch (e) {
+      if (e is FarmerApiException) rethrow;
+      throw FarmerApiException('Unexpected network error: $e');
+    }
+  }
+
   /// Close underlying HTTP client
   void dispose() {
     _httpClient.close();
