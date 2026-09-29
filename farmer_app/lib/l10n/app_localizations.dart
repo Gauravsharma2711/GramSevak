@@ -94,6 +94,10 @@ class AppLocalizations {
   String get whatYouCanDo => _lookup('what_you_can_do');
   String get recommendedAction => _lookup('recommended_action');
   String get timingOutlook => _lookup('timing_outlook');
+  String get advisoryVersionLabel => _lookup('advisory_version_label');
+  String get approvedOn => _lookup('approved_on');
+  String get warningsTitle => _lookup('warnings_title');
+  String get cachedNotice => _lookup('cached_notice');
   String get imdRainfallScale => _lookup('imd_rainfall_scale');
   String get alertHighRain => _lookup('alert_high_rain');
   String get alertHighRainDesc => _lookup('alert_high_rain_desc');
@@ -177,6 +181,10 @@ class AppLocalizations {
     'what_you_can_do': 'What you can do (Recommended Actions)',
     'recommended_action': 'Recommended Action',
     'timing_outlook': 'Timing & Validity',
+    'advisory_version_label': 'Advisory Version',
+    'approved_on': 'Approved on',
+    'warnings_title': 'Important Operational Warnings',
+    'cached_notice': 'Offline / cached advisory',
     'imd_rainfall_scale': 'IMD Rainfall Classification',
     'alert_high_rain': 'Heavy Rain Weather Advisory',
     'alert_high_rain_desc':
@@ -260,6 +268,10 @@ class AppLocalizations {
     'what_you_can_do': 'तुम्ही काय करू शकता (शिफारस केलेल्या कृती)',
     'recommended_action': 'शिफारस केलेली मुख्य कृती',
     'timing_outlook': 'वेळ आणि वैधता',
+    'advisory_version_label': 'सल्ला आवृत्ती',
+    'approved_on': 'मंजूर दिनांक',
+    'warnings_title': 'महत्त्वाच्या शेती सूचना',
+    'cached_notice': 'ऑफलाइन / कॅश केलेला सल्ला',
     'imd_rainfall_scale': 'IMD पर्जन्यमान वर्गीकरण',
     'alert_high_rain': 'मुसळधार पाऊस सतर्कता सूचना',
     'alert_high_rain_desc':
@@ -343,6 +355,10 @@ class AppLocalizations {
     'what_you_can_do': 'आप क्या कर सकते हैं (अनुशंसित कार्रवाई)',
     'recommended_action': 'अनुशंसित मुख्य कार्रवाई',
     'timing_outlook': 'समय और वैधता',
+    'advisory_version_label': 'सलाह संस्करण',
+    'approved_on': 'स्वीकृत दिनांक',
+    'warnings_title': 'महत्वपूर्ण कृषि सावधानियां',
+    'cached_notice': 'ऑफ़लाइन / कैश की गई सलाह',
     'imd_rainfall_scale': 'IMD वर्षा वर्गीकरण',
     'alert_high_rain': 'भारी वर्षा मौसम चेतावनी',
     'alert_high_rain_desc':

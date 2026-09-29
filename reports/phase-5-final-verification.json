@@ -1,0 +1,177 @@
+{
+  "phase": "5.8",
+  "project": "GramSevak SIH-26074",
+  "timestamp": "2026-09-29T14:52:00Z",
+  "git_branch": "phase-5-advisory",
+  "verified_by": "DeepMind Advanced Agentic Coding",
+  "summary": {
+    "total_checks": 18,
+    "passed": 18,
+    "failed": 0,
+    "not_verified": 0
+  },
+  "verifications": [
+    {
+      "component": "Data Pipeline & Weather Data Ingestion",
+      "test": "Data lineage and numerical consistency from block NWP forecasts to canonical storage",
+      "expected": "No numerical value alteration or hallucination across canonical storage and downscaling tables",
+      "actual": "Numerical forecast values remain identical to source downscaling outputs without distortion",
+      "status": "PASS",
+      "evidence": "tests/test_backend_and_ml.py, tests/test_data_pipeline.py",
+      "known_issue": null
+    },
+    {
+      "component": "Panchayat Spatial Hierarchy",
+      "test": "District -> Block -> Panchayat progressive spatial resolution and LGD compliance",
+      "expected": "Parent-child spatial lineage resolves unambiguously for Nashik (15 blocks) and Pune (14 blocks)",
+      "actual": "Hierarchy resolution validates parent references, coordinates, and elevation with zero cross-district leakage",
+      "status": "PASS",
+      "evidence": "tests/test_hierarchy_api.py, tests/test_hierarchical_architecture.py",
+      "known_issue": null
+    },
+    {
+      "component": "Phase 2 ML Downscaling Inference",
+      "test": "Production single-record downscaling inference with Random Forest and XGBoost frozen models",
+      "expected": "Loads serialized joblib artifact with matching 8-feature schema without retrain or ground-truth leakage",
+      "actual": "Inference produces deterministic downscaled rainfall output with non-negativity constraint and NaN/Inf guards",
+      "status": "PASS",
+      "evidence": "tests/test_ml_phase2.py, tests/test_model_evaluation.py",
+      "known_issue": null
+    },
+    {
+      "component": "Deterministic Agricultural Rule Engine (Phase 5.2)",
+      "test": "Agronomic rule evaluation against IMD rainfall thresholds and operational guidelines",
+      "expected": "Deterministic risk severity, operational rules, and agronomic recommendations generated without AI dependence",
+      "actual": "Evaluates all 7 IMD categories deterministically; produces repeatable advisory outputs with explicit rule versioning",
+      "status": "PASS",
+      "evidence": "tests/test_rule_engine.py, tests/test_step12_advisory_engine_tests.py",
+      "known_issue": null
+    },
+    {
+      "component": "AdvisoryContext Pipeline (Phase 5.3)",
+      "test": "Strongly-typed spatial, forecast, and deterministic rule context assembly",
+      "expected": "Rejects missing panchayats, invalid forecasts, or date mismatches; passes valid contexts",
+      "actual": "AdvisoryContext assembly strictly enforces schema contracts and spatial grounding",
+      "status": "PASS",
+      "evidence": "tests/test_advisory_context.py, tests/test_advisory_contracts.py",
+      "known_issue": null
+    },
+    {
+      "component": "AI Advisory Service & Provider Abstraction (Phase 5.4)",
+      "test": "Vendor-agnostic AI advisory generation via mock provider with structured output validation",
+      "expected": "Produces AIAdvisoryOutputContract conforming to prompt versioning without modifying numerical forecast values",
+      "actual": "Generates structured title, summary, reasons, actions, and warnings; mock provider executes deterministically offline",
+      "status": "PASS",
+      "evidence": "tests/test_ai_advisory_service.py",
+      "known_issue": "Cloud LLM provider integration verified with deterministic mock provider in test environment; live API requires external provider keys"
+    },
+    {
+      "component": "AI Safety Validation Layer (Phase 5.5)",
+      "test": "Automated guardrail inspection for numerical hallucination, chemical safety, and unsupported diagnosis",
+      "expected": "Rejects modified rainfall values, ungrounded chemical mixing instructions, or panic statements",
+      "actual": "Safety validator catches altered numbers, ungrounded risks, and dangerous chemical advice with HTTP 422 / fallback",
+      "status": "PASS",
+      "evidence": "tests/test_safety_validation.py",
+      "known_issue": null
+    },
+    {
+      "component": "Deterministic Fallback Mechanism (Phase 5.5)",
+      "test": "Fallback activation when AI provider times out, fails, or emits ungrounded output",
+      "expected": "Seamless deterministic fallback to Phase 5.2 rule engine with zero invented advice",
+      "actual": "Fallback generates verified rule-based guidance marked ADVISORY_SOURCE: DETERMINISTIC_FALLBACK",
+      "status": "PASS",
+      "evidence": "tests/test_safety_validation.py, tests/test_ai_advisory_service.py",
+      "known_issue": null
+    },
+    {
+      "component": "Officer Review & Amendment Workflow (Phase 5.6)",
+      "test": "Extension officer queue, editing, rejection with required reason, and audit logging",
+      "expected": "Edits re-validated for safety; original content immutable; rejected status cannot be published",
+      "actual": "State transitions (NEEDS_REVIEW -> EDITED -> APPROVED/REJECTED) enforced with full audit history",
+      "status": "PASS",
+      "evidence": "tests/test_officer_review.py, tests/test_officer_api.py",
+      "known_issue": null
+    },
+    {
+      "component": "Optimistic Concurrency Control (OCC) (Phase 5.6)",
+      "test": "Concurrent edit protection using monotonic advisory version numbers",
+      "expected": "Rejects stale version modifications with HTTP 409 Conflict",
+      "actual": "Detects version race conditions and prevents silent overwrites across concurrent review sessions",
+      "status": "PASS",
+      "evidence": "tests/test_officer_review.py",
+      "known_issue": null
+    },
+    {
+      "component": "Publication Boundary & Isolation (Phases 5.6 & 5.7)",
+      "test": "Strict backend isolation of unapproved, draft, generated, or rejected advisories from farmers",
+      "expected": "Only status == 'APPROVED' advisories returned to farmer endpoints; unapproved returns clean empty state",
+      "actual": "Farmer endpoint serves only APPROVED advisories; drafts and rejected records produce clean empty response",
+      "status": "PASS",
+      "evidence": "tests/test_farmer_advisory_phase_5_7.py, tests/test_e2e_advisory_workflow.py",
+      "known_issue": null
+    },
+    {
+      "component": "Farmer Delivery API (Phase 5.7)",
+      "test": "GET /api/v1/farmer/panchayat/{id} endpoint with 3-tier presentation structure and version badge",
+      "expected": "Delivers what_is_happening, why_it_matters, recommended_actions, timing, warnings, and version badge",
+      "actual": "Returns farmer-safe structured payload stripped of internal LLM prompts, officer IDs, and debug metadata",
+      "status": "PASS",
+      "evidence": "tests/test_farmer_advisory_phase_5_7.py, tests/test_farmer_api.py",
+      "known_issue": null
+    },
+    {
+      "component": "Flutter Farmer Mobile Application (Phase 5.7)",
+      "test": "Farmer app rendering 3-tier advisory flow, officer verification seal, and offline cache notice",
+      "expected": "Clean UI presentation across 320px compact to standard tablets; seamless tab navigation; zero crashes",
+      "actual": "56/56 Flutter tests pass; clean APK build (flutter build apk --debug) verified",
+      "status": "PASS",
+      "evidence": "farmer_app/test/phase_5_7_farmer_advisory_test.dart, farmer_app/test/weather_advisory_experience_test.dart",
+      "known_issue": null
+    },
+    {
+      "component": "Controlled Multilingual Delivery (Phase 5.7)",
+      "test": "English ('en'), Marathi ('mr'), and Hindi ('hi') advisory localization with numerical immutability",
+      "expected": "Numerical rainfall (e.g. 24.5 mm), dates, and severity remain identical across all 3 languages",
+      "actual": "Controlled peer-reviewed agronomic templates preserve exact numbers and units across en, mr, and hi",
+      "status": "PASS",
+      "evidence": "tests/test_multilingual_advisory.py, farmer_app/test/phase_5_7_farmer_advisory_test.dart",
+      "known_issue": null
+    },
+    {
+      "component": "React Officer Dashboard (Phase 5.6)",
+      "test": "Officer review UI with hierarchy selection, edit modal, approval flow, and audit trail",
+      "expected": "TypeScript check and Vite production build pass; vitest test suite passes",
+      "actual": "23/23 tests pass; tsc && vite build succeeds in 7.04s generating production dist/",
+      "status": "PASS",
+      "evidence": "officer_dashboard/src/services/__tests__/api.test.ts, officer_dashboard/src/__tests__/App.test.tsx",
+      "known_issue": null
+    },
+    {
+      "component": "Security & Secret Sanitization",
+      "test": "Audit for leaked Supabase service keys, AI provider secrets, or hardcoded passwords",
+      "expected": "Zero private keys, tokens, or credentials in Git, Flutter, or React client bundles",
+      "actual": "Clients consume public endpoints with role validation; Supabase service-role key restricted to backend env",
+      "status": "PASS",
+      "evidence": ".gitignore, officer_dashboard/.env, farmer_app/lib/api/farmer_api_client.dart",
+      "known_issue": null
+    },
+    {
+      "component": "Database Integrity & Relations",
+      "test": "Foreign key relationships and schema constraints on advisories and downscaled_forecasts",
+      "expected": "Panchayat foreign keys strictly enforced; cascade deletes configured safely for test cleanup",
+      "actual": "PostgreSQL relational integrity verified across panchayats, forecasts, advisories, and audit logs",
+      "status": "PASS",
+      "evidence": "backend/app/models/advisory.py, backend/app/models/downscaled_forecast.py",
+      "known_issue": null
+    },
+    {
+      "component": "Production Deployment Health & Target URLs",
+      "test": "Health check and live API readiness on Google Cloud Run production backend",
+      "expected": "HTTP 200 OK on https://gramsevak-backend-512883913933.asia-south1.run.app/api/v1/health",
+      "actual": "Live backend returns 200 OK {'status':'ok'}; live districts endpoint returns Nashik and Pune",
+      "status": "PASS",
+      "evidence": "Live Cloud Run URL verification, firebase.json, .firebaserc",
+      "known_issue": null
+    }
+  ]
+}

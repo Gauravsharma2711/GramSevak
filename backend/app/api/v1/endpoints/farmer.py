@@ -135,40 +135,72 @@ def get_farmer_panchayat_forecast(
         advisory_status = "APPROVED"
         rainfall_category = advisory.rainfall_category or classify_rainfall(rainfall_val, convert_negative_to_zero=True)
         severity = advisory.severity or AdvisorySeverity.LOW
+        approved_data = advisory.approved_content or advisory.edited_content or advisory.original_content or {}
 
-        # Render localized title and points if non-English requested
+        fmt_context = {
+            "panchayat_name": spatial_names["panchayat_name"],
+            "block_name": spatial_names["block_name"],
+            "forecast_date": str(forecast.forecast_date),
+            "lead_days": 0,
+            "rainfall_mm": round(rainfall_val, 1),
+        }
+
+        # Render localized 3-tier content if non-English requested
         if active_lang != DEFAULT_LANGUAGE and rainfall_category in ADVISORY_RULES_REGISTRY:
             rule = ADVISORY_RULES_REGISTRY[rainfall_category]
             try:
                 localized = get_localized_rule_content(rule.rule_id, language=active_lang)
-                fmt_context = {
-                    "panchayat_name": spatial_names["panchayat_name"],
-                    "block_name": spatial_names["block_name"],
-                    "forecast_date": str(forecast.forecast_date),
-                    "lead_days": 0,
-                    "rainfall_mm": round(rainfall_val, 1),
-                }
                 advisory_title = localized.title_template.format(**fmt_context)
                 advisory_points = [p.format(**fmt_context) for p in localized.advisory_points_templates]
+                summary = advisory_title
+                what_is_happening = localized.format_what_is_happening(fmt_context)
+                why_it_matters = localized.format_why_it_matters(fmt_context)
+                recommended_actions = advisory_points
+                timing = localized.format_timing(fmt_context)
+                warnings = localized.format_warnings(fmt_context)
             except Exception as loc_err:
                 logger.warning(f"Failed to format localized advisory ({active_lang}): {loc_err}")
-                advisory_title = advisory.advisory_title
-                advisory_points = [
+                advisory_title = approved_data.get("summary") or advisory.advisory_title
+                advisory_points = approved_data.get("recommended_actions") or [
                     line.lstrip("•").strip()
                     for line in (advisory.advisory_text or "").split("\n")
                     if line.strip()
                 ]
+                summary = advisory_title
+                what_is_happening = approved_data.get("what_is_happening") or f"{rainfall_val:.1f} mm rainfall predicted for {spatial_names['panchayat_name']}."
+                why_it_matters = approved_data.get("why_it_matters") or "Agronomic conditions evaluated by agricultural extension rules."
+                recommended_actions = advisory_points
+                timing = approved_data.get("timing") or "Next 24 to 48 hours"
+                warnings = approved_data.get("warnings") or []
         else:
-            advisory_title = advisory.advisory_title
-            advisory_points = [
+            # English (canonical or officer-approved wording)
+            advisory_title = approved_data.get("summary") or advisory.advisory_title
+            advisory_points = approved_data.get("recommended_actions") or [
                 line.lstrip("•").strip()
                 for line in (advisory.advisory_text or "").split("\n")
                 if line.strip()
             ]
+            summary = advisory_title
+            what_is_happening = approved_data.get("what_is_happening") or f"{rainfall_val:.1f} mm rainfall predicted for {spatial_names['panchayat_name']}."
+            why_it_matters = approved_data.get("why_it_matters") or "Agronomic conditions evaluated by agricultural extension rules."
+            recommended_actions = advisory_points
+            timing = approved_data.get("timing") or "Next 24 to 48 hours"
+            warnings = approved_data.get("warnings") or []
+
+        advisory_version = advisory.version or 1
+        approved_at = advisory.approved_at
     else:
         advisory_status = "NO_APPROVED_ADVISORY"
         advisory_title = None
         advisory_points = []
+        summary = None
+        what_is_happening = None
+        why_it_matters = None
+        recommended_actions = []
+        timing = None
+        warnings = []
+        advisory_version = None
+        approved_at = None
         rainfall_category = classify_rainfall(rainfall_val, convert_negative_to_zero=True)
         rule = ADVISORY_RULES_REGISTRY.get(rainfall_category)
         severity = rule.severity if rule else AdvisorySeverity.LOW
@@ -187,6 +219,14 @@ def get_farmer_panchayat_forecast(
         rainfall_mm=round(rainfall_val, 2),
         rainfall_category=rainfall_category,
         severity=severity,
+        summary=summary,
+        what_is_happening=what_is_happening,
+        why_it_matters=why_it_matters,
+        recommended_actions=recommended_actions,
+        timing=timing,
+        warnings=warnings,
+        advisory_version=advisory_version,
+        approved_at=approved_at,
         advisory_title=advisory_title,
         advisory_points=advisory_points,
         advisory_status=advisory_status,

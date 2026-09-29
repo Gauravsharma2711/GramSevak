@@ -18,6 +18,7 @@ from backend.app.main import app
 from backend.app.core.database import SessionLocal
 from backend.app.models.downscaled_forecast import DownscaledForecast
 from backend.app.models.advisory import Advisory
+from backend.app.models.panchayat import Panchayat
 
 
 client = TestClient(app)
@@ -59,7 +60,8 @@ def test_farmer_forecast_with_approved_advisory(cleanup_farmer_records):
     - Does not expose internal officer_id, database IDs, or credentials
     """
     db = SessionLocal()
-    panchayat_id = 99701
+    p_row = db.query(Panchayat).first()
+    panchayat_id = p_row.id if p_row else 1001
     f_date = date(2026, 9, 15)
 
     try:
@@ -98,8 +100,8 @@ def test_farmer_forecast_with_approved_advisory(cleanup_farmer_records):
         db.refresh(advisory)
         cleanup_farmer_records(a_id=advisory.id)
 
-        # Call endpoint
-        response = client.get(f"/api/v1/farmer/panchayat/{panchayat_id}")
+        # Call endpoint with specific forecast date
+        response = client.get(f"/api/v1/farmer/panchayat/{panchayat_id}?forecast_date={f_date}")
         assert response.status_code == 200, response.text
         data = response.json()
 
@@ -139,7 +141,8 @@ def test_farmer_forecast_without_approved_advisory(cleanup_farmer_records):
     - rainfall_category and severity are classified deterministically
     """
     db = SessionLocal()
-    panchayat_id = 99702
+    p_row = db.query(Panchayat).first()
+    panchayat_id = p_row.id if p_row else 1001
     f_date = date(2026, 9, 16)
 
     try:
@@ -176,8 +179,8 @@ def test_farmer_forecast_without_approved_advisory(cleanup_farmer_records):
         db.refresh(draft_adv)
         cleanup_farmer_records(a_id=draft_adv.id)
 
-        # Call endpoint
-        response = client.get(f"/api/v1/farmer/panchayat/{panchayat_id}")
+        # Call endpoint with specific forecast date
+        response = client.get(f"/api/v1/farmer/panchayat/{panchayat_id}?forecast_date={f_date}")
         assert response.status_code == 200, response.text
         data = response.json()
 
@@ -199,7 +202,8 @@ def test_farmer_forecast_date_filtering(cleanup_farmer_records):
     Test retrieving farmer forecast for a specific forecast_date.
     """
     db = SessionLocal()
-    panchayat_id = 99703
+    p_row = db.query(Panchayat).first()
+    panchayat_id = p_row.id if p_row else 1001
     date_1 = date(2026, 9, 17)
     date_2 = date(2026, 9, 18)
 

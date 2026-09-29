@@ -239,7 +239,16 @@ def generate_advisory(
         # Format full advisory text with clean bullet points
         formatted_text = "\n".join(f"• {point}" for point in advisory_output.advisory_points)
 
-        # 8. Create a DRAFT advisory entity
+        # 8. Create an advisory entity with versioning & provenance
+        orig_content = {
+            "advisory_title": advisory_output.advisory_title,
+            "advisory_text": formatted_text,
+            "severity": advisory_output.severity,
+            "rule_version": advisory_output.rule_version,
+            "advisory_source": "DETERMINISTIC_RULES",
+            "version": 1,
+        }
+
         advisory_record = Advisory(
             panchayat_id=panchayat_id,
             forecast_id=forecast_id,
@@ -251,6 +260,10 @@ def generate_advisory(
             advisory_text=formatted_text,
             rule_version=advisory_output.rule_version,
             status="DRAFT",
+            version=1,
+            advisory_source="DETERMINISTIC_RULES",
+            validation_status="VALIDATED",
+            original_content=orig_content,
             officer_id=None,
             officer_comment=None,
             approved_at=None,
@@ -258,6 +271,25 @@ def generate_advisory(
 
         # 9. Save it to Supabase
         active_db.add(advisory_record)
+        active_db.flush()
+
+        # Audit log for initial advisory generation
+        try:
+            from src.advisory.audit_service import record_advisory_audit_log
+            record_advisory_audit_log(
+                db=active_db,
+                advisory_id=advisory_record.id,
+                action="GENERATED",
+                officer_id="SYSTEM",
+                previous_status=None,
+                new_status="DRAFT",
+                version=1,
+                reason="Initial deterministic advisory generation",
+                details={"rule_version": advisory_output.rule_version},
+            )
+        except Exception as audit_err:
+            logger.warning(f"Failed to record initial advisory audit log: {audit_err}")
+
         active_db.commit()
         active_db.refresh(advisory_record)
 

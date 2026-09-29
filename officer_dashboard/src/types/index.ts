@@ -78,7 +78,16 @@ export interface AdvisoryItem {
   severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
   advisory_title: string;
   advisory_text: string;
-  status: 'DRAFT' | 'APPROVED' | 'REJECTED';
+  status: 'DRAFT' | 'NEEDS_REVIEW' | 'EDITED' | 'APPROVED' | 'REJECTED';
+  version?: number;
+  advisory_source?: string;
+  validation_status?: string;
+  validation_report?: Record<string, any> | null;
+  original_content?: Record<string, any> | null;
+  edited_content?: Record<string, any> | null;
+  approved_content?: Record<string, any> | null;
+  rejection_reason?: string | null;
+  updated_at?: string;
   rule_id?: string;
   rule_version?: string;
   officer_id?: string | null;
@@ -118,11 +127,36 @@ export interface DownscaledForecastDetail {
 export interface OfficerApprovePayload {
   officer_id: string;
   officer_comment?: string;
+  version?: number;
 }
 
 export interface OfficerRejectPayload {
   officer_id: string;
+  reason?: string;
   officer_comment?: string;
+  version?: number;
+}
+
+export interface OfficerEditPayload {
+  officer_id: string;
+  advisory_title: string;
+  advisory_text: string;
+  severity?: 'LOW' | 'MODERATE' | 'HIGH' | 'CRITICAL';
+  officer_comment?: string;
+  version?: number;
+}
+
+export interface AdvisoryAuditLogItem {
+  id: number;
+  advisory_id: number;
+  action: string;
+  officer_id?: string | null;
+  previous_status?: string | null;
+  new_status?: string | null;
+  version: number;
+  reason?: string | null;
+  details?: Record<string, any> | null;
+  created_at: string;
 }
 
 export interface GenerateForecastPayload {

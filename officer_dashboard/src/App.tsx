@@ -24,7 +24,7 @@ import { WorkflowPipeline } from './components/common/WorkflowPipeline';
 import { SkeletonLoader } from './components/common/SkeletonLoader';
 import { ErrorState } from './components/common/ErrorState';
 import { ApiService } from './services/api';
-import { PanchayatItem, AdvisoryItem, DownscaledForecastDetail } from './types';
+import { PanchayatItem, AdvisoryItem, DownscaledForecastDetail, OfficerEditPayload } from './types';
 import { HierarchicalPanchayatSelector } from './components/HierarchicalPanchayatSelector';
 
 export const App: React.FC = () => {
@@ -125,6 +125,21 @@ export const App: React.FC = () => {
       await loadData();
     } catch (err: any) {
       showToast(`Rejection failed: ${err.message}`, 'error');
+      throw err;
+    }
+  };
+
+  // Submit Edit to backend
+  const handleEditAdvisory = async (advisoryId: number, payload: OfficerEditPayload) => {
+    try {
+      const updated = await ApiService.editAdvisory(advisoryId, {
+        ...payload,
+        officer_id: payload.officer_id || 'DR-S-PATIL-AO',
+      });
+      showToast(`Advisory for ${updated.panchayat_name || 'Panchayat'} updated and queued for review.`);
+      await loadData();
+    } catch (err: any) {
+      showToast(`Edit failed: ${err.message}`, 'error');
       throw err;
     }
   };
@@ -450,6 +465,7 @@ export const App: React.FC = () => {
                   advisories={advisories}
                   onApproveAdvisory={handleApproveAdvisory}
                   onRejectAdvisory={handleRejectAdvisory}
+                  onEditAdvisory={handleEditAdvisory}
                 />
               </section>
 
@@ -485,6 +501,7 @@ export const App: React.FC = () => {
                 advisories={advisories}
                 onApproveAdvisory={handleApproveAdvisory}
                 onRejectAdvisory={handleRejectAdvisory}
+                onEditAdvisory={handleEditAdvisory}
               />
             </div>
           )}

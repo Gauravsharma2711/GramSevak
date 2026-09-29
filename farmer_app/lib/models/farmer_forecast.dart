@@ -11,6 +11,14 @@ class FarmerForecast {
   final double rainfallMm;
   final String rainfallCategory;
   final String severity; // 'LOW', 'MODERATE', 'HIGH', 'CRITICAL'
+  final String? summary;
+  final String? whatIsHappening;
+  final String? whyItMatters;
+  final List<String> recommendedActions;
+  final String? timing;
+  final List<String> warnings;
+  final int? advisoryVersion;
+  final String? approvedAt;
   final String? advisoryTitle;
   final List<String> advisoryPoints;
   final String advisoryStatus; // 'APPROVED' or 'NO_APPROVED_ADVISORY'
@@ -26,6 +34,14 @@ class FarmerForecast {
     required this.rainfallMm,
     required this.rainfallCategory,
     required this.severity,
+    this.summary,
+    this.whatIsHappening,
+    this.whyItMatters,
+    this.recommendedActions = const [],
+    this.timing,
+    this.warnings = const [],
+    this.advisoryVersion,
+    this.approvedAt,
     this.advisoryTitle,
     required this.advisoryPoints,
     required this.advisoryStatus,
@@ -38,7 +54,9 @@ class FarmerForecast {
   bool get isApproved => advisoryStatus == 'APPROVED';
 
   /// True if actionable advisory points exist and status is approved.
-  bool get hasActionableAdvice => isApproved && advisoryPoints.isNotEmpty;
+  bool get hasActionableAdvice =>
+      isApproved &&
+      (advisoryPoints.isNotEmpty || recommendedActions.isNotEmpty);
 
   /// Safe factory constructor converting raw backend JSON to immutable FarmerForecast
   factory FarmerForecast.fromJson(Map<String, dynamic> json) {
@@ -61,7 +79,29 @@ class FarmerForecast {
       }
     }
 
-    // 3. Parse available languages
+    // 3. Parse recommended actions safely
+    final List<String> actions = [];
+    if (json['recommended_actions'] is List) {
+      for (final item in (json['recommended_actions'] as List)) {
+        if (item != null && item.toString().trim().isNotEmpty) {
+          actions.add(item.toString().trim());
+        }
+      }
+    }
+    final List<String> finalActions = actions.isNotEmpty ? actions : points;
+    final List<String> finalPoints = points.isNotEmpty ? points : finalActions;
+
+    // 4. Parse warnings safely
+    final List<String> parsedWarnings = [];
+    if (json['warnings'] is List) {
+      for (final item in (json['warnings'] as List)) {
+        if (item != null && item.toString().trim().isNotEmpty) {
+          parsedWarnings.add(item.toString().trim());
+        }
+      }
+    }
+
+    // 5. Parse available languages
     final List<String> languages = [];
     if (json['available_languages'] is List) {
       for (final l in (json['available_languages'] as List)) {
@@ -72,6 +112,11 @@ class FarmerForecast {
       languages.addAll(['en', 'mr', 'hi']);
     }
 
+    final String? parsedSummary =
+        json['summary'] as String? ?? json['advisory_title'] as String?;
+    final String? parsedTitle =
+        json['advisory_title'] as String? ?? parsedSummary;
+
     return FarmerForecast(
       panchayatName: json['panchayat_name'] as String? ?? 'Gram Panchayat',
       blockName: json['block_name'] as String? ?? 'Block',
@@ -80,8 +125,16 @@ class FarmerForecast {
       rainfallMm: rawRainfall,
       rainfallCategory: json['rainfall_category'] as String? ?? 'No rainfall',
       severity: json['severity'] as String? ?? 'LOW',
-      advisoryTitle: json['advisory_title'] as String?,
-      advisoryPoints: points,
+      summary: parsedSummary,
+      whatIsHappening: json['what_is_happening'] as String?,
+      whyItMatters: json['why_it_matters'] as String?,
+      recommendedActions: finalActions,
+      timing: json['timing'] as String?,
+      warnings: parsedWarnings,
+      advisoryVersion: json['advisory_version'] as int?,
+      approvedAt: json['approved_at']?.toString(),
+      advisoryTitle: parsedTitle,
+      advisoryPoints: finalPoints,
       advisoryStatus:
           json['advisory_status'] as String? ?? 'NO_APPROVED_ADVISORY',
       language: json['language'] as String? ?? 'en',
@@ -99,6 +152,14 @@ class FarmerForecast {
     double? rainfallMm,
     String? rainfallCategory,
     String? severity,
+    String? summary,
+    String? whatIsHappening,
+    String? whyItMatters,
+    List<String>? recommendedActions,
+    String? timing,
+    List<String>? warnings,
+    int? advisoryVersion,
+    String? approvedAt,
     String? advisoryTitle,
     List<String>? advisoryPoints,
     String? advisoryStatus,
@@ -114,6 +175,14 @@ class FarmerForecast {
       rainfallMm: rainfallMm ?? this.rainfallMm,
       rainfallCategory: rainfallCategory ?? this.rainfallCategory,
       severity: severity ?? this.severity,
+      summary: summary ?? this.summary,
+      whatIsHappening: whatIsHappening ?? this.whatIsHappening,
+      whyItMatters: whyItMatters ?? this.whyItMatters,
+      recommendedActions: recommendedActions ?? this.recommendedActions,
+      timing: timing ?? this.timing,
+      warnings: warnings ?? this.warnings,
+      advisoryVersion: advisoryVersion ?? this.advisoryVersion,
+      approvedAt: approvedAt ?? this.approvedAt,
       advisoryTitle: advisoryTitle ?? this.advisoryTitle,
       advisoryPoints: advisoryPoints ?? this.advisoryPoints,
       advisoryStatus: advisoryStatus ?? this.advisoryStatus,

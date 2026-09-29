@@ -311,17 +311,20 @@ class _AdvisoryDetailScreenState extends State<AdvisoryDetailScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Icon(Icons.water_drop_outlined,
                               size: 18, color: AppColors.primary700),
                           const SizedBox(width: 10),
                           Expanded(
                             child: Text(
-                              '${widget.forecast.rainfallMm.toStringAsFixed(1)} mm rainfall (${widget.forecast.rainfallCategory.replaceAll('_', ' ')}) predicted for ${widget.forecast.panchayatName}.',
+                              widget.forecast.whatIsHappening ??
+                                  '${widget.forecast.rainfallMm.toStringAsFixed(1)} mm rainfall (${widget.forecast.rainfallCategory.replaceAll('_', ' ')}) predicted for ${widget.forecast.panchayatName}.',
                               style: const TextStyle(
                                 fontSize: 13,
                                 color: AppColors.ink900,
                                 fontWeight: FontWeight.w600,
+                                height: 1.4,
                               ),
                             ),
                           ),
@@ -340,6 +343,25 @@ class _AdvisoryDetailScreenState extends State<AdvisoryDetailScreen> {
                       icon: Icons.psychology_outlined,
                     ),
                     const SizedBox(height: 8),
+                    if (widget.forecast.whyItMatters != null) ...[
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        margin: const EdgeInsets.only(bottom: 10),
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceSubtle,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          widget.forecast.whyItMatters!,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: AppColors.ink900,
+                            fontWeight: FontWeight.w500,
+                            height: 1.4,
+                          ),
+                        ),
+                      ),
+                    ],
                     _buildReasonRow(
                       icon: Icons.grass,
                       title: l10n.sprayingWindow,
@@ -360,7 +382,7 @@ class _AdvisoryDetailScreenState extends State<AdvisoryDetailScreen> {
                     const Divider(color: Color(0xFFF0F4F1), height: 1),
                     const SizedBox(height: 18),
 
-                    // TIER 3: WHAT YOU CAN DO
+                    // TIER 3: WHAT YOU CAN DO (RECOMMENDED ACTIONS)
                     _buildSectionHeader(
                       number: '3',
                       title: l10n.whatYouCanDo,
@@ -368,7 +390,12 @@ class _AdvisoryDetailScreenState extends State<AdvisoryDetailScreen> {
                     ),
                     const SizedBox(height: 12),
 
-                    ...widget.forecast.advisoryPoints.asMap().entries.map(
+                    ...(widget.forecast.recommendedActions.isNotEmpty
+                            ? widget.forecast.recommendedActions
+                            : widget.forecast.advisoryPoints)
+                        .asMap()
+                        .entries
+                        .map(
                       (entry) {
                         final idx = entry.key + 1;
                         final point = entry.value;
@@ -380,7 +407,8 @@ class _AdvisoryDetailScreenState extends State<AdvisoryDetailScreen> {
                               Container(
                                 width: 22,
                                 height: 22,
-                                margin: const EdgeInsets.only(top: 2, right: 10),
+                                margin:
+                                    const EdgeInsets.only(top: 2, right: 10),
                                 decoration: const BoxDecoration(
                                   color: AppColors.primary050,
                                   shape: BoxShape.circle,
@@ -413,26 +441,132 @@ class _AdvisoryDetailScreenState extends State<AdvisoryDetailScreen> {
                       },
                     ),
 
-                    const SizedBox(height: 10),
+                    if (widget.forecast.timing != null) ...[
+                      const SizedBox(height: 10),
+                      const Divider(color: Color(0xFFF0F4F1), height: 1),
+                      const SizedBox(height: 14),
+                      Row(
+                        children: [
+                          const Icon(Icons.schedule,
+                              size: 16, color: AppColors.primary700),
+                          const SizedBox(width: 8),
+                          Text(
+                            l10n.timingOutlook,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.primary700,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              widget.forecast.timing!,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: AppColors.ink700,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+
+                    if (widget.forecast.warnings.isNotEmpty) ...[
+                      const SizedBox(height: 10),
+                      const Divider(color: Color(0xFFF0F4F1), height: 1),
+                      const SizedBox(height: 14),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppColors.warning100,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0xFFFFEEBA)),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                const Icon(Icons.warning_amber_rounded,
+                                    size: 16, color: AppColors.warning600),
+                                const SizedBox(width: 6),
+                                Text(
+                                  l10n.warningsTitle,
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.warning600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            ...widget.forecast.warnings.map(
+                              (w) => Padding(
+                                padding: const EdgeInsets.only(bottom: 4),
+                                child: Text(
+                                  '• $w',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Color(0xFF856404),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+
+                    const SizedBox(height: 14),
                     const Divider(color: Color(0xFFF0F4F1), height: 1),
                     const SizedBox(height: 12),
 
-                    // Official Extension Verification Footer
+                    // Official Extension Verification Footer with Version
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Icon(Icons.verified_user,
-                            size: 14, color: AppColors.primary700),
-                        const SizedBox(width: 6),
                         Expanded(
-                          child: Text(
-                            l10n.verifiedByOfficer,
-                            style: const TextStyle(
-                              fontSize: 11,
-                              color: AppColors.ink500,
-                              fontWeight: FontWeight.w500,
-                            ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.verified_user,
+                                  size: 14, color: AppColors.primary700),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  l10n.verifiedByOfficer,
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    color: AppColors.ink500,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
+                        if (widget.forecast.advisoryVersion != null)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary050,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              'v${widget.forecast.advisoryVersion}',
+                              style: const TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.primary700,
+                              ),
+                            ),
+                          ),
                       ],
                     ),
                   ],

@@ -79,7 +79,7 @@ class AdvisoryResponse(BaseModel):
     )
     status: str = Field(
         ...,
-        description="Workflow review status: DRAFT, APPROVED, PUBLISHED, or REJECTED",
+        description="Workflow review status: DRAFT, NEEDS_REVIEW, EDITED, APPROVED, PUBLISHED, or REJECTED",
         examples=["DRAFT"],
     )
     officer_id: Optional[str] = Field(
@@ -100,6 +100,45 @@ class AdvisoryResponse(BaseModel):
     created_at: Optional[datetime] = Field(
         None,
         description="Timestamp when the advisory draft was generated",
+    )
+    version: int = Field(
+        default=1,
+        description="Advisory version counter for optimistic concurrency",
+        examples=[1],
+    )
+    advisory_source: Optional[str] = Field(
+        None,
+        description="Source of advisory (DETERMINISTIC_RULES, AI_AUGMENTED, DETERMINISTIC_FALLBACK, OFFICER_AMENDED)",
+        examples=["DETERMINISTIC_RULES"],
+    )
+    validation_status: Optional[str] = Field(
+        None,
+        description="Automated safety validation status (VALIDATED, FAILED_VALIDATION)",
+        examples=["VALIDATED"],
+    )
+    validation_report: Optional[dict] = Field(
+        None,
+        description="Structured safety validation report details",
+    )
+    original_content: Optional[dict] = Field(
+        None,
+        description="Immutable snapshot of the original generated/validated advisory",
+    )
+    edited_content: Optional[dict] = Field(
+        None,
+        description="Snapshot of the most recent officer edited advisory content",
+    )
+    approved_content: Optional[dict] = Field(
+        None,
+        description="Snapshot of the finalized approved content for farmers",
+    )
+    rejection_reason: Optional[str] = Field(
+        None,
+        description="Formal justification recorded if rejected",
+    )
+    updated_at: Optional[datetime] = Field(
+        None,
+        description="Timestamp of last content or status update",
     )
     language: str = Field(
         default="en",
@@ -208,7 +247,7 @@ class PanchayatAdvisoryRetrievalResponse(BaseModel):
 
 class OfficerApproveRequest(BaseModel):
     """
-    Request payload for extension officer approval of a draft agricultural advisory.
+    Request payload for extension officer approval of an agricultural advisory.
     """
     model_config = ConfigDict(from_attributes=True)
 
@@ -225,11 +264,18 @@ class OfficerApproveRequest(BaseModel):
         description="Optional officer validation remarks, field notes, or guidance additions",
         examples=["Verified against ground conditions. Advisory approved for distribution."],
     )
+    version: Optional[int] = Field(
+        None,
+        ge=1,
+        description="Expected advisory version for optimistic concurrency control",
+        examples=[1],
+    )
 
 
 class OfficerRejectRequest(BaseModel):
     """
-    Request payload for extension officer rejection of a draft agricultural advisory.
+    Request payload for extension officer rejection of an agricultural advisory.
+    A rejection reason is strictly required.
     """
     model_config = ConfigDict(from_attributes=True)
 
@@ -240,10 +286,86 @@ class OfficerRejectRequest(BaseModel):
         description="Identifier of the reviewing extension officer",
         examples=["OFFICER_BAGLAN_01"],
     )
+    reason: Optional[str] = Field(
+        None,
+        max_length=1000,
+        description="Explicit rationale or reason for rejecting the advisory",
+        examples=["Rainfall forecast adjusted based on local micro-climate observations."],
+    )
     officer_comment: Optional[str] = Field(
         None,
         max_length=1000,
-        description="Reason or remarks for advisory rejection",
+        description="Remarks or notes for rejection",
         examples=["Rainfall forecast adjusted based on local micro-climate observations; draft discarded."],
     )
+    version: Optional[int] = Field(
+        None,
+        ge=1,
+        description="Expected advisory version for optimistic concurrency control",
+        examples=[1],
+    )
 
+
+class OfficerEditRequest(BaseModel):
+    """
+    Request payload for extension officer editing of advisory wording and guidance.
+    Forecast numbers cannot be modified through advisory editing.
+    """
+    model_config = ConfigDict(from_attributes=True)
+
+    officer_id: str = Field(
+        ...,
+        min_length=1,
+        max_length=100,
+        description="Identifier of the editing extension officer",
+        examples=["OFFICER_BAGLAN_01"],
+    )
+    advisory_title: str = Field(
+        ...,
+        min_length=5,
+        max_length=255,
+        description="Updated advisory title",
+        examples=["Moderate Rainfall Advisory for Baglan - Drainage & Irrigation Suspension"],
+    )
+    advisory_text: str = Field(
+        ...,
+        min_length=10,
+        max_length=2500,
+        description="Updated actionable agricultural recommendations",
+        examples=["• Suspend all irrigation operations as anticipated rainfall will meet crop water requirements."],
+    )
+    severity: Optional[str] = Field(
+        None,
+        description="Optional adjusted severity level (LOW, MODERATE, HIGH, CRITICAL)",
+        examples=["MODERATE"],
+    )
+    officer_comment: Optional[str] = Field(
+        None,
+        max_length=1000,
+        description="Reason or remarks describing the officer edit",
+        examples=["Adjusted wording to emphasize orchard drainage in clayey soils."],
+    )
+    version: Optional[int] = Field(
+        None,
+        ge=1,
+        description="Expected current advisory version for optimistic concurrency control",
+        examples=[1],
+    )
+
+
+class AdvisoryAuditLogResponse(BaseModel):
+    """
+    Audit log entry representing an immutable recorded event in the advisory review lifecycle.
+    """
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int = Field(..., description="Unique audit event ID")
+    advisory_id: int = Field(..., description="Target advisory ID")
+    action: str = Field(..., description="Action name: GENERATED, VALIDATED, REVIEWED, EDITED, APPROVED, REJECTED, PUBLISHED")
+    officer_id: Optional[str] = Field(None, description="Acting officer identifier or SYSTEM")
+    previous_status: Optional[str] = Field(None, description="Workflow status before action")
+    new_status: Optional[str] = Field(None, description="Workflow status after action")
+    version: int = Field(1, description="Advisory version at time of action")
+    reason: Optional[str] = Field(None, description="Reason or comment associated with action")
+    details: Optional[dict] = Field(None, description="Structured diff or validation report")
+    created_at: datetime = Field(..., description="Timestamp of the action")
