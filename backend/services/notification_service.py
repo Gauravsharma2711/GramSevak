@@ -157,6 +157,10 @@ class NotificationService:
         if not advisory.panchayat_id:
             return False, "Advisory is missing target Panchayat identity."
 
+        panchayat_exists = session.query(Panchayat.id).filter(Panchayat.id == advisory.panchayat_id).first()
+        if not panchayat_exists:
+            return False, f"Target Panchayat ID '{advisory.panchayat_id}' does not exist in hierarchy."
+
         # Verify latest version invariant: check if a newer approved version exists
         newer_version_exists = session.query(Advisory).filter(
             Advisory.panchayat_id == advisory.panchayat_id,

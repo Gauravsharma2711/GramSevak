@@ -359,8 +359,8 @@ export class ApiService {
       return {
         ...item,
         panchayat_name: item.panchayat_name || p?.panchayat_name || `Panchayat ${item.panchayat_id}`,
-        block_name: item.block_name || p?.block_name || 'Baglan',
-        district_name: item.district_name || p?.district_name || 'Nashik',
+        block_name: item.block_name || p?.block_name || '',
+        district_name: item.district_name || p?.district_name || '',
         elevation_m: item.elevation_m ?? p?.elevation_m ?? 550,
         latitude: item.latitude ?? p?.latitude ?? 20.6385,
         longitude: item.longitude ?? p?.longitude ?? 74.1201,
@@ -390,8 +390,8 @@ export class ApiService {
     return {
       ...item,
       panchayat_name: item.panchayat_name || p?.panchayat_name || `Panchayat ${item.panchayat_id}`,
-      block_name: item.block_name || p?.block_name || 'Baglan',
-      district_name: item.district_name || p?.district_name || 'Nashik',
+      block_name: item.block_name || p?.block_name || '',
+      district_name: item.district_name || p?.district_name || '',
       elevation_m: item.elevation_m ?? p?.elevation_m ?? 550,
       latitude: item.latitude ?? p?.latitude ?? 20.6385,
       longitude: item.longitude ?? p?.longitude ?? 74.1201,

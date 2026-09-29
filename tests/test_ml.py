@@ -43,7 +43,7 @@ def test_extract_features():
     for col in FEATURE_COLUMNS:
         assert col in X.columns
     assert y.iloc[0] == 14.2
-    assert X["month"].iloc[0] == 9
+    assert X["target_month"].iloc[0] == 9
     assert X["lead_days"].iloc[0] == 1
 
 
