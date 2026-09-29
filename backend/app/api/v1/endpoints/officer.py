@@ -26,6 +26,8 @@ from src.advisory.audit_service import (
     validate_officer_authorization,
     validate_officer_edit_safety,
 )
+from backend.services.notification_service import get_notification_service
+
 
 logger = logging.getLogger(__name__)
 
@@ -460,6 +462,17 @@ def approve_advisory(
         f"[OFFICER_ADVISORY_APPROVED] advisory_id={advisory_id} officer_id=\"{advisory.officer_id}\" "
         f"panchayat_id={advisory.panchayat_id} approved_at={advisory.approved_at} version={advisory.version}"
     )
+
+    # Phase 6.2: Automatically evaluate and dispatch location alerts for approved advisory
+    try:
+        notif_service = get_notification_service()
+        notif_service.process_advisory_alerts(db=db, advisory_id=advisory.id)
+    except Exception as notif_err:
+        logger.error(
+            f"[OFFICER_APPROVE_NOTIFICATION_DISPATCH_ERROR] advisory_id={advisory.id}: {notif_err}",
+            exc_info=True,
+        )
+
     return advisory
 
 

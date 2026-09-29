@@ -6,7 +6,6 @@ import 'package:http/testing.dart';
 
 import 'package:farmer_app/api/farmer_api_client.dart';
 import 'package:farmer_app/models/panchayat_item.dart';
-import 'package:farmer_app/models/hierarchy_models.dart';
 import 'package:farmer_app/models/location_resolution.dart';
 import 'package:farmer_app/repositories/farmer_repository.dart';
 import 'package:farmer_app/services/device_location_service.dart';
@@ -353,12 +352,11 @@ void main() {
 class _StubLocationService implements DeviceLocationService {
   final bool serviceEnabled;
   final DeviceLocationPermission requestPermissionResult;
-  final DeviceCoordinates? coordinates;
+  final DeviceCoordinates? coordinates = null;
 
   _StubLocationService({
     required this.serviceEnabled,
     required this.requestPermissionResult,
-    this.coordinates,
   });
 
   @override

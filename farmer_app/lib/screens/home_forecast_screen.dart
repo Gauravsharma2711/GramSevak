@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/farmer_forecast.dart';
+import '../models/notification_item.dart';
 import '../widgets/weather_hero_card.dart';
 import '../widgets/advisory_card.dart';
 import '../widgets/metric_tile.dart';
@@ -12,6 +13,7 @@ class HomeForecastScreen extends StatefulWidget {
   final VoidCallback onSwitchPanchayat;
   final VoidCallback? onViewForecastDetails;
   final VoidCallback? onViewAdvisoryDetails;
+  final List<FarmerNotification> alerts;
 
   const HomeForecastScreen({
     super.key,
@@ -20,6 +22,7 @@ class HomeForecastScreen extends StatefulWidget {
     required this.onSwitchPanchayat,
     this.onViewForecastDetails,
     this.onViewAdvisoryDetails,
+    this.alerts = const [],
   });
 
   @override
@@ -124,6 +127,11 @@ class _HomeForecastScreenState extends State<HomeForecastScreen> {
                 ),
               ],
             ),
+
+            if (widget.alerts.isNotEmpty) ...[
+              const SizedBox(height: 14),
+              _buildAlertBanner(widget.alerts.first),
+            ],
 
             const SizedBox(height: 16),
 
@@ -344,6 +352,85 @@ class _HomeForecastScreenState extends State<HomeForecastScreen> {
                   ),
                 ],
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAlertBanner(FarmerNotification alert) {
+    final isSevere = alert.severity == 'HIGH';
+    return InkWell(
+      onTap: widget.onViewAdvisoryDetails,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: isSevere ? AppColors.danger100 : AppColors.warning100,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSevere ? AppColors.danger600 : AppColors.warning600,
+            width: 1.2,
+          ),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              isSevere ? Icons.warning_amber_rounded : Icons.notifications_active_outlined,
+              color: isSevere ? AppColors.danger600 : AppColors.warning600,
+              size: 24,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          alert.title,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                            color: isSevere ? AppColors.danger600 : AppColors.warning600,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        alert.severity,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: isSevere ? AppColors.danger600 : AppColors.warning600,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    alert.message,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.ink700,
+                      height: 1.3,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 6),
+            const Icon(
+              Icons.chevron_right,
+              color: AppColors.ink500,
+              size: 20,
             ),
           ],
         ),

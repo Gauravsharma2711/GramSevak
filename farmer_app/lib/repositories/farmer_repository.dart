@@ -3,6 +3,7 @@ import '../models/farmer_forecast.dart';
 import '../models/panchayat_item.dart';
 import '../models/hierarchy_models.dart';
 import '../models/location_resolution.dart';
+import '../models/notification_item.dart';
 
 /// Repository layer mediating weather forecast & advisory data retrieval for farmers.
 class FarmerRepository {
@@ -325,6 +326,56 @@ class FarmerRepository {
       return LocationResolutionResponse.error('Invalid server response format');
     } catch (e) {
       return LocationResolutionResponse.error(e.toString());
+    }
+  }
+
+  /// Register farmer device token for push alerts scoped to active Panchayat
+  Future<bool> registerDeviceToken({
+    required String deviceToken,
+    required int panchayatId,
+    String platform = 'android',
+    String languagePreference = 'en',
+  }) async {
+    try {
+      final res = await _apiClient.post(
+        '/farmer/device-token',
+        body: {
+          'device_token': deviceToken,
+          'panchayat_id': panchayatId,
+          'platform': platform,
+          'language_preference': languagePreference,
+        },
+      );
+      if (res is Map && res['status'] == 'registered') {
+        return true;
+      }
+      return false;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Retrieve active notifications / alerts for a specific Panchayat
+  Future<List<FarmerNotification>> getPanchayatAlerts({
+    required int panchayatId,
+    int limit = 10,
+  }) async {
+    try {
+      final res = await _apiClient.get(
+        '/farmer/notifications',
+        queryParams: {
+          'panchayat_id': panchayatId.toString(),
+          'limit': limit.toString(),
+        },
+      );
+      if (res is List) {
+        return res
+            .map((item) => FarmerNotification.fromJson(item as Map<String, dynamic>))
+            .toList();
+      }
+      return [];
+    } catch (_) {
+      return [];
     }
   }
 }
