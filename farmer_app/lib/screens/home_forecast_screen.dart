@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/farmer_forecast.dart';
 import '../models/notification_item.dart';
+import '../models/panchayat_item.dart';
 import '../widgets/weather_hero_card.dart';
 import '../widgets/advisory_card.dart';
 import '../widgets/metric_tile.dart';
@@ -14,6 +15,9 @@ class HomeForecastScreen extends StatefulWidget {
   final VoidCallback? onViewForecastDetails;
   final VoidCallback? onViewAdvisoryDetails;
   final List<FarmerNotification> alerts;
+  final PanchayatItem? contextualPanchayat;
+  final VoidCallback? onAcceptContextualPanchayat;
+  final VoidCallback? onDismissContextualPanchayat;
 
   const HomeForecastScreen({
     super.key,
@@ -23,6 +27,9 @@ class HomeForecastScreen extends StatefulWidget {
     this.onViewForecastDetails,
     this.onViewAdvisoryDetails,
     this.alerts = const [],
+    this.contextualPanchayat,
+    this.onAcceptContextualPanchayat,
+    this.onDismissContextualPanchayat,
   });
 
   @override
@@ -127,6 +134,11 @@ class _HomeForecastScreenState extends State<HomeForecastScreen> {
                 ),
               ],
             ),
+
+            if (widget.contextualPanchayat != null) ...[
+              const SizedBox(height: 12),
+              _buildContextualLocationBanner(widget.contextualPanchayat!),
+            ],
 
             if (widget.alerts.isNotEmpty) ...[
               const SizedBox(height: 14),
@@ -434,6 +446,82 @@ class _HomeForecastScreenState extends State<HomeForecastScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildContextualLocationBanner(PanchayatItem contextual) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFEFF6FF), // soft blue background
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: const Color(0xFFBFDBFE),
+          width: 1.2,
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const Icon(
+            Icons.my_location,
+            color: Color(0xFF1D4ED8),
+            size: 22,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Detected near ${contextual.panchayatName}',
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF1E3A8A),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '${contextual.blockName} Block. View weather for this location?',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFF3B82F6),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          TextButton(
+            onPressed: widget.onAcceptContextualPanchayat,
+            style: TextButton.styleFrom(
+              backgroundColor: const Color(0xFF1D4ED8),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text(
+              'Switch',
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+            ),
+          ),
+          const SizedBox(width: 4),
+          IconButton(
+            icon: const Icon(Icons.close, size: 18, color: Color(0xFF6B7280)),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+            onPressed: widget.onDismissContextualPanchayat,
+            tooltip: 'Keep saved village',
+          ),
+        ],
       ),
     );
   }

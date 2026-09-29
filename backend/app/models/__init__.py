@@ -10,6 +10,7 @@ from backend.app.models.panchayat_boundary import PanchayatBoundary
 from backend.app.models.station import StationMetadata
 from backend.app.models.weather_observation import WeatherObservation
 from backend.app.models.notification import FarmerDevice, NotificationEvent, NotificationDelivery
+from backend.app.models.farmer_preference import FarmerPreference
 
 __all__ = [
     "PanchayatWeatherData",
@@ -25,4 +26,5 @@ __all__ = [
     "FarmerDevice",
     "NotificationEvent",
     "NotificationDelivery",
+    "FarmerPreference",
 ]

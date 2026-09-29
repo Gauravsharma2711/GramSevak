@@ -4,10 +4,12 @@ import '../models/panchayat_item.dart';
 import '../models/hierarchy_models.dart';
 import '../models/location_resolution.dart';
 import '../models/notification_item.dart';
+import '../models/farmer_preference.dart';
 
 /// Repository layer mediating weather forecast & advisory data retrieval for farmers.
 class FarmerRepository {
   final FarmerApiClient _apiClient;
+  FarmerPreferences? _cachedPreferences;
 
   FarmerRepository({FarmerApiClient? apiClient})
       : _apiClient = apiClient ?? FarmerApiClient();
@@ -377,5 +379,71 @@ class FarmerRepository {
     } catch (_) {
       return [];
     }
+  }
+
+  /// Retrieve authenticated farmer preferences from backend with offline fallback
+  Future<FarmerPreferences?> getFarmerPreferences({required String farmerId}) async {
+    try {
+      final res = await _apiClient.get(
+        '/farmer/preferences',
+        headers: {'X-Farmer-Id': farmerId},
+      );
+      if (res is Map<String, dynamic>) {
+        final prefs = FarmerPreferences.fromJson(res);
+        _cachedPreferences = prefs;
+        return prefs;
+      }
+    } catch (e) {
+      if (e is FarmerApiException && e.statusCode == 404) {
+        return null;
+      }
+      if (_cachedPreferences != null && _cachedPreferences!.farmerId == farmerId) {
+        return _cachedPreferences;
+      }
+    }
+    return _cachedPreferences;
+  }
+
+  /// Create or update authenticated farmer preferences on backend
+  Future<FarmerPreferences> updateFarmerPreferences({
+    required String farmerId,
+    required int panchayatId,
+    required String language,
+  }) async {
+    try {
+      final res = await _apiClient.put(
+        '/farmer/preferences',
+        headers: {'X-Farmer-Id': farmerId},
+        body: {
+          'farmer_id': farmerId,
+          'panchayat_id': panchayatId,
+          'preferred_language': language,
+        },
+      );
+      if (res is Map<String, dynamic>) {
+        final prefs = FarmerPreferences.fromJson(res);
+        _cachedPreferences = prefs;
+        return prefs;
+      }
+    } catch (e) {
+      // Offline fallback: construct local preference using known hierarchy
+      final matchedP = fallbackPanchayats.firstWhere(
+        (p) => p.panchayatId == panchayatId,
+        orElse: () => fallbackPanchayats.first,
+      );
+      final localPrefs = FarmerPreferences(
+        farmerId: farmerId,
+        panchayatId: panchayatId,
+        preferredLanguage: language,
+        panchayatName: matchedP.panchayatName,
+        blockName: matchedP.blockName,
+        districtName: matchedP.districtName,
+        updatedAt: DateTime.now(),
+        hasCompletedSetup: true,
+      );
+      _cachedPreferences = localPrefs;
+      return localPrefs;
+    }
+    throw FarmerApiException('Invalid preference response from server');
   }
 }
