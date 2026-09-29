@@ -110,6 +110,14 @@ class AppLocalizations {
   String get tapToListen => _lookup('tap_to_listen');
   String get listenAudio => _lookup('listen_audio');
   String get listeningAudio => _lookup('listening_audio');
+  String get pauseAudio => _lookup('pause_audio');
+  String get resumeAudio => _lookup('resume_audio');
+  String get stopAudio => _lookup('stop_audio');
+  String get replayAudio => _lookup('replay_audio');
+  String get ttsUnsupportedLanguage => _lookup('tts_unsupported_language');
+  String get ttsPaused => _lookup('tts_paused');
+  String get ttsPlaying => _lookup('tts_playing');
+  String get ttsCompleted => _lookup('tts_completed');
   String get kisanCallCentre => _lookup('kisan_call_centre');
   String get kisanCallCentreSub => _lookup('kisan_call_centre_sub');
 
@@ -196,6 +204,14 @@ class AppLocalizations {
     'tap_to_listen': 'Tap to listen to verified guidance',
     'listen_audio': 'Listen',
     'listening_audio': 'Listening...',
+    'pause_audio': 'Pause',
+    'resume_audio': 'Resume',
+    'stop_audio': 'Stop',
+    'replay_audio': 'Replay',
+    'tts_unsupported_language': 'Audio is not available for this language on your device.',
+    'tts_paused': 'Audio paused',
+    'tts_playing': 'Reading advisory aloud...',
+    'tts_completed': 'Audio playback complete',
     'kisan_call_centre': 'Kisan Call Centre (Toll Free)',
     'kisan_call_centre_sub':
         'Call 1800-180-1551 for direct agronomist support',
@@ -283,6 +299,14 @@ class AppLocalizations {
     'tap_to_listen': 'प्रमाणित सल्ला ऐकण्यासाठी टॅप करा',
     'listen_audio': 'ऐका',
     'listening_audio': 'सुरू आहे...',
+    'pause_audio': 'थांबवा',
+    'resume_audio': 'पुढे चालू ठेवा',
+    'stop_audio': 'बंद करा',
+    'replay_audio': 'पुन्हा ऐका',
+    'tts_unsupported_language': 'या भाषेसाठी ऑडिओ आपल्या डिव्हाइसवर उपलब्ध नाही.',
+    'tts_paused': 'ऑडिओ थांबवला',
+    'tts_playing': 'सल्ला वाचत आहे...',
+    'tts_completed': 'ऑडिओ वाचन पूर्ण झाले',
     'kisan_call_centre': 'किसान कॉल सेंटर (टोल फ्री)',
     'kisan_call_centre_sub':
         'थेट कृषी तज्ञांच्या मदतीसाठी १८००-१८०-१५५१ वर कॉल करा',
@@ -370,6 +394,14 @@ class AppLocalizations {
     'tap_to_listen': 'सत्यापित सलाह सुनने के लिए टैप करें',
     'listen_audio': 'सुनें',
     'listening_audio': 'चल रहा है...',
+    'pause_audio': 'रोकें',
+    'resume_audio': 'जारी रखें',
+    'stop_audio': 'बंद करें',
+    'replay_audio': 'फिर से सुनें',
+    'tts_unsupported_language': 'इस भाषा के लिए ऑडियो आपके डिवाइस पर उपलब्ध नहीं है।',
+    'tts_paused': 'ऑडियो रोका गया',
+    'tts_playing': 'सलाह पढ़ी जा रही है...',
+    'tts_completed': 'ऑडियो वाचन पूरा हुआ',
     'kisan_call_centre': 'किसान कॉल सेंटर (टोल फ्री)',
     'kisan_call_centre_sub':
         'कृषि विशेषज्ञ सहायता के लिए 1800-180-1551 पर कॉल करें',
