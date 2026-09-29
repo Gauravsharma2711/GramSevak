@@ -56,6 +56,21 @@ if origins:
         allow_headers=["*"],
     )
 
+from sqlalchemy.exc import SQLAlchemyError
+
+# Structured database exception handler: guarantees zero leakage of SQL queries, table schemas, or DB credentials
+@app.exception_handler(SQLAlchemyError)
+async def sqlalchemy_exception_handler(request: Request, exc: SQLAlchemyError):
+    logger.error(
+        f"Database exception on {request.method} {request.url.path}: {exc}",
+        exc_info=True,
+    )
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={"detail": "A database error occurred while processing the request. Please try again later."},
+    )
+
+
 # Structured unhandled exception handler: logs error server-side, never exposes stack trace or secrets to clients
 @app.exception_handler(Exception)
 async def unhandled_exception_handler(request: Request, exc: Exception):

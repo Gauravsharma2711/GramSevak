@@ -137,7 +137,11 @@ export const AdvisoryDetailModal: React.FC<AdvisoryDetailModalProps> = ({
                 <SeverityBadge severity={advisory.severity} size="sm" />
               </div>
               <p style={{ fontSize: '12px', color: 'var(--ink-500)', marginTop: '2px' }}>
-                {advisory.block_name || 'Baglan'} Block • {advisory.district_name || 'Nashik'} District • Panchayat ID #{advisory.panchayat_id}
+                {[
+                  advisory.block_name ? `${advisory.block_name} Block` : null,
+                  advisory.district_name ? `${advisory.district_name} District` : null,
+                  `Panchayat ID #${advisory.panchayat_id}`
+                ].filter(Boolean).join(' • ')}
               </p>
             </div>
           </div>

@@ -70,6 +70,6 @@ def check_db_connection() -> Dict[str, Any]:
             "status": "unhealthy",
             "database_type": "PostgreSQL (Supabase)",
             "tables": {},
-            "error": str(e),
+            "error": "Database service is unreachable or encountering connection errors.",
             "message": "Database connection failed."
         }
