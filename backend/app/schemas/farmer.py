@@ -2,7 +2,7 @@
 Pydantic Schemas for Farmer-Facing Forecast & Advisory Endpoints.
 """
 
-from datetime import date
+from datetime import date, datetime
 from typing import List, Optional
 from pydantic import BaseModel, Field, ConfigDict
 
@@ -49,6 +49,48 @@ class FarmerForecastResponse(BaseModel):
         ...,
         description="Agricultural action urgency level (LOW, MODERATE, HIGH, CRITICAL)",
         examples=["MODERATE"],
+    )
+    summary: Optional[str] = Field(
+        None,
+        description="Executive one-sentence advisory summary for farmers",
+        examples=["Moderate Rainfall Advisory for Ajmer Saundane - Drainage Preparedness & Irrigation Suspension"],
+    )
+    what_is_happening: Optional[str] = Field(
+        None,
+        description="Meteorological condition explanation tied to exact downscaled rainfall metrics",
+        examples=["18.5 mm moderate rainfall predicted for Ajmer Saundane."],
+    )
+    why_it_matters: Optional[str] = Field(
+        None,
+        description="Agronomic risk implications tied to crop operations",
+        examples=["Rainfall satisfies crop water demands; waterlogging and pesticide wash-off risks increase."],
+    )
+    recommended_actions: List[str] = Field(
+        default_factory=list,
+        description="Specific verified action items for the farmer",
+        examples=[[
+            "Temporarily suspend all irrigation operations as rainfall will satisfy crop water demand.",
+            "Inspect and clean field drainage channels to ensure free flow and prevent water stagnation.",
+        ]],
+    )
+    timing: Optional[str] = Field(
+        None,
+        description="Operational timing window for agricultural action",
+        examples=["Next 24 to 48 hours"],
+    )
+    warnings: List[str] = Field(
+        default_factory=list,
+        description="Actionable safety warnings or hazard notices",
+        examples=[["Do not apply chemical fertilizers immediately before rainfall."]],
+    )
+    advisory_version: Optional[int] = Field(
+        None,
+        description="Optimistic concurrency version of the approved advisory",
+        examples=[1],
+    )
+    approved_at: Optional[datetime] = Field(
+        None,
+        description="Timestamp when the agricultural extension officer approved the advisory",
     )
     advisory_title: Optional[str] = Field(
         None,

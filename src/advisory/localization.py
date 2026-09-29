@@ -62,6 +62,32 @@ class LocalizedRuleContent:
     """Localized templates for a specific rule."""
     title_template: str
     advisory_points_templates: List[str]
+    what_is_happening_template: Optional[str] = None
+    why_it_matters_template: Optional[str] = None
+    timing_template: Optional[str] = None
+    warnings_templates: Optional[List[str]] = None
+
+    def format_what_is_happening(self, fmt_context: dict) -> str:
+        if self.what_is_happening_template:
+            return self.what_is_happening_template.format(**fmt_context)
+        rainfall = fmt_context.get("rainfall_mm", 0.0)
+        panchayat = fmt_context.get("panchayat_name", "Panchayat")
+        return f"{rainfall:.1f} mm rainfall predicted for {panchayat}."
+
+    def format_why_it_matters(self, fmt_context: dict) -> str:
+        if self.why_it_matters_template:
+            return self.why_it_matters_template.format(**fmt_context)
+        return "Agronomic conditions evaluated and verified by local agricultural extension rules."
+
+    def format_timing(self, fmt_context: dict) -> str:
+        if self.timing_template:
+            return self.timing_template.format(**fmt_context)
+        return "Next 24 to 48 hours"
+
+    def format_warnings(self, fmt_context: dict) -> List[str]:
+        if self.warnings_templates:
+            return [w.format(**fmt_context) for w in self.warnings_templates]
+        return []
 
 
 # =============================================================================
@@ -78,6 +104,10 @@ MULTILINGUAL_RULE_CATALOG: Dict[str, Dict[str, LocalizedRuleContent]] = {
                 "Inspect irrigation channels, drip lines, and pumps for leaks to optimize water conservation.",
                 "Regularly assess soil moisture depth in shallow-rooted and newly transplanted crops.",
             ],
+            what_is_happening_template="{rainfall_mm:.1f} mm dry weather conditions predicted for {panchayat_name}.",
+            why_it_matters_template="Dry weather provides optimal conditions for weeding and intercultural operations; requires proactive irrigation management.",
+            timing_template="Next 24 to 48 hours",
+            warnings_templates=[],
         ),
         "mr": LocalizedRuleContent(
             title_template="{panchayat_name} साठी कोरडे हवामान कृषी सल्ला - नियमित शेती व्यवस्थापन",
@@ -87,6 +117,10 @@ MULTILINGUAL_RULE_CATALOG: Dict[str, Dict[str, LocalizedRuleContent]] = {
                 "पाण्याचा अपव्यय टाळण्यासाठी ठिबक सिंचन, तुषार संच व पाईपलाईनची तपासणी करून गळती दुरुस्त करावी.",
                 "उथळ मुळे असलेल्या व नवीन लागवड केलेल्या पिकांमधील ओलाव्याची नियमित पाहणी करावी.",
             ],
+            what_is_happening_template="{panchayat_name} साठी {rainfall_mm:.1f} मिमी कोरड्या हवामानाचा अंदाज आहे.",
+            why_it_matters_template="कोरड्या हवामानामुळे आंतरमशागत व शेतीकामे सुरळीत करता येतील; जमिनीतील ओलावा पाहून सिंचनाचे नियोजन आवश्यक आहे.",
+            timing_template="पुढील २४ ते ४८ तास",
+            warnings_templates=[],
         ),
         "hi": LocalizedRuleContent(
             title_template="{panchayat_name} के लिए शुष्क मौसम कृषि सलाह - सामान्य कृषि प्रबंधन",
@@ -96,6 +130,10 @@ MULTILINGUAL_RULE_CATALOG: Dict[str, Dict[str, LocalizedRuleContent]] = {
                 "पानी की बचत के लिए ड्रिप सिंचाई और पाइपलाइनों की जांच कर लीकेज ठीक करें।",
                 "उथली जड़ों वाली और नई रोपित फसलों में मिट्टी की नमी की नियमित निगरानी करें।",
             ],
+            what_is_happening_template="{panchayat_name} के लिए {rainfall_mm:.1f} मिमी शुष्क मौसम का पूर्वानुमान है।",
+            why_it_matters_template="शुष्क मौसम से निराई-गुड़ाई और कृषि कार्य आसान होंगे; आवश्यकतानुसार समय पर सिंचाई प्रबंधन करें।",
+            timing_template="अगले 24 से 48 घंटे",
+            warnings_templates=[],
         ),
     },
 
@@ -109,6 +147,10 @@ MULTILINGUAL_RULE_CATALOG: Dict[str, Dict[str, LocalizedRuleContent]] = {
                 "Favorable conditions for routine nursery management, intercultural hoeing, and field scouting.",
                 "Ensure harvested produce in open threshing yards is kept under protective tarpaulins if drizzle occurs.",
             ],
+            what_is_happening_template="Very light rainfall ({rainfall_mm:.1f} mm) forecast for {panchayat_name}.",
+            why_it_matters_template="Light drizzle maintains surface soil moisture without disrupting standard crop care activities.",
+            timing_template="Next 24 to 48 hours",
+            warnings_templates=[],
         ),
         "mr": LocalizedRuleContent(
             title_template="{panchayat_name} साठी अतिशय हलका पाऊस सल्ला - नियमित शेतीकामे",
@@ -118,6 +160,10 @@ MULTILINGUAL_RULE_CATALOG: Dict[str, Dict[str, LocalizedRuleContent]] = {
                 "रोपवाटिका व्यवस्थापन व कीड-रोग सर्वेक्षणासाठी परिस्थिती अनुकूल आहे.",
                 "खळ्यामध्ये उघड्यावर ठेवलेला शेतमाल पावसाच्या सरी आल्यास सुरक्षित झाकून ठेवावा.",
             ],
+            what_is_happening_template="{panchayat_name} साठी अतिशय हलक्या पावसाचा ({rainfall_mm:.1f} मिमी) अंदाज आहे.",
+            why_it_matters_template="हलक्या सरींमुळे जमिनीच्या वरच्या थरात ओलावा राहील, नियमित पीक व्यवस्थापन सुरू ठेवता येईल.",
+            timing_template="पुढील २४ ते ४८ तास",
+            warnings_templates=[],
         ),
         "hi": LocalizedRuleContent(
             title_template="{panchayat_name} के लिए बहुत हल्की वर्षा सलाह - सामान्य कृषि कार्य",
@@ -127,6 +173,10 @@ MULTILINGUAL_RULE_CATALOG: Dict[str, Dict[str, LocalizedRuleContent]] = {
                 "नर्सरी प्रबंधन और कीट-रोग निगरानी के लिए मौसम उपयुक्त है।",
                 "खलिहान में रखी कटी हुई फसल को बारिश की बूंदों से बचाने के लिए तिरपाल से ढकें।",
             ],
+            what_is_happening_template="{panchayat_name} के लिए बहुत हल्की वर्षा ({rainfall_mm:.1f} मिमी) का पूर्वानुमान है।",
+            why_it_matters_template="हल्की बूंदों से मिट्टी की ऊपरी सतह नम रहेगी, नियमित फसल प्रबंधन जारी रखा जा सकता है।",
+            timing_template="अगले 24 से 48 घंटे",
+            warnings_templates=[],
         ),
     },
 
@@ -140,6 +190,10 @@ MULTILINGUAL_RULE_CATALOG: Dict[str, Dict[str, LocalizedRuleContent]] = {
                 "Avoid routine foliar operations or dusting during active rainfall periods to prevent wash-off.",
                 "Store harvested produce, crop residues, and farm inputs under secure, dry coverings.",
             ],
+            what_is_happening_template="Light rainfall ({rainfall_mm:.1f} mm) forecast for {panchayat_name}.",
+            why_it_matters_template="Showers replenish soil moisture; spraying should be avoided during showers to prevent chemical wash-off.",
+            timing_template="Next 24 to 48 hours",
+            warnings_templates=[],
         ),
         "mr": LocalizedRuleContent(
             title_template="{panchayat_name} साठी हलका पाऊस सल्ला - ओलावा व फवारणी खबरदारी",
@@ -149,6 +203,10 @@ MULTILINGUAL_RULE_CATALOG: Dict[str, Dict[str, LocalizedRuleContent]] = {
                 "पाऊस सुरू असताना कोणतीही फवारणी करणे टाळावे, जेणेकरून औषध वाहून जाणार नाही.",
                 "काढणी केलेला शेतमाल व खते कोरड्या आणि सुरक्षित जागी साठवावीत.",
             ],
+            what_is_happening_template="{panchayat_name} साठी हलक्या पावसाचा ({rainfall_mm:.1f} मिमी) अंदाज आहे.",
+            why_it_matters_template="पावसामुळे ओलावा वाढेल; रासायनिक औषधे वाहून जाण्याचा धोका असल्याने पाऊस असताना फवारणी टाळावी.",
+            timing_template="पुढील २४ ते ४८ तास",
+            warnings_templates=[],
         ),
         "hi": LocalizedRuleContent(
             title_template="{panchayat_name} के लिए हल्की वर्षा सलाह - नमी एवं छिड़काव सावधानी",
@@ -158,6 +216,10 @@ MULTILINGUAL_RULE_CATALOG: Dict[str, Dict[str, LocalizedRuleContent]] = {
                 "वर्षा के दौरान पर्णीय छिड़काव न करें ताकि दवा बह न जाए।",
                 "कटी हुई फसल एवं उर्वरकों को सूखे व सुरक्षित स्थान पर रखें।",
             ],
+            what_is_happening_template="{panchayat_name} के लिए हल्की वर्षा ({rainfall_mm:.1f} मिमी) का पूर्वानुमान है।",
+            why_it_matters_template="हल्की वर्षा से नमी मिलेगी; दवा बहने से बचाने के लिए वर्षा के समय छिड़काव न करें।",
+            timing_template="अगले 24 से 48 घंटे",
+            warnings_templates=[],
         ),
     },
 
@@ -171,6 +233,12 @@ MULTILINGUAL_RULE_CATALOG: Dict[str, Dict[str, LocalizedRuleContent]] = {
                 "Postpone chemical spraying, broadcasting of fertilizers, and intercultural operations until the rainfall subsides.",
                 "Move harvested grains and agricultural inputs into sheltered, elevated, moisture-free storage.",
             ],
+            what_is_happening_template="Moderate rainfall ({rainfall_mm:.1f} mm) predicted for {panchayat_name}.",
+            why_it_matters_template="Substantial rainfall meets crop water requirements; excessive moisture may cause water stagnation in heavy soils.",
+            timing_template="Next 24 to 48 hours",
+            warnings_templates=[
+                "Suspend chemical spraying and fertilizer applications until rainfall ceases.",
+            ],
         ),
         "mr": LocalizedRuleContent(
             title_template="{panchayat_name} साठी मध्यम पाऊस सल्ला - पाण्याचा निचरा व सिंचन स्थगिती",
@@ -180,6 +248,12 @@ MULTILINGUAL_RULE_CATALOG: Dict[str, Dict[str, LocalizedRuleContent]] = {
                 "पाऊस संपेपर्यंत खते देणे, रासायनिक फवारणी आणि आंतरमशागतीची कामे पुढे ढकलावीत.",
                 "काढणी केलेले धान्य व निविष्ठा सुरक्षित आणि उंच जागी साठवून ठेवाव्यात.",
             ],
+            what_is_happening_template="{panchayat_name} साठी मध्यम पावसाचा ({rainfall_mm:.1f} मिमी) अंदाज आहे.",
+            why_it_matters_template="पुरेशा पावसामुळे पिकांची गरज भागेल; भारी जमिनीत पाणी साचून पिके पिवळी पडण्याचा किंवा मुळे कुजण्याचा धोका संभवतो.",
+            timing_template="पुढील २४ ते ४८ तास",
+            warnings_templates=[
+                "पाऊस सुरू असताना कोणतीही रासायनिक फवारणी अथवा खते देणे टाळावे.",
+            ],
         ),
         "hi": LocalizedRuleContent(
             title_template="{panchayat_name} के लिए मध्यम वर्षा सलाह - जल निकासी एवं सिंचाई स्थगन",
@@ -188,6 +262,12 @@ MULTILINGUAL_RULE_CATALOG: Dict[str, Dict[str, LocalizedRuleContent]] = {
                 "फसल की जड़ों में पानी जमा होने से रोकने के लिए खेत की जल निकासी नालियों को साफ रखें।",
                 "उर्वरक का बुरकाव, कीटनाशक छिड़काव और निराई-गुड़ाई बारिश रुकने तक स्थगित रखें।",
                 "कटे हुए अनाज और कृषि इनपुट को ऊंचे व सूखे स्थान पर सुरक्षित करें।",
+            ],
+            what_is_happening_template="{panchayat_name} के लिए मध्यम वर्षा ({rainfall_mm:.1f} मिमी) का पूर्वानुमान है।",
+            why_it_matters_template="पर्याप्त वर्षा से फसल की जल मांग पूरी होगी; भारी मिट्टी में जलभराव से जड़ सड़न का खतरा हो सकता है।",
+            timing_template="अगले 24 से 48 घंटे",
+            warnings_templates=[
+                "वर्षा के दौरान कीटनाशक छिड़काव और रासायनिक खाद का प्रयोग न करें।",
             ],
         ),
     },
@@ -203,6 +283,12 @@ MULTILINGUAL_RULE_CATALOG: Dict[str, Dict[str, LocalizedRuleContent]] = {
                 "Keep farm livestock sheltered indoors with clean drinking water and dry bedding away from low-lying areas.",
                 "Do not allow standing water accumulation around tree basins and vegetable beds.",
             ],
+            what_is_happening_template="Heavy rainfall warning ({rainfall_mm:.1f} mm) in effect for {panchayat_name}.",
+            why_it_matters_template="Intense precipitation creates acute risk of field waterlogging, nutrient leaching, and physical crop lodging.",
+            timing_template="Next 24 to 48 hours",
+            warnings_templates=[
+                "Strictly do not apply chemical fertilizers or pesticide sprays before heavy rainfall.",
+            ],
         ),
         "mr": LocalizedRuleContent(
             title_template="{panchayat_name} साठी मुसळधार पाऊस इशारा - पाण्याचा जलद निचरा व पीक संरक्षण",
@@ -213,6 +299,12 @@ MULTILINGUAL_RULE_CATALOG: Dict[str, Dict[str, LocalizedRuleContent]] = {
                 "जनावरांना सखल भागातून सुरक्षित, कोरड्या व निवारा असलेल्या गोठ्यात बांधावे.",
                 "झाडांच्या बुंध्याभोवती व वाफ्यांमध्ये पाणी साचू देऊ नये.",
             ],
+            what_is_happening_template="{panchayat_name} साठी मुसळधार पावसाचा इशारा ({rainfall_mm:.1f} मिमी) लागू करण्यात आला आहे.",
+            why_it_matters_template="मुसळधार पावसामुळे शेतात पाणी साचणे, खते वाहून जाणे व पिके लोळण्याचा गंभीर धोका निर्माण होतो.",
+            timing_template="पुढील २४ ते ४८ तास",
+            warnings_templates=[
+                "मुसळधार पावसापूर्वी कोणत्याही प्रकारची रासायनिक खते अथवा कीटकनाशके फवारू नयेत.",
+            ],
         ),
         "hi": LocalizedRuleContent(
             title_template="{panchayat_name} के लिए भारी वर्षा चेतावनी - अतिरिक्त जल निकासी एवं फसल सुरक्षा",
@@ -222,6 +314,12 @@ MULTILINGUAL_RULE_CATALOG: Dict[str, Dict[str, LocalizedRuleContent]] = {
                 "सब्जियों और कमजोर पौधों को हवा व तेज बारिश से गिरने से बचाने के लिए सहारा दें।",
                 "पशुओं को निचले इलाकों से हटाकर सुरक्षित, सूखे व हवादार शेड में रखें।",
                 "फसलों और फलदार वृक्षों के थालों में पानी जमा न होने दें।",
+            ],
+            what_is_happening_template="{panchayat_name} के लिए भारी वर्षा ({rainfall_mm:.1f} मिमी) की चेतावनी प्रभावी है।",
+            why_it_matters_template="भारी वर्षा से खेतों में जलभराव, पोषक तत्वों का रिसाव और फसलों के गिरने का गंभीर जोखिम है।",
+            timing_template="अगले 24 से 48 घंटे",
+            warnings_templates=[
+                "भारी वर्षा से पहले रासायनिक उर्वरक या कीटनाशकों का प्रयोग कतई न करें।",
             ],
         ),
     },
@@ -238,6 +336,12 @@ MULTILINGUAL_RULE_CATALOG: Dict[str, Dict[str, LocalizedRuleContent]] = {
                 "Ensure livestock are secured in well-sheltered, flood-safe structures with adequate dry fodder reserves.",
                 "Avoid crossing or working in submerged fields until excess water has safely receded.",
             ],
+            what_is_happening_template="Very heavy rainfall alert ({rainfall_mm:.1f} mm) issued for {panchayat_name}.",
+            why_it_matters_template="Severe inundation and topsoil erosion risk; immediate emergency drainage must be maintained.",
+            timing_template="Next 24 to 48 hours",
+            warnings_templates=[
+                "Halt all farm machinery and electric pump operations in inundated areas.",
+            ],
         ),
         "mr": LocalizedRuleContent(
             title_template="{panchayat_name} साठी अति मुसळधार पाऊस सतर्कता - आपत्कालीन निचरा व शेत संरक्षण",
@@ -249,6 +353,12 @@ MULTILINGUAL_RULE_CATALOG: Dict[str, Dict[str, LocalizedRuleContent]] = {
                 "जनावरांसाठी पूर-मुक्त निवारा व कोरड्या चाऱ्याची व्यवस्था करावी.",
                 "पाणी ओसरेपर्यंत पुराच्या पाण्यात किंवा दलदलीत जाणे टाळावे.",
             ],
+            what_is_happening_template="{panchayat_name} साठी अति मुसळधार पावसाची ({rainfall_mm:.1f} मिमी) सतर्कता जारी करण्यात आली आहे.",
+            why_it_matters_template="शेतात पूरस्थिती निर्माण होणे व वरची सुपीक माती वाहून जाण्याचा धोका; तातडीने अतिरिक्त पाणी बाहेर काढावे.",
+            timing_template="पुढील २४ ते ४८ तास",
+            warnings_templates=[
+                "पाणी साचलेल्या भागात विद्युत मोटारी व अवजारे सुरू ठेवणे टाळावे.",
+            ],
         ),
         "hi": LocalizedRuleContent(
             title_template="{panchayat_name} के लिए अत्यंत भारी वर्षा अलर्ट - आपातकालीन जल निकासी एवं सुरक्षा",
@@ -259,6 +369,12 @@ MULTILINGUAL_RULE_CATALOG: Dict[str, Dict[str, LocalizedRuleContent]] = {
                 "मोटर पंप, कृषि उपकरण और नर्सरी को सुरक्षित व ऊंचे स्थान पर ले जाएं।",
                 "पशुओं को बाढ़-सुरक्षित स्थानों पर रखें और सूखे चारे का प्रबंध रखें।",
                 "पानी उतरने तक जलमग्न खेतों में जाने से बचें।",
+            ],
+            what_is_happening_template="{panchayat_name} के लिए अत्यंत भारी वर्षा ({rainfall_mm:.1f} मिमी) का अलर्ट जारी किया गया है।",
+            why_it_matters_template="खेतों में भीषण जलभराव और उपजाऊ मिट्टी के कटाव का खतरा; तत्काल जल निकासी सुनिश्चित करें।",
+            timing_template="अगले 24 से 48 घंटे",
+            warnings_templates=[
+                "जलभराव वाले क्षेत्रों में विद्युत मोटर और मशीनरी का संचालन तुरंत बंद करें।",
             ],
         ),
     },
@@ -274,6 +390,12 @@ MULTILINGUAL_RULE_CATALOG: Dict[str, Dict[str, LocalizedRuleContent]] = {
                 "Strictly suspend all agricultural, harvesting, and transport activities across low-lying fields and riparian zones.",
                 "Monitor farm bunds, perimeter embankments, and village water bodies for integrity against breaching.",
             ],
+            what_is_happening_template="Extremely heavy rainfall red alert ({rainfall_mm:.1f} mm) active for {panchayat_name}.",
+            why_it_matters_template="Extreme flash flood and infrastructure damage hazard across low-lying agricultural zones.",
+            timing_template="Next 24 to 48 hours",
+            warnings_templates=[
+                "Red Alert: Completely halt all agricultural operations and stay clear of water channels.",
+            ],
         ),
         "mr": LocalizedRuleContent(
             title_template="{panchayat_name} साठी अत्यंत तीव्र मुसळधार पाऊस रेड अलर्ट - पूर व जीवरक्षण खबरदारी",
@@ -284,6 +406,12 @@ MULTILINGUAL_RULE_CATALOG: Dict[str, Dict[str, LocalizedRuleContent]] = {
                 "नदीकाठच्या व सखल भागातील शेती, वाहतूक व काढणीची कामे पूर्ण बंद ठेवावीत.",
                 "शेताचे बांध व तलावांची धूप/फुटणे यावर बारकाईने लक्ष ठेवावे.",
             ],
+            what_is_happening_template="{panchayat_name} साठी अत्यंत तीव्र मुसळधार पावसाचा ({rainfall_mm:.1f} मिमी) रेड अलर्ट जारी करण्यात आला आहे.",
+            why_it_matters_template="सखल शेतीक्षेत्रात अचानक पूर येणे व शेतीच्या मालमत्तेचे नुकसान होण्याचा अत्यंत गंभीर धोका.",
+            timing_template="पुढील २४ ते ४८ तास",
+            warnings_templates=[
+                "रेड अलर्ट: सर्व शेतीकामे त्वरित थांबवा आणि पाण्याच्या प्रवाहापासून दूर राहा.",
+            ],
         ),
         "hi": LocalizedRuleContent(
             title_template="{panchayat_name} के लिए अत्यधिक तीव्र वर्षा रेड अलर्ट - बाढ़ एवं सुरक्षा सावधानियां",
@@ -293,6 +421,12 @@ MULTILINGUAL_RULE_CATALOG: Dict[str, Dict[str, LocalizedRuleContent]] = {
                 "पशुधन, पंप और महंगे उपकरणों को ऊंचे बाढ़-सुरक्षित स्थानों पर स्थानांतरित करें।",
                 "निचले व नदी किनारे के खेतों में सभी कृषि और आवागमन गतिविधियां पूरी तरह बंद करें।",
                 "खेत के मेड़ों और तालाबों की सुरक्षा की निरंतर निगरानी करें।",
+            ],
+            what_is_happening_template="{panchayat_name} के लिए अत्यधिक तीव्र वर्षा ({rainfall_mm:.1f} मिमी) का रेड अलर्ट प्रभावी है।",
+            why_it_matters_template="निचले कृषि क्षेत्रों में आकस्मिक बाढ़ और बुनियादी ढांचे के नुकसान का अत्यंत गंभीर खतरा।",
+            timing_template="अगले 24 से 48 घंटे",
+            warnings_templates=[
+                "रेड अलर्ट: सभी कृषि गतिविधियां तत्काल रोकें और जल धाराओं से दूर रहें।",
             ],
         ),
     },

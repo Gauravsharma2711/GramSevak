@@ -459,3 +459,30 @@ Every lifecycle state change and edit writes an immutable record to the `advisor
 
 ### 12.7 Farmer Publication Isolation Invariant
 Unapproved advisories (`NEEDS_REVIEW`, `EDITED`, `REJECTED`, `GENERATED`) are strictly isolated from farmers. The farmer-facing forecast endpoints only query advisories with `status = APPROVED`, guaranteeing no raw AI hallucinations or unreviewed drafts ever reach end-users.
+
+---
+
+## 13. Farmer Application Integration & Controlled Multilingual Delivery (Phase 5.7)
+
+### 13.1 Publication Boundary & Authority
+- **Backend Authority:** The farmer client (`farmer_app`) never decides whether an advisory is approved. The backend (`GET /api/v1/farmer/panchayat/{id}`) filters strictly by `status == 'APPROVED'`.
+- **Isolation of Unapproved Content:** When no approved advisory exists for the Panchayat and date, the API returns `advisory_status: "NO_APPROVED_ADVISORY"` with empty advisory strings. Drafts, generated proposals, validation diagnostics, rejected records, and officer comments are never exposed to farmers.
+- **Client Sanitization:** All internal pipeline metadata (officer IDs, LLM prompts, validation logs, raw tokens, database keys) are stripped before JSON serialization.
+
+### 13.2 Farmer-Facing 3-Tier Advisory Contract
+The farmer experience decomposes advisory guidance into four cognitive tiers:
+1. **What is happening?** (`what_is_happening`): Authoritative weather statement with exact numerical rainfall and classification downscaled to the Panchayat.
+2. **Why it matters?** (`why_it_matters`): Agronomic significance explaining the impact on local soils, crops (e.g. onions, grapes), and farm operations.
+3. **What should I do?** (`recommended_actions`): Concrete, numbered actionable steps (e.g., suspend spraying, open drainage trenches).
+4. **When should I do it & Operational Warnings** (`timing`, `warnings`): Specific operational windows and safety constraints (e.g., avoid pre-rain fertilizer broadcast).
+
+### 13.3 Controlled Multilingual Delivery & Numerical Immutability
+- **Supported Languages:** English (`en`), Marathi (`mr`), Hindi (`hi`).
+- **Translation Strategy:** Controlled deterministic agronomic templates (`src.advisory.localization`) grounded in verified Maharashtra agricultural extension terminology.
+- **Strict Numerical Immutability:** Weather numerical values (`rainfall_mm`, forecast dates, units `mm` / `मिमी`) are strictly preserved without alteration or hallucination across all target languages. AI is never permitted to calculate or approximate numerical values during translation.
+- **Language Negotiation:** Farmers select their preferred language via top-level app preferences or the in-screen language switch pill (`en`, `mr`, `hi`). The backend dynamically serves validated localized content based on the `?lang=` query parameter.
+
+### 13.4 Offline Resilience & Caching Policy
+- **Request Deduplication & Caching:** `FarmerRepository` caches the last successfully retrieved approved forecast per Panchayat and language.
+- **Safe Offline Presentation:** On transient network failure or timeout, `FarmerRepository` provides cached approved advisory content with a clear visual notice (`cached_notice: "Offline / cached advisory"`), ensuring farmers in low-connectivity rural zones retain access to vital guidance without misleading them regarding real-time freshness.
+- **Farmer-Safe Errors:** Technical exceptions, stack traces, and database connection strings are intercepted and replaced with farmer-friendly guidance ("Unable to load latest advisory. Please try again.").

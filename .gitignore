@@ -66,6 +66,8 @@ out/
 .pub-cache/
 .pub/
 /build/
+.kotlin/
+android/.kotlin/
 android/app/debug/
 android/app/profile/
 android/app/release/

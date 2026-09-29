@@ -228,6 +228,24 @@ class FarmerRepository {
   Future<PanchayatItem> getPanchayat(int panchayatId) =>
       getPanchayatById(panchayatId);
 
+  final Map<String, FarmerForecast> _forecastCache = {};
+
+  /// Cache key generator
+  String _cacheKey(int panchayatId, String lang, String? date) =>
+      '$panchayatId-$lang-${date ?? "latest"}';
+
+  /// Clear in-memory forecast cache
+  void clearCache() => _forecastCache.clear();
+
+  /// Inspect cached forecast if available
+  FarmerForecast? getCachedForecast({
+    required int panchayatId,
+    String lang = 'en',
+    String? forecastDate,
+  }) {
+    return _forecastCache[_cacheKey(panchayatId, lang, forecastDate)];
+  }
+
   /// Retrieve high-resolution downscaled weather forecast and approved advisory for a Panchayat
   Future<FarmerForecast> getFarmerForecast({
     required int panchayatId,
@@ -241,13 +259,22 @@ class FarmerRepository {
       queryParams['forecast_date'] = forecastDate;
     }
 
+    final key = _cacheKey(panchayatId, lang, forecastDate);
+
     try {
       final data = await _apiClient.get('/farmer/panchayat/$panchayatId',
           queryParams: queryParams);
       if (data is Map<String, dynamic>) {
-        return FarmerForecast.fromJson(data);
+        final forecast = FarmerForecast.fromJson(data);
+        _forecastCache[key] = forecast;
+        return forecast;
       }
     } catch (e) {
+      // If network failure occurs and we have a valid cached forecast for this key, return it
+      if (_forecastCache.containsKey(key)) {
+        return _forecastCache[key]!;
+      }
+
       if (e is FarmerApiException && e.statusCode == 404) {
         // No forecast found in database for this Panchayat/date -> construct clean unapproved forecast
         final matchedP = fallbackPanchayats.firstWhere(
