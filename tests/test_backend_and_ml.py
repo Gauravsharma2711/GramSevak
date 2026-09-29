@@ -135,8 +135,8 @@ def test_6_forecast_generation_valid_input(client):
     """
     payload = {
         "panchayat_id": 1001,
-        "forecast_date": "2026-05-09",
-        "forecast_issue_date": "2026-05-09",
+        "forecast_date": "2026-09-04",
+        "forecast_issue_date": "2026-09-04",
     }
     res = client.post("/api/v1/forecast/generate", json=payload)
     assert res.status_code == 200

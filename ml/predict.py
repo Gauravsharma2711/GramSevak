@@ -79,6 +79,12 @@ def load_trained_model(
         elif os.path.exists(DEFAULT_RF_PREPROCESSOR_PATH):
             preprocessor = joblib.load(DEFAULT_RF_PREPROCESSOR_PATH)
             
+    if isinstance(preprocessor, dict):
+        if "imputer" in preprocessor:
+            preprocessor = preprocessor["imputer"]
+        elif "preprocessor" in preprocessor:
+            preprocessor = preprocessor["preprocessor"]
+
     if use_cache:
         _MODEL_CACHE[model_path] = model
         if preprocessor_path and preprocessor:
@@ -287,8 +293,8 @@ def generate_xgboost_predictions(
     )
 
 
-DEFAULT_PHASE2_RF_MODEL_PATH = os.path.join(DEFAULT_MODEL_DIR, "random_forest", "best_model.joblib")
-DEFAULT_PHASE2_RF_PREPROCESSOR_PATH = os.path.join(DEFAULT_MODEL_DIR, "random_forest", "preprocessor.joblib")
+DEFAULT_PHASE2_RF_MODEL_PATH = DEFAULT_RF_MODEL_PATH
+DEFAULT_PHASE2_RF_PREPROCESSOR_PATH = DEFAULT_RF_PREPROCESSOR_PATH
 DEFAULT_PHASE2_MODEL_CONFIG_PATH = os.path.join(DEFAULT_MODEL_DIR, "model_config.json")
 
 
